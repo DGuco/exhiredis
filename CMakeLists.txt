@@ -6,19 +6,20 @@ add_compile_options(-Wall -g -pipe -std=c++11)
 add_definitions()
 
 set(EXHIREDIS
-        sources/demo.h
-        sources/demo.cpp)
+        include/exhiredis/connect_manager.hpp
+        include/exhiredis/redis_client.hpp
+        sources/redis_client.cpp)
 
 include_directories(
         /usr/include/
         /usr/local/include/
+        ${CMAKE_SOURCE_DIR}/include/exhiredis
 )
 
 
 link_directories(
         /usr/local/lib/
         /usr/lib/
-        ${CMAKE_SOURCE_DIR}/redusclient/base
 )
 
 add_library(exhiredis SHARED ${EXHIREDIS})
