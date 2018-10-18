@@ -12,7 +12,10 @@ set(EXHIREDIS
         include/exhiredis/redis_conn.h
         include/exhiredis/uuid.h
         include/exhiredis/rlock.h
-        sources/redis_conn.cpp include/exhiredis/base_config.h include/exhiredis/base_master_slave_config.h include/exhiredis/master_slave_config.h include/exhiredis/single_server_config.h)
+        sources/redis_conn.cpp include/exhiredis/config/base_config.h
+        include/exhiredis/config/base_master_slave_config.h
+        include/exhiredis/config/master_slave_config.h
+        include/exhiredis/config/single_server_config.h)
 
 include_directories(
         /usr/include/
@@ -27,5 +30,5 @@ link_directories(
 )
 
 add_library(exhiredis SHARED ${EXHIREDIS})
-target_link_libraries(exhiredis pthread hiredis uuid)
+target_link_libraries(exhiredis pthread hiredis uuid event)
 set(LIBRARY_OUTPUT_PATH /usr/local/lib/)
