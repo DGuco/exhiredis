@@ -1,14 +1,18 @@
 cmake_minimum_required(VERSION 3.6)
 project(exhiredis)
+add_subdirectory(example)
+
 set(CMAKE_C_COMPILER gcc)
 set(CMAKE_CXX_COMPILER g++)
 add_compile_options(-Wall -g -pipe -std=c++11)
 add_definitions()
 
 set(EXHIREDIS
-        include/exhiredis/connect_manager.hpp
-        include/exhiredis/redis_client.hpp
-        sources/redis_client.cpp)
+        include/exhiredis/connect_manager.h
+        include/exhiredis/redis_conn.h
+        include/exhiredis/uuid.h
+        include/exhiredis/rlock.h
+        sources/redis_conn.cpp include/exhiredis/base_config.h include/exhiredis/base_master_slave_config.h include/exhiredis/master_slave_config.h include/exhiredis/single_server_config.h)
 
 include_directories(
         /usr/include/
@@ -23,5 +27,5 @@ link_directories(
 )
 
 add_library(exhiredis SHARED ${EXHIREDIS})
-target_link_libraries(exhiredis pthread hiredis)
+target_link_libraries(exhiredis pthread hiredis uuid)
 set(LIBRARY_OUTPUT_PATH /usr/local/lib/)

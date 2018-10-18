@@ -8,16 +8,17 @@
 #include <iostream>
 #include <hiredis/hiredis.h>
 #include <memory>
+#include <uuid>
 
 using namespace std;
 
 namespace exhiredis
 {
-	class CRedisClient
+	class CRedisConn
 	{
 	public:
-		CRedisClient();
-		virtual ~CRedisClient();
+		CRedisConn();
+		virtual ~CRedisConn();
 	private:
 		redisContext* m_pRedisConrext;
 	};

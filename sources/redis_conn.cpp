@@ -2,16 +2,16 @@
 // Created by dguco on 18-10-17.
 //
 
-#include "redis_client.hpp"
+#include "redis_conn.h"
 
 namespace exhiredis
 {
-	CRedisClient::CRedisClient()
+	CRedisConn::CRedisConn()
 	{
 
 	}
 
-	CRedisClient::~CRedisClient()
+	CRedisConn::~CRedisConn()
 	{
 		if (m_pRedisConrext != nullptr) {
 			redisFree(m_pRedisConrext);
