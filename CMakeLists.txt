@@ -25,10 +25,10 @@ include_directories(
 
 
 link_directories(
-        /usr/local/lib/
         /usr/lib/
+        /usr/local/lib/
 )
 
 add_library(exhiredis SHARED ${EXHIREDIS})
 target_link_libraries(exhiredis pthread hiredis uuid event)
-set(LIBRARY_OUTPUT_PATH /usr/local/lib/)
+set(LIBRARY_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/lib/)

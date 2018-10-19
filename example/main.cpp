@@ -3,6 +3,7 @@
 //
 
 #include <iostream>
+
 using namespace std;
 
 struct Demo
@@ -43,9 +44,9 @@ private:
 };
 int main()
 {
-	Test test1(1000);
-	int j = test1.GetJ( );
-	int a = test1.GetA( );
-	string b = test1.GetB( );
+//	Test test1(1000);
+//	int j = test1.GetJ( );
+//	int a = test1.GetA( );
+//	string b = test1.GetB( );
 
 }

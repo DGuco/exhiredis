@@ -6,10 +6,11 @@
 #ifndef EXHIREDIS_REDIS_CLIENT_H
 #define EXHIREDIS_REDIS_CLIENT_H
 
+#include <stdlib.h>
 #include <iostream>
 #include <hiredis/async.h>
 #include <memory>
-#include <uuid>
+#include <uuid.h>
 #include <string>
 #include <event.h>
 
@@ -23,7 +24,10 @@ namespace exhiredis
 		CRedisConn();
 		CRedisConn(const string &sAddress, int iPort);
 		virtual ~CRedisConn();
-		void Connect();
+		bool Connect();
+	public:
+		static void lcb_OnConnectCallback(const redisAsyncContext *c, int status);
+		static void lcb_OnDisconnectCallback(const redisAsyncContext *c, int status);
 	private:
 		redisAsyncContext *m_pRedisContext;
 		event_base *m_pEventBase;
