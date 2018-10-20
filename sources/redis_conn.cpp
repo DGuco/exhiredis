@@ -102,18 +102,40 @@ namespace exhiredis
 
 	void CRedisConn::SetConnState(CRedisConn::eConnState eConnState)
 	{
-		std::lock_guard<mutex> lk(m_connectLock);
-		m_eConnState = eConnState;
+		{
+			std::lock_guard<mutex> lk(m_connectLock);
+			m_eConnState = eConnState;
+		}
+		m_connectWaiter.notify_all( );
 	}
 
 	void CRedisConn::lcb_OnConnectCallback(const redisAsyncContext *c, int status)
 	{
-
+		CRedisConn *conn = (CRedisConn *) c->data;
+		if (status != REDIS_OK) {
+			HIREDIS_LOG_ERROR("Could not connect to redis,error msg: %s,status: %d", c->errstr, status);
+			conn->SetConnState(eConnState::CONNECT_ERROR);
+		}
+		else {
+			HIREDIS_LOG_INFO("Connected to Redis.");
+			//禁止hiredis 自动释放reply
+			c->c.reader->fn->freeObject = [](void *reply)
+			{};
+			conn->SetConnState(eConnState::CONNECTED);
+		}
 	}
 
 	void CRedisConn::lcb_OnDisconnectCallback(const redisAsyncContext *c, int status)
 	{
-
+		CRedisConn *conn = (CRedisConn *) c->data;
+		if (status != REDIS_OK) {
+			HIREDIS_LOG_ERROR("Disconnected from Redis on error: %s ", c->errstr);
+			conn->SetConnState(eConnState::DISCONNECT_ERROR);
+		}
+		else {
+			HIREDIS_LOG_ERROR("Disconnected from Redis ok.");
+			conn->SetConnState(eConnState::DISCONNECTED);
+		}
 	}
 
 	bool CRedisConn::InitHiredis()
