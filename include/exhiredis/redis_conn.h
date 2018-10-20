@@ -10,7 +10,7 @@
 #include <iostream>
 #include <hiredis/async.h>
 #include <memory>
-#include <uuid.h>
+#include <utils/uuid.h>
 #include <string>
 #include <event.h>
 #include <thread>

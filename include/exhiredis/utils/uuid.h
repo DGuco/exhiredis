@@ -13,13 +13,7 @@ namespace exhiredis
 	class CUuid final
 	{
 	public:
-		const char *GenerateUuid()
-		{
-			uuid_clear(uuid);
-			uuid_generate(uuid);
-			uuid_unparse(uuid, buff);
-			return buff;
-		}
+		const char *GenerateUuid();
 	private:
 		uuid_t uuid;
 		char buff[1024];
