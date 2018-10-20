@@ -11,6 +11,8 @@ using namespace std;
 
 namespace exhiredis
 {
+	std::mutex g_SingleTonLock;
+
 	template<typename T>
 	class CSingleton
 	{
@@ -22,7 +24,6 @@ namespace exhiredis
 		CSingleton &operator=(const CSingleton &temp) = delete;
 	private:
 		static std::shared_ptr<T> spSingleton;
-		static std::mutex m_lock;
 	public:
 		static std::shared_ptr<T> &GetSingletonPtr()
 		{
@@ -31,12 +32,13 @@ namespace exhiredis
 
 		static std::shared_ptr<T> &CreateInstance()
 		{
-			std::lock_guard<mutex> lock(m_lock);
+			std::lock_guard<mutex> lock(g_SingleTonLock);
 			if (spSingleton == NULL) {
 				spSingleton = std::make_shared<T>( );
 			}
 			return spSingleton;
 		}
 	};
+
 }
 #endif //EXHIREDIS_SINGLETON_HPP

@@ -11,21 +11,20 @@ set(EXHIREDIS
         include/exhiredis/connect_manager.h
         include/exhiredis/redis_conn.h
         include/exhiredis/uuid.h
-        include/exhiredis/rlock.h
-        sources/redis_conn.cpp
+        include/exhiredis/lock/rlock.h
+        include/exhiredis/utils/singleton.h
         include/exhiredis/config/base_config.h
         include/exhiredis/config/base_master_slave_config.h
         include/exhiredis/config/master_slave_config.h
         include/exhiredis/config/single_server_config.h
         include/exhiredis/utils/log.h
-        sources/util/log.cpp include/exhiredis/utils/singleton.h)
+        sources/redis_conn.cpp)
 
 include_directories(
         /usr/include/
         /usr/local/include/
         ${CMAKE_SOURCE_DIR}/include/exhiredis
 )
-
 
 link_directories(
         /usr/lib/

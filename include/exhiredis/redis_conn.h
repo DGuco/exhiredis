@@ -41,7 +41,7 @@ namespace exhiredis
 		//连接redis
 		bool ConnectUnix(const string &address);
 		//获取连接状态
-		eConnState GetConnState() const;
+		eConnState GetConnState();
 		//设置连接状态
 		void SetConnState(eConnState eConnState);
 	public:

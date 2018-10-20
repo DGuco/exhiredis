@@ -11,14 +11,16 @@ set(SOURCES
 include_directories(
         /usr/include/
         /usr/local/include/
-        ${CMAKE_SOURCE_DIR}/include/exhiredis
+        ${CMAKE_SOURCE_DIR}/include/
 )
 
 
 link_directories(
-        /usr/local/lib/
         /usr/lib/
+        /usr/local/lib/
+        ${CMAKE_SOURCE_DIR}/lib/
 )
 
 add_executable(example ${SOURCES})
+target_link_libraries(example exhiredis)
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/bin/)

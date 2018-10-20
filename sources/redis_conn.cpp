@@ -10,7 +10,6 @@ namespace exhiredis
 	CRedisConn::CRedisConn()
 		: m_pEventLoopThread(nullptr),
 		  m_pEventBase(nullptr),
-		  m_pEventBase(nullptr),
 		  m_sHost(""),
 		  m_iPort(0),
 		  m_bIsRuning(false),
@@ -91,7 +90,7 @@ namespace exhiredis
 		return GetConnState( ) == eConnState::CONNECTED;
 	}
 
-	CRedisConn::eConnState CRedisConn::GetConnState() const
+	CRedisConn::eConnState CRedisConn::GetConnState()
 	{
 		std::lock_guard<mutex> lk(m_connectLock);
 		return m_eConnState;
@@ -116,7 +115,7 @@ namespace exhiredis
 	void CRedisConn::InitHiredis()
 	{
 		if (redisLibeventAttach(m_pRedisContext, m_pEventBase) != REDIS_OK) {
-			printf("")
+			printf("");
 		}
 		redisAsyncSetConnectCallback(m_pRedisContext, &CRedisConn::lcb_OnConnectCallback);
 		redisAsyncSetDisconnectCallback(m_pRedisContext, &CRedisConn::lcb_OnDisconnectCallback);
