@@ -12,10 +12,13 @@ set(EXHIREDIS
         include/exhiredis/redis_conn.h
         include/exhiredis/uuid.h
         include/exhiredis/rlock.h
-        sources/redis_conn.cpp include/exhiredis/config/base_config.h
+        sources/redis_conn.cpp
+        include/exhiredis/config/base_config.h
         include/exhiredis/config/base_master_slave_config.h
         include/exhiredis/config/master_slave_config.h
-        include/exhiredis/config/single_server_config.h)
+        include/exhiredis/config/single_server_config.h
+        include/exhiredis/utils/log.h
+        sources/util/log.cpp include/exhiredis/utils/singleton.h)
 
 include_directories(
         /usr/include/
