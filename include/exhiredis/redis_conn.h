@@ -39,7 +39,7 @@ namespace exhiredis
 		//连接redis
 		bool Connect(const string &host, int port);
 		//连接redis
-		bool ConnectUnix(const string &address);
+		bool ConnecToUnix(const string &address);
 		//获取连接状态
 		eConnState GetConnState();
 		//设置连接状态
@@ -51,11 +51,11 @@ namespace exhiredis
 		static void lcb_OnDisconnectCallback(const redisAsyncContext *c, int status);
 	private:
 		//初始化hiredis
-		void InitHiredis();
+		bool InitHiredis();
 		//初始化libevent
-		void InitLibevent();
+		bool InitLibevent();
 		//运行eventloop
-		void RunEventLoop();
+		bool RunEventLoop();
 	private:
 		redisAsyncContext *m_pRedisContext;
 		std::shared_ptr<thread> m_pEventLoopThread;

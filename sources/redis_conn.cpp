@@ -4,6 +4,7 @@
 
 #include <hiredis/adapters/libevent.h>
 #include "redis_conn.h"
+#include "utils/log.h"
 
 namespace exhiredis
 {
@@ -40,16 +41,19 @@ namespace exhiredis
 		m_iPort = port;
 		m_pRedisContext = redisAsyncConnect(m_sHost.c_str( ), m_iPort);
 		if (nullptr == m_pRedisContext || m_pRedisContext->err) {
-			printf("Redis connect error: %s\n", m_pRedisContext->errstr);
+			HIREDIS_LOG_ERROR("Redis connect error: %s\n", m_pRedisContext->errstr);
 			SetConnState(eConnState::INIT_ERROR);
+			return false;
+		}
+		if (!InitHiredis( )) {
 			return false;
 		}
 		m_pEventBase = event_base_new( );
 		if (nullptr == m_pEventBase) {
-			printf("Create event base error\n");
+			HIREDIS_LOG_ERROR("Create event base error\n");
 		}
 		m_pEventLoopThread = std::make_shared<thread>([this]
-													  { event_base_dispatch(m_pEventBase); });
+													  { RunEventLoop( ); });
 
 		{
 			unique_lock<mutex> ul(m_runingLock);
@@ -63,17 +67,17 @@ namespace exhiredis
 		return GetConnState( ) == eConnState::CONNECTED;
 	}
 
-	bool CRedisConn::ConnectUnix(const string &address)
+	bool CRedisConn::ConnecToUnix(const string &address)
 	{
 		m_sAddress = address;
 		m_pRedisContext = redisAsyncConnectUnix(m_sAddress.c_str( ));
 		if (m_pRedisContext->err) {
-			printf("Redis connect error: %s\n", m_pRedisContext->errstr);
+			HIREDIS_LOG_ERROR("Redis connect error: %s\n", m_pRedisContext->errstr);
 			return false;
 		}
 		m_pEventBase = event_base_new( );
 		if (nullptr == m_pEventBase) {
-			printf("Create event base error\n");
+			HIREDIS_LOG_ERROR("Create event base error\n");
 		}
 		m_pEventLoopThread = std::make_shared<thread>([this]
 													  { event_base_dispatch(m_pEventBase); });
@@ -112,22 +116,33 @@ namespace exhiredis
 
 	}
 
-	void CRedisConn::InitHiredis()
+	bool CRedisConn::InitHiredis()
 	{
+		m_pRedisContext->data = this;
 		if (redisLibeventAttach(m_pRedisContext, m_pEventBase) != REDIS_OK) {
-			printf("");
+			SetConnState(eConnState::INIT_ERROR);
+			HIREDIS_LOG_ERROR("redisLibeventAttach failed\n");
+			return false;
 		}
-		redisAsyncSetConnectCallback(m_pRedisContext, &CRedisConn::lcb_OnConnectCallback);
-		redisAsyncSetDisconnectCallback(m_pRedisContext, &CRedisConn::lcb_OnDisconnectCallback);
+		if (redisAsyncSetConnectCallback(m_pRedisContext, &CRedisConn::lcb_OnConnectCallback) != REDIS_OK) {
+			SetConnState(eConnState::INIT_ERROR);
+			HIREDIS_LOG_ERROR("redisAsyncSetConnectCallback failed\n");
+			return false;
+		}
+		if (redisAsyncSetDisconnectCallback(m_pRedisContext, &CRedisConn::lcb_OnDisconnectCallback) != REDIS_OK) {
+			SetConnState(eConnState::INIT_ERROR);
+			HIREDIS_LOG_ERROR("redisAsyncSetDisconnectCallback failed\n");
+			return false;
+		}
 	}
 
-	void CRedisConn::InitLibevent()
+	bool CRedisConn::InitLibevent()
 	{
 
 	}
-	void CRedisConn::RunEventLoop()
+	bool CRedisConn::RunEventLoop()
 	{
-
+		event_base_dispatch(m_pEventBase);
 	}
 
 }
