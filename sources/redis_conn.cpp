@@ -3,6 +3,7 @@
 //
 
 #include <hiredis/adapters/libevent.h>
+#include <utils/signal.h>
 #include "redis_conn.h"
 #include "utils/log.h"
 
@@ -39,6 +40,10 @@ namespace exhiredis
 	{
 		m_sHost = host;
 		m_iPort = port;
+		if (!InitLibevent( )) {
+			SetConnState(eConnState::INIT_ERROR);
+			return false;
+		}
 		m_pRedisContext = redisAsyncConnect(m_sHost.c_str( ), m_iPort);
 		if (nullptr == m_pRedisContext || m_pRedisContext->err) {
 			HIREDIS_LOG_ERROR("Redis connect error: %s\n", m_pRedisContext->errstr);
@@ -48,13 +53,8 @@ namespace exhiredis
 		if (!InitHiredis( )) {
 			return false;
 		}
-		m_pEventBase = event_base_new( );
-		if (nullptr == m_pEventBase) {
-			HIREDIS_LOG_ERROR("Create event base error\n");
-		}
 		m_pEventLoopThread = std::make_shared<thread>([this]
 													  { RunEventLoop( ); });
-
 		{
 			unique_lock<mutex> ul(m_runingLock);
 			m_runingWaiter.wait(ul, [this]
@@ -117,7 +117,7 @@ namespace exhiredis
 			conn->SetConnState(eConnState::CONNECT_ERROR);
 		}
 		else {
-			HIREDIS_LOG_INFO("Connected to Redis.");
+			HIREDIS_LOG_INFO("Connected to Redis succeed.");
 			//禁止hiredis 自动释放reply
 			c->c.reader->fn->freeObject = [](void *reply)
 			{};
@@ -160,10 +160,15 @@ namespace exhiredis
 
 	bool CRedisConn::InitLibevent()
 	{
-
+		m_pEventBase = event_base_new( );
+		if (nullptr == m_pEventBase) {
+			HIREDIS_LOG_ERROR("Create event base error\n");
+		}
 	}
+
 	bool CRedisConn::RunEventLoop()
 	{
+		ignore_pipe( );
 		event_base_dispatch(m_pEventBase);
 	}
 

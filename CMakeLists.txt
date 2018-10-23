@@ -18,7 +18,31 @@ set(EXHIREDIS
         include/exhiredis/config/master_slave_config.h
         include/exhiredis/config/single_server_config.h
         include/exhiredis/utils/log.h
-        sources/redis_conn.cpp sources/utils/uuid.cpp)
+        sources/redis_conn.cpp
+        sources/utils/uuid.cpp
+        include/exhiredis/utils/signal.h
+        sources/utils/signal.cpp
+        include/exhiredis/redis_command.h
+        include/exhiredis/robject/robject.h
+        include/exhiredis/robject/rint.h
+        sources/robject/robject.cpp
+        sources/robject/rint.cpp
+        include/exhiredis/robject/rlong.h
+        sources/robject/rlong.cpp
+        include/exhiredis/robject/rstring.h
+        sources/robject/rstring.cpp
+        include/exhiredis/robject/rbool.h
+        sources/robject/rbool.cpp
+        include/exhiredis/robject/rfloat.h
+        include/exhiredis/robject/rdouble.h
+        sources/robject/rfloat.cpp
+        sources/robject/rdouble.cpp
+        include/exhiredis/robject/ruint.h
+        sources/robject/ruint.cpp
+        include/exhiredis/robject/rlonglong.h
+        sources/robject/rlonglong.cpp
+        include/exhiredis/robject/rulong.h
+        sources/robject/rulong.cpp include/exhiredis/robject/rulonglong.h sources/robject/rulonglong.cpp)
 
 include_directories(
         /usr/include/

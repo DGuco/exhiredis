@@ -4,17 +4,16 @@
 
 #include <iostream>
 #include <exhiredis/utils/log.h>
+#include <exhiredis/robject/rint.h>
 
 using namespace std;
 using namespace exhiredis;
 
 int main()
 {
-//	Test test1(1000);
-//	int j = test1.GetJ( );
-//	int a = test1.GetA( );
-//	string b = test1.GetB( );
-	CLog::CreateInstance( );
-	HIREDIS_LOG_DEBUG("12313123123 %d",1);
-	HIREDIS_LOG_ERROR("12313123123 %d",1);
+	RInt rint(10);
+	string str = rint.ToString( );
+	int value = rint.Value( );
+	printf("str = %s\n,value = %d\n", str.c_str( ), value);
+
 }
