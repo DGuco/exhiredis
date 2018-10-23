@@ -9,7 +9,7 @@
 #include <chrono>
 namespace exhiredis
 {
-	class CRlock
+	class IRlock
 	{
 	public:
 		virtual void lock() = 0;
