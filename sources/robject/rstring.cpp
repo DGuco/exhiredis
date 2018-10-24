@@ -15,9 +15,9 @@ namespace exhiredis
 	{
 		this->value = value;
 	}
-	string RString::FromString(const string &str)
+	void RString::FromString(const string &str)
 	{
-		return str;
+		this->value = str;
 	}
 	const string RString::ToString()
 	{

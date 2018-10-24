@@ -8,12 +8,12 @@
 #include "robject.h"
 namespace exhiredis
 {
-	class RString: public IRobject<string>
+	class RString: public Robject<string>
 	{
 	public:
 		RString();
 		RString(string str);
-		string FromString(const string &str) override;
+		void FromString(const string &str) override;
 		const string ToString() override;
 	};
 }

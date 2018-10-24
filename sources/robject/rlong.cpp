@@ -14,9 +14,9 @@ namespace exhiredis
 	{
 		this->value = value;
 	}
-	long RLong::FromString(const string &str)
+	void RLong::FromString(const string &str)
 	{
-		return atol(str.c_str( ));
+		this->value = atol(str.c_str( ));
 	}
 	const string RLong::ToString()
 	{

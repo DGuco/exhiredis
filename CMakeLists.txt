@@ -22,10 +22,8 @@ set(EXHIREDIS
         sources/utils/uuid.cpp
         include/exhiredis/utils/signal.h
         sources/utils/signal.cpp
-        include/exhiredis/redis_command.h
         include/exhiredis/robject/robject.h
         include/exhiredis/robject/rint.h
-        sources/robject/robject.cpp
         sources/robject/rint.cpp
         include/exhiredis/robject/rlong.h
         sources/robject/rlong.cpp
@@ -42,7 +40,14 @@ set(EXHIREDIS
         include/exhiredis/robject/rlonglong.h
         sources/robject/rlonglong.cpp
         include/exhiredis/robject/rulong.h
-        sources/robject/rulong.cpp include/exhiredis/robject/rulonglong.h sources/robject/rulonglong.cpp include/exhiredis/rstl/rimap.h include/exhiredis/rstl/rmap.h sources/stl/rmap.cpp include/exhiredis/command.h sources/command.cpp)
+        sources/robject/rulong.cpp
+        include/exhiredis/robject/rulonglong.h
+        sources/robject/rulonglong.cpp
+        include/exhiredis/rstl/rimap.h
+        include/exhiredis/rstl/rmap.h
+        sources/stl/rmap.cpp
+        include/exhiredis/command.h
+        sources/command.cpp)
 
 include_directories(
         /usr/include/

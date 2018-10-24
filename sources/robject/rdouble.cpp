@@ -16,13 +16,13 @@ namespace exhiredis
 		this->value = value;
 	}
 
-	double RDouble::FromString(const string &str)
+	void RDouble::FromString(const string &str)
 	{
-		return nullptr;
+		this->value = atof(str.c_str( ));
 	}
-	
+
 	const string RDouble::ToString()
 	{
-		return nullptr;
+		return to_string(this->value);
 	}
 }

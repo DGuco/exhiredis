@@ -8,12 +8,12 @@
 #include "robject.h"
 namespace exhiredis
 {
-	class RLongLong: public IRobject<long long>
+	class RLongLong: public Robject<long long>
 	{
 	public:
 		RLongLong();
 		RLongLong(long long value);
-		long long FromString(const string &str) override;
+		void FromString(const string &str) override;
 		const string ToString() override;
 	};
 }

@@ -14,9 +14,9 @@ namespace exhiredis
 	{
 		this->value = value;
 	}
-	unsigned long RUlong::FromString(const string &str)
+	void RUlong::FromString(const string &str)
 	{
-		return static_cast<unsigned long>(atol(str.c_str( )));
+		this->value = static_cast<unsigned long>(atol(str.c_str( )));
 	}
 	const string RUlong::ToString()
 	{

@@ -9,8 +9,6 @@
 namespace exhiredis
 {
 
-	unsigned long CCommand::_id = 0l;
-
 	CCommand::CCommand(const string &sCmd, unsigned long id)
 		: m_sCmd(sCmd),
 		  m_iCommandId(id)
@@ -33,11 +31,6 @@ namespace exhiredis
 	unsigned long CCommand::GetCommandId() const
 	{
 		return m_iCommandId;
-	}
-
-	IRobject &CCommand::GetObj() const
-	{
-		return m_oObj;
 	}
 
 	unsigned long CCommand::GenCommandId()

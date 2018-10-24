@@ -14,18 +14,18 @@ namespace exhiredis
 		this->value = value;
 	}
 
-	bool RBool::FromString(const string &str)
+	void RBool::FromString(const string &str)
 	{
-		int value = atoi(str.c_str( ));
-		return value != 0;
+		this->value = str == "true";
 	}
+	
 	const string RBool::ToString()
 	{
 		if (this->value) {
-			return "1";
+			return "true";
 		}
 		else {
-			return 0;
+			return "false";
 		}
 	}
 }

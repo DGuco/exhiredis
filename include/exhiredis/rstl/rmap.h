@@ -16,7 +16,7 @@ namespace exhiredis
 	{
 	public:
 		RMap(std::shared_ptr<CRedisConn> conn);
-		void Put(IRobject &key, IRobject &value);
+		void Put(IRobject &key, IRobject &value) override;
 		void Get(IRobject &key) override;
 	private:
 		std::shared_ptr<CRedisConn> m_pRedisConn;

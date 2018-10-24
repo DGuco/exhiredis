@@ -8,12 +8,12 @@
 #include "robject.h"
 namespace exhiredis
 {
-	class RFloat: public IRobject<float>
+	class RFloat: public Robject<float>
 	{
 	public:
 		RFloat();
 		RFloat(float value);
-		float FromString(const string &str) override;
+		void FromString(const string &str) override;
 		const string ToString() override;
 	};
 }

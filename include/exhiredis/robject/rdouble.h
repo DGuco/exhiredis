@@ -8,12 +8,12 @@
 #include "robject.h"
 namespace exhiredis
 {
-	class RDouble: public IRobject<double>
+	class RDouble: public Robject<double>
 	{
 	public:
 		RDouble();
 		RDouble(double value);
-		double FromString(const string &str) override;
+		void FromString(const string &str) override;
 		const string ToString() override;
 
 	};

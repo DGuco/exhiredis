@@ -14,10 +14,11 @@ namespace exhiredis
 	{
 		this->value = value;
 	}
-	unsigned long long RULongLong::FromString(const string &str)
+	void RULongLong::FromString(const string &str)
 	{
-		return static_cast<unsigned long long int>(atoll(str.c_str( )));
+		this->value = static_cast<unsigned long long int>(atoll(str.c_str( )));
 	}
+	
 	const string RULongLong::ToString()
 	{
 		return to_string(this->value);

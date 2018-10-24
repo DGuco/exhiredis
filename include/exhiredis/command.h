@@ -24,15 +24,13 @@ namespace exhiredis
 		CCommand(const char *cmd, unsigned long id);
 		unsigned long GetCommandId() const;
 		const promise<IRobject> &GetPromise() const;
-		IRobject &GetObj() const;
 	public:
 		static unsigned long GenCommandId();
 	private:
-		static unsigned long _id;
+		static atomic_ulong _id;
 		unsigned long m_iCommandId;
 		const string m_sCmd;
 		std::promise<IRobject> m_promise;
-		IRobject m_oObj;
 	};
 }
 #endif //EXHIREDIS_COMMAND_H

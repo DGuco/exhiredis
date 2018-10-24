@@ -16,9 +16,9 @@ namespace exhiredis
 		this->value = value;
 	}
 
-	float RFloat::FromString(const string &str)
+	void RFloat::FromString(const string &str)
 	{
-		return static_cast<float>(atof(str.c_str( )));
+		this->value = static_cast<float>(atof(str.c_str( )));
 	}
 	const string RFloat::ToString()
 	{

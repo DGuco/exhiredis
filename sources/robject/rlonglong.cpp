@@ -15,9 +15,9 @@ namespace exhiredis
 		this->value = value;
 	}
 
-	long long RLongLong::FromString(const string &str)
+	void RLongLong::FromString(const string &str)
 	{
-		return atoll(str.c_str( ));
+		this->value = atoll(str.c_str( ));
 	}
 
 	const string RLongLong::ToString()

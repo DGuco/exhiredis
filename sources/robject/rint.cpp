@@ -16,10 +16,9 @@ namespace exhiredis
 		this->value = value;
 	}
 
-	int RInt::FromString(const string &str)
+	void RInt::FromString(const string &str)
 	{
 		this->value = atoi(str.c_str( ));
-		return this->value;
 	}
 
 	const string RInt::ToString()

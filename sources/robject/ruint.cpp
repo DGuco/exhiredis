@@ -14,12 +14,11 @@ namespace exhiredis
 	{
 		this->value = value;
 	}
-	unsigned int RUint::FromString(const string &str)
+	void RUint::FromString(const string &str)
 	{
 		this->value = static_cast<unsigned int>(atoi(str.c_str( )));
-		return this->value;
 	}
-	
+
 	const string RUint::ToString()
 	{
 		return to_string(this->value);

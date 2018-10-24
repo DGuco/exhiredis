@@ -8,12 +8,12 @@
 #include "robject.h"
 namespace exhiredis
 {
-	class RUint: public IRobject<unsigned int>
+	class RUint: public Robject<unsigned int>
 	{
 	public:
 		RUint();
 		RUint(unsigned int value);
-		unsigned int FromString(const string &str) override;
+		void FromString(const string &str) override;
 		const string ToString() override;
 	};
 }

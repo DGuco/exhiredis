@@ -7,12 +7,12 @@
 #include "robject.h"
 namespace exhiredis
 {
-	class RBool: public IRobject<bool>
+	class RBool: public Robject<bool>
 	{
 	public:
 		RBool();
 		RBool(bool value);
-		bool FromString(const string &str) override;
+		void  FromString(const string &str) override;
 		const string ToString() override;
 	};
 }

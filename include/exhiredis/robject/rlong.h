@@ -9,12 +9,12 @@
 
 namespace exhiredis
 {
-	class RLong: public IRobject<long>
+	class RLong: public Robject<long>
 	{
 	public:
 		RLong();
 		RLong(long value);
-		long FromString(const string &str) override;
+		void FromString(const string &str) override;
 		const string ToString() override;
 	};
 }

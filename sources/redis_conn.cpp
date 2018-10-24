@@ -130,16 +130,6 @@ namespace exhiredis
 		return tmpCmd;
 	}
 
-	std::shared_ptr<CCommand> CRedisConn::FindCmd(unsigned long cmdId)
-	{
-		std::lock_guard<mutex> lock(m_runingLock);
-		auto it = m_mCmdMap.find(cmdId);
-		if (it != m_mCmdMap.end( )) {
-			return it->second;
-		}
-		return nullptr;
-	}
-
 	std::shared_ptr<CCommand> CRedisConn::RemoveCmd(unsigned long cmdId)
 	{
 		std::lock_guard<mutex> lock(m_runingLock);
@@ -189,7 +179,7 @@ namespace exhiredis
 		if (cmd != nullptr) {
 			if (reply != nullptr) {
 				redisReply *cmdReply = (redisReply *) reply;
-				cmd->GetPromise( ).set_value(cmd->GetObj( ).FromString(cmdReply->str));
+//				cmd->GetPromise( ).set_value(cmd->GetObj( ).FromString(cmdReply->str));
 			}
 		}
 	}

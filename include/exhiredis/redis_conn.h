@@ -49,8 +49,6 @@ namespace exhiredis
 		//执行命令
 		std::shared_ptr<CCommand> &RedisAsyncCommand(char *cmd, ...);
 	private:
-		//获取redis command
-		std::shared_ptr<CCommand> FindCmd(unsigned long cmdId);
 		//remove redis command
 		std::shared_ptr<CCommand> RemoveCmd(unsigned long cmdId);
 	private:

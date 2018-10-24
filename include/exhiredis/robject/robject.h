@@ -6,17 +6,29 @@
 #define EXHIREDIS_ROBJECT_H
 
 #include <string>
+#include <memory>
+
 using namespace std;
 
 namespace exhiredis
 {
-	template<class T>
 	class IRobject
 	{
 	public:
-		virtual T FromString(const string &str) = 0;
+		virtual void FromString(const string &str) = 0;
 		virtual const string ToString() = 0;
-		T &Value();
+	};
+
+	template<class T>
+	class Robject: public IRobject
+	{
+	public:
+		virtual void FromString(const string &str) = 0;
+		virtual const string ToString() override = 0;
+		T &Value()
+		{
+			return value;
+		};
 	protected:
 		T value;
 	};
