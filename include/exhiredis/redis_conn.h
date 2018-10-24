@@ -16,6 +16,8 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
+#include <unordered_map>
+#include "command.h"
 
 using namespace std;
 
@@ -44,11 +46,20 @@ namespace exhiredis
 		eConnState GetConnState();
 		//设置连接状态
 		void SetConnState(eConnState eConnState);
-	public:
+		//执行命令
+		std::shared_ptr<CCommand> &RedisAsyncCommand(char *cmd, ...);
+	private:
+		//获取redis command
+		std::shared_ptr<CCommand> FindCmd(unsigned long cmdId);
+		//remove redis command
+		std::shared_ptr<CCommand> RemoveCmd(unsigned long cmdId);
+	private:
 		//连接成功回调
-		static void lcb_OnConnectCallback(const redisAsyncContext *c, int status);
+		static void lcb_OnConnectCallback(const redisAsyncContext *context, int status);
 		//断开连接回调
-		static void lcb_OnDisconnectCallback(const redisAsyncContext *c, int status);
+		static void lcb_OnDisconnectCallback(const redisAsyncContext *context, int status);
+		//redis command callback
+		static void lcb_OnCommandCallback(redisAsyncContext *context, void *reply, void *privdata);
 	private:
 		//初始化hiredis
 		bool InitHiredis();
@@ -69,6 +80,7 @@ namespace exhiredis
 		std::condition_variable m_connectWaiter;
 		std::mutex m_runingLock;
 		std::condition_variable m_runingWaiter;
+		std::unordered_map<unsigned long, std::shared_ptr<CCommand>> m_mCmdMap;
 	};
 }
 #endif //EXHIREDIS_REDIS_CLIENT_H

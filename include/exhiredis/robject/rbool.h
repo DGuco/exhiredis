@@ -14,7 +14,6 @@ namespace exhiredis
 		RBool(bool value);
 		bool FromString(const string &str) override;
 		const string ToString() override;
-
 	};
 }
 #endif //EXHIREDIS_RBOOL_H

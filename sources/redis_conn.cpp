@@ -109,32 +109,88 @@ namespace exhiredis
 		m_connectWaiter.notify_all( );
 	}
 
-	void CRedisConn::lcb_OnConnectCallback(const redisAsyncContext *c, int status)
+	std::shared_ptr<CCommand> &CRedisConn::RedisAsyncCommand(char *cmd, ...)
 	{
-		CRedisConn *conn = (CRedisConn *) c->data;
+		va_list ap;
+		va_start(ap, cmd);
+		unsigned long cmdId = CCommand::GenCommandId( );
+		int status = redisvAsyncCommand(m_pRedisContext,
+										&CRedisConn::lcb_OnCommandCallback,
+										(void *) cmdId,
+										cmd,
+										ap);
+		std::shared_ptr<CCommand> tmpCmd = std::make_shared<CCommand>(cmd, cmdId);
+		va_end(ap);
+		if (status == REDIS_OK) {
+			m_mCmdMap.insert(std::make_pair(tmpCmd->GetCommandId( ), std::move(tmpCmd)));
+		}
+		else {
+			HIREDIS_LOG_ERROR("Push redis command failed,cmd = %s,redis status = %d", cmd, status);
+		}
+		return tmpCmd;
+	}
+
+	std::shared_ptr<CCommand> CRedisConn::FindCmd(unsigned long cmdId)
+	{
+		std::lock_guard<mutex> lock(m_runingLock);
+		auto it = m_mCmdMap.find(cmdId);
+		if (it != m_mCmdMap.end( )) {
+			return it->second;
+		}
+		return nullptr;
+	}
+
+	std::shared_ptr<CCommand> CRedisConn::RemoveCmd(unsigned long cmdId)
+	{
+		std::lock_guard<mutex> lock(m_runingLock);
+		auto it = m_mCmdMap.find(cmdId);
+		std::shared_ptr<CCommand> cmd = nullptr;
+		if (it != m_mCmdMap.end( )) {
+			cmd = it->second;
+			m_mCmdMap.erase(cmdId);
+		}
+		return cmd;
+	}
+
+	void CRedisConn::lcb_OnConnectCallback(const redisAsyncContext *context, int status)
+	{
+		CRedisConn *conn = (CRedisConn *) context->data;
 		if (status != REDIS_OK) {
-			HIREDIS_LOG_ERROR("Could not connect to redis,error msg: %s,status: %d", c->errstr, status);
+			HIREDIS_LOG_ERROR("Could not connect to redis,error msg: %s,status: %d", context->errstr, status);
 			conn->SetConnState(eConnState::CONNECT_ERROR);
 		}
 		else {
 			HIREDIS_LOG_INFO("Connected to Redis succeed.");
 			//禁止hiredis 自动释放reply
-			c->c.reader->fn->freeObject = [](void *reply)
+			context->c.reader->fn->freeObject = [](void *reply)
 			{};
 			conn->SetConnState(eConnState::CONNECTED);
 		}
 	}
 
-	void CRedisConn::lcb_OnDisconnectCallback(const redisAsyncContext *c, int status)
+	void CRedisConn::lcb_OnDisconnectCallback(const redisAsyncContext *context, int status)
 	{
-		CRedisConn *conn = (CRedisConn *) c->data;
+		CRedisConn *conn = (CRedisConn *) context->data;
 		if (status != REDIS_OK) {
-			HIREDIS_LOG_ERROR("Disconnected from Redis on error: %s ", c->errstr);
+			HIREDIS_LOG_ERROR("Disconnected from Redis on error: %s ", context->errstr);
 			conn->SetConnState(eConnState::DISCONNECT_ERROR);
 		}
 		else {
 			HIREDIS_LOG_ERROR("Disconnected from Redis ok.");
 			conn->SetConnState(eConnState::DISCONNECTED);
+		}
+	}
+
+	void CRedisConn::lcb_OnCommandCallback(redisAsyncContext *context, void *reply, void *privdata)
+	{
+		CRedisConn *conn = (CRedisConn *) context->data;
+		unsigned long cmdId = (unsigned long) privdata;
+		std::shared_ptr<CCommand> cmd = conn->RemoveCmd(cmdId);
+		if (cmd != nullptr) {
+			if (reply != nullptr) {
+				redisReply *cmdReply = (redisReply *) reply;
+				cmd->GetPromise( ).set_value(cmd->GetObj( ).FromString(cmdReply->str));
+			}
 		}
 	}
 

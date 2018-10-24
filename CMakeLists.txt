@@ -42,7 +42,7 @@ set(EXHIREDIS
         include/exhiredis/robject/rlonglong.h
         sources/robject/rlonglong.cpp
         include/exhiredis/robject/rulong.h
-        sources/robject/rulong.cpp include/exhiredis/robject/rulonglong.h sources/robject/rulonglong.cpp)
+        sources/robject/rulong.cpp include/exhiredis/robject/rulonglong.h sources/robject/rulonglong.cpp include/exhiredis/rstl/rimap.h include/exhiredis/rstl/rmap.h sources/stl/rmap.cpp include/exhiredis/command.h sources/command.cpp)
 
 include_directories(
         /usr/include/
