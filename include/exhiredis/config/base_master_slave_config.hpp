@@ -4,7 +4,7 @@
 
 #ifndef EXHIREDIS_BASE_MASTER_SLAVE_CONFIG_HPP
 #define EXHIREDIS_BASE_MASTER_SLAVE_CONFIG_HPP
-#include "config/base_config.h"
+#include "config/base_config.hpp"
 
 namespace exhiredis
 {

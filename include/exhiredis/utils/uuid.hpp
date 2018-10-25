@@ -18,5 +18,13 @@ namespace exhiredis
 		uuid_t uuid;
 		char buff[1024];
 	};
+
+	const char *CUuid::GenerateUuid()
+	{
+		uuid_clear(uuid);
+		uuid_generate(uuid);
+		uuid_unparse(uuid, buff);
+		return buff;
+	}
 }
 #endif //EXHIREDIS_UUID_HPP

@@ -1,58 +1,42 @@
 cmake_minimum_required(VERSION 3.6)
-project(exhiredis)
+project(exhiredis C CXX)
 add_subdirectory(example)
 
 set(CMAKE_C_COMPILER gcc)
 set(CMAKE_CXX_COMPILER g++)
-add_compile_options(-Wall -g -pipe -std=c++11)
+add_compile_options(-Wall -g -pipe -std=c++14)
 add_definitions()
 
 set(EXHIREDIS
-        include/exhiredis/connect_manager.h
-        include/exhiredis/redis_conn.h
-        include/exhiredis/utils/uuid.h
-        include/exhiredis/lock/rlock.h
-        include/exhiredis/utils/singleton.h
-        include/exhiredis/config/base_config.h
-        include/exhiredis/config/base_master_slave_config.h
-        include/exhiredis/config/master_slave_config.h
-        include/exhiredis/config/single_server_config.h
-        include/exhiredis/utils/log.h
-        sources/redis_conn.cpp
-        sources/utils/uuid.cpp
-        include/exhiredis/utils/signal.h
-        sources/utils/signal.cpp
-        include/exhiredis/robject/robject.h
-        include/exhiredis/robject/rint.h
-        sources/robject/rint.cpp
-        include/exhiredis/robject/rlong.h
-        sources/robject/rlong.cpp
-        include/exhiredis/robject/rstring.h
-        sources/robject/rstring.cpp
-        include/exhiredis/robject/rbool.h
-        sources/robject/rbool.cpp
-        include/exhiredis/robject/rfloat.h
-        include/exhiredis/robject/rdouble.h
-        sources/robject/rfloat.cpp
-        sources/robject/rdouble.cpp
-        include/exhiredis/robject/ruint.h
-        sources/robject/ruint.cpp
-        include/exhiredis/robject/rlonglong.h
-        sources/robject/rlonglong.cpp
-        include/exhiredis/robject/rulong.h
-        sources/robject/rulong.cpp
-        include/exhiredis/robject/rulonglong.h
-        sources/robject/rulonglong.cpp
-        include/exhiredis/rstl/rimap.h
-        include/exhiredis/rstl/rmap.h
-        sources/stl/rmap.cpp
-        include/exhiredis/command.h
-        sources/command.cpp)
+        include/exhiredis/command.hpp
+        include/exhiredis/connect_manager.hpp
+        include/exhiredis/redis_conn.hpp
+        include/exhiredis/lock/rlock.hpp
+        include/exhiredis/utils/uuid.hpp
+        include/exhiredis/utils/singleton.hpp
+        include/exhiredis/utils/log.hpp
+        include/exhiredis/utils/signal.hpp
+        include/exhiredis/config/base_config.hpp
+        include/exhiredis/config/base_master_slave_config.hpp
+        include/exhiredis/config/master_slave_config.hpp
+        include/exhiredis/config/single_server_config.hpp
+        include/exhiredis/robject/robject.hpp
+        include/exhiredis/robject/rint.hpp
+        include/exhiredis/robject/rlong.hpp
+        include/exhiredis/robject/rstring.hpp
+        include/exhiredis/robject/rbool.hpp
+        include/exhiredis/robject/rfloat.hpp
+        include/exhiredis/robject/rdouble.hpp
+        include/exhiredis/robject/ruint.hpp
+        include/exhiredis/robject/rlonglong.hpp
+        include/exhiredis/robject/rulong.hpp
+        include/exhiredis/robject/rulonglong.hpp
+        include/exhiredis/rstl/rmap.hpp)
 
 include_directories(
         /usr/include/
         /usr/local/include/
-        ${CMAKE_SOURCE_DIR}/include/exhiredis
+        ${CMAKE_SOURCE_DIR}/include/
 )
 
 link_directories(
@@ -61,5 +45,6 @@ link_directories(
 )
 
 add_library(exhiredis SHARED ${EXHIREDIS})
+set_target_properties(exhiredis PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(exhiredis pthread hiredis uuid event)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/lib/)

@@ -1,9 +1,21 @@
 //
 // Created by dguco on 18-10-23.
 //
-#include "robject/rbool.h"
+
+#ifndef EXHIREDIS_RBOOL_H
+#define EXHIREDIS_RBOOL_H
+#include "robject.hpp"
 namespace exhiredis
 {
+	class RBool: public Robject<bool>
+	{
+	public:
+		RBool();
+		RBool(bool value);
+		void FromString(const string &str) override;
+		const string ToString() override;
+	};
+
 	RBool::RBool()
 	{
 		this->value = false;
@@ -18,7 +30,7 @@ namespace exhiredis
 	{
 		this->value = str == "true";
 	}
-	
+
 	const string RBool::ToString()
 	{
 		if (this->value) {
@@ -29,3 +41,4 @@ namespace exhiredis
 		}
 	}
 }
+#endif //EXHIREDIS_RBOOL_H

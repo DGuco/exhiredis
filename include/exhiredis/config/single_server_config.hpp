@@ -5,7 +5,7 @@
 #ifndef EXHIREDIS_SINGLE_SERVER_CONFIG_HPP
 #define EXHIREDIS_SINGLE_SERVER_CONFIG_HPP
 
-#include "config/base_config.h"
+#include "config/base_config.hpp"
 #include <string>
 using namespace std;
 namespace exhiredis

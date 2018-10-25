@@ -2,12 +2,16 @@
 // Created by dguco on 18-10-22.
 //
 
+#ifndef EXHIREDIS_SIGNAL_H
+#define EXHIREDIS_SIGNAL_H
+
+#include <signal.h>
 #include <csignal>
 #include <cstdio>
-#include "utils/signal.h"
-
 namespace exhiredis
 {
+	void ignore_pipe();
+
 	void ignore_pipe()
 	{
 		struct sigaction sig;
@@ -22,3 +26,4 @@ namespace exhiredis
 	}
 
 }
+#endif //EXHIREDIS_SIGNAL_H

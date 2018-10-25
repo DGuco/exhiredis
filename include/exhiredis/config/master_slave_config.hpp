@@ -8,7 +8,7 @@
 #include <hash_set>
 #include <list>
 #include <utility>
-#include "config/base_master_slave_config.h"
+#include "config/base_master_slave_config.hpp"
 
 using namespace std;
 

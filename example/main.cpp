@@ -3,37 +3,30 @@
 //
 
 #include <iostream>
-#include <exhiredis/utils/log.h>
-#include <exhiredis/robject/rint.h>
+#include "exhiredis/rstl/rmap.hpp"
 
 using namespace std;
 using namespace exhiredis;
 
-class Test
+template<class T = int>
+class Children
 {
-	virtual void get() = 0;
-};
+public:
 
-class Children: public Test
-{
-	void get() override
+	T Value()
 	{
-
+		return value;
 	}
-};
-
-class Children1: public Test
-{
-	void get() override
-	{
-
-	}
+private:
+	T value;
 };
 
 int main()
 {
-	Test *test1 = new Children;
-	Test *test2 = new Children1;
-	int type1 = typeid(*test1).hash_code( );
-	int type2 = typeid(*test2).hash_code( );
+	Children<> *children = new Children<>( );
+	int a = children->Value( );
+	RMap<int, int> *map = new RMap<int, int>( );
+	int a1 = 1;
+	int b1 = 2;
+	map->Put(a1, b1);
 }

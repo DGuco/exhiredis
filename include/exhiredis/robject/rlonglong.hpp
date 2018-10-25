@@ -2,9 +2,21 @@
 // Created by dguco on 18-10-23.
 //
 
-#include "robject/rlonglong.h"
+#ifndef EXHIREDIS_RLONGLONG_H
+#define EXHIREDIS_RLONGLONG_H
+
+#include "robject.hpp"
 namespace exhiredis
 {
+	class RLongLong: public Robject<long long>
+	{
+	public:
+		RLongLong();
+		RLongLong(long long value);
+		void FromString(const string &str) override;
+		const string ToString() override;
+	};
+
 	RLongLong::RLongLong()
 	{
 		this->value = 0ll;
@@ -25,3 +37,4 @@ namespace exhiredis
 		return to_string(this->value);
 	}
 }
+#endif //EXHIREDIS_RLONGLONG_H
