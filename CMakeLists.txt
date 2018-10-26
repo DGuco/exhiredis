@@ -31,7 +31,7 @@ set(EXHIREDIS
         include/exhiredis/robject/rlonglong.hpp
         include/exhiredis/robject/rulong.hpp
         include/exhiredis/robject/rulonglong.hpp
-        include/exhiredis/rstl/rmap.hpp)
+        include/exhiredis/rstl/rmap.hpp include/exhiredis/redis_commands.hpp)
 
 include_directories(
         /usr/include/

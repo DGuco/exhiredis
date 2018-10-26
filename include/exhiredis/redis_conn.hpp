@@ -50,10 +50,15 @@ namespace exhiredis
 		//设置连接状态
 		void SetConnState(eConnState eConnState);
 		//执行命令
-		std::shared_ptr<CCommand> &RedisAsyncCommand(char *cmd, ...);
+		template<class return_type>
+		future<return_type> RedisAsyncCommand(std::shared_ptr<CCommand<return_type>> tmpCommand, char *cmd, ...);
+		//构建cmd
+		template<class value_type>
+		std::shared_ptr<CCommand<value_type>> CreateCommand();
 	private:
+		unsigned long GenCommandId();
 		//remove redis command
-		std::shared_ptr<CCommand> RemoveCmd(unsigned long cmdId);
+//		std::shared_ptr<CCommand> RemoveCmd(unsigned long cmdId);
 	private:
 		//连接成功回调
 		static void lcb_OnConnectCallback(const redisAsyncContext *context, int status);
@@ -81,7 +86,8 @@ namespace exhiredis
 		std::condition_variable m_connectWaiter;
 		std::mutex m_runingLock;
 		std::condition_variable m_runingWaiter;
-		std::unordered_map<unsigned long, std::shared_ptr<CCommand>> m_mCmdMap;
+		atomic_ulong m_cmdId;
+//		std::unordered_map<unsigned long, std::shared_ptr<CCommand>> m_mCmdMap;
 	};
 
 	CRedisConn::CRedisConn()
@@ -184,38 +190,40 @@ namespace exhiredis
 		m_connectWaiter.notify_all( );
 	}
 
-	std::shared_ptr<CCommand> &CRedisConn::RedisAsyncCommand(char *cmd, ...)
+	template<class return_type>
+	future<return_type> CRedisConn::RedisAsyncCommand(std::shared_ptr<CCommand<return_type>> tmpCommand,
+													  char *cmd,
+													  ...)
 	{
 		va_list ap;
 		va_start(ap, cmd);
-		unsigned long cmdId = CCommand::GenCommandId( );
+		unsigned long cmdId = tmpCommand->GetCommandId( );
 		int status = redisvAsyncCommand(m_pRedisContext,
 										&CRedisConn::lcb_OnCommandCallback,
 										(void *) cmdId,
 										cmd,
 										ap);
-		std::shared_ptr<CCommand> tmpCmd = std::make_shared<CCommand>(cmd, cmdId);
 		va_end(ap);
 		if (status == REDIS_OK) {
-			m_mCmdMap.insert(std::make_pair(tmpCmd->GetCommandId( ), tmpCmd));
+//			m_mCmdMap.insert(std::make_pair(cmdId, tmpCommand));
 		}
 		else {
 			HIREDIS_LOG_ERROR("Push redis command failed,cmd = %s,redis status = %d", cmd, status);
 		}
-		return tmpCmd;
+		return tmpCommand->GetPromise( ).get_future( );
 	}
 
-	std::shared_ptr<CCommand> CRedisConn::RemoveCmd(unsigned long cmdId)
-	{
-		std::lock_guard<mutex> lock(m_runingLock);
-		auto it = m_mCmdMap.find(cmdId);
-		std::shared_ptr<CCommand> cmd = nullptr;
-		if (it != m_mCmdMap.end( )) {
-			cmd = it->second;
-			m_mCmdMap.erase(cmdId);
-		}
-		return cmd;
-	}
+//	std::shared_ptr<CCommand> CRedisConn::RemoveCmd(unsigned long cmdId)
+//	{
+//		std::lock_guard<mutex> lock(m_runingLock);
+//		auto it = m_mCmdMap.find(cmdId);
+//		std::shared_ptr<CCommand> cmd = nullptr;
+//		if (it != m_mCmdMap.end( )) {
+//			cmd = it->second;
+//			m_mCmdMap.erase(cmdId);
+//		}
+//		return cmd;
+//	}
 
 	void CRedisConn::lcb_OnConnectCallback(const redisAsyncContext *context, int status)
 	{
@@ -248,15 +256,15 @@ namespace exhiredis
 
 	void CRedisConn::lcb_OnCommandCallback(redisAsyncContext *context, void *reply, void *privdata)
 	{
-		CRedisConn *conn = (CRedisConn *) context->data;
-		unsigned long cmdId = (unsigned long) privdata;
-		std::shared_ptr<CCommand> cmd = conn->RemoveCmd(cmdId);
-		if (cmd != nullptr) {
-			if (reply != nullptr) {
-				redisReply *cmdReply = (redisReply *) reply;
-//				cmd->GetPromise( ).set_value(cmd->GetObj( ).FromString(cmdReply->str));
-			}
-		}
+//		CRedisConn *conn = (CRedisConn *) context->data;
+//		unsigned long cmdId = (unsigned long) privdata;
+//		std::shared_ptr<CCommand> cmd = conn->RemoveCmd(cmdId);
+//		if (cmd != nullptr) {
+//			if (reply != nullptr) {
+//				redisReply *cmdReply = (redisReply *) reply;
+////				cmd->GetPromise( ).set_value(cmd->GetObj( ).FromString(cmdReply->str));
+//			}
+//		}
 	}
 
 	bool CRedisConn::InitHiredis()
@@ -292,5 +300,18 @@ namespace exhiredis
 		ignore_pipe( );
 		event_base_dispatch(m_pEventBase);
 	}
+
+	unsigned long CRedisConn::GenCommandId()
+	{
+		return ++m_cmdId;
+	}
+
+	//构建cmd
+	template<class value_type>
+	std::shared_ptr<CCommand<value_type>> CRedisConn::CreateCommand()
+	{
+		return std::make_shared<CCommand<value_type>>(GenCommandId( ));
+	}
+
 }
 #endif //EXHIREDIS_REDIS_CONN_H

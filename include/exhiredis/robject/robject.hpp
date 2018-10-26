@@ -15,16 +15,16 @@ namespace exhiredis
 	class IRobject
 	{
 	public:
-		virtual void FromString(const string &str) = 0;
-		virtual const string ToString() = 0;
+		virtual void FromString(const string &str)  = 0;
+		virtual const string ToString()  = 0;
 	};
 
 	template<class T>
 	class Robject: public IRobject
 	{
 	public:
-		virtual void FromString(const string &str) = 0;
-		virtual const string ToString() override = 0;
+		virtual void FromString(const string &str)  = 0;
+		virtual const string ToString()  = 0;
 		T &Value()
 		{
 			return value;

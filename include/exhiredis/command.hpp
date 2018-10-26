@@ -11,57 +11,67 @@
 
 namespace exhiredis
 {
+	class CCommandState
+	{
+	public:
+		static const int NO_REPLY = -1;   // No reply yet
+		static const int OK_REPLY = 0;    // Successful reply of the expected type
+		static const int NIL_REPLY = 1;   // Got a nil reply
+		static const int ERROR_REPLY = 2; // Got an error reply
+		static const int SEND_ERROR = 3;  // Could not send to server
+		static const int WRONG_TYPE = 4;  // Got reply, but it was not the expected type
+		static const int TIMEOUT = 5;     // No reply, timed out
+	};
+
 	template<class reply_type>
-	class ICommand
-	{
-
-	};
-
-	class CCommand: public ICommand<IRobject>
+	class CCommand
 	{
 	public:
-		CCommand(const string &sCmd, unsigned long id);
-		CCommand(const char *cmd, unsigned long id);
-		unsigned long GetCommandId() const;
-		const promise<IRobject> &GetPromise() const;
-	public:
-		static unsigned long GenCommandId();
+		//构造函数
+		CCommand(unsigned long id);
+		//获取cmd id
+		const unsigned long GetCommandId() const;
+		//获取cmd reply promise
+		const promise<reply_type> &GetPromise() const;
+		//获取cmd 状态
+		const int &GetCommState() const;
+		//设置cmd 状态
+		void SetCommState(const int iCommState);
 	private:
-		static atomic_ulong _id;
-		unsigned long m_iCommandId;
-		const string m_sCmd;
-		std::promise<IRobject> m_promise;
+		const unsigned long m_iCommandId;  //cmd id
+		std::atomic_int m_iCommState;
+		std::promise<reply_type> m_promise;
 	};
 
-	atomic_ulong CCommand::_id = {0};
-
-	CCommand::CCommand(const string &sCmd, unsigned long id)
-		: m_sCmd(sCmd),
-		  m_iCommandId(id)
+	template<class reply_type>
+	CCommand<reply_type>::CCommand(unsigned long id)
+		:m_iCommandId(id)
 	{
-
+		m_iCommState.store(CCommandState::NO_REPLY);
 	}
 
-	CCommand::CCommand(const char *cmd, unsigned long id)
-		: m_sCmd(cmd),
-		  m_iCommandId(id)
-	{
-
-	}
-
-	const promise<IRobject> &CCommand::GetPromise() const
+	template<class reply_type>
+	const promise<reply_type> &CCommand<reply_type>::GetPromise() const
 	{
 		return m_promise;
 	}
 
-	unsigned long CCommand::GetCommandId() const
+	template<class reply_type>
+	const unsigned long CCommand<reply_type>::GetCommandId() const
 	{
 		return m_iCommandId;
 	}
 
-	unsigned long CCommand::GenCommandId()
+	template<class reply_type>
+	const int &CCommand<reply_type>::GetCommState() const
 	{
-		return ++_id;
+		return m_iCommState.load( );
+	}
+
+	template<class reply_type>
+	void CCommand<reply_type>::SetCommState(const int iCommState)
+	{
+		m_iCommState.store(iCommState);
 	}
 }
 #endif //EXHIREDIS_COMMAND_H
