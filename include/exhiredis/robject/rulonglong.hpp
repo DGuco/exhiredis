@@ -5,6 +5,7 @@
 #ifndef EXHIREDIS_RULONGLONG_H
 #define EXHIREDIS_RULONGLONG_H
 
+#include <cstring>
 #include "robject.hpp"
 namespace exhiredis
 {
@@ -13,8 +14,8 @@ namespace exhiredis
 	public:
 		RULongLong();
 		RULongLong(unsigned long long value);
-		void FromString(const string &str) override;
-		const string ToString() override;
+		void FromString(char *str, int len) override;
+		const int ToString(char *str) override;
 	};
 
 	RULongLong::RULongLong()
@@ -26,14 +27,15 @@ namespace exhiredis
 	{
 		this->value = value;
 	}
-	void RULongLong::FromString(const string &str)
+	void RULongLong::FromString(char *str, int len)
 	{
-		this->value = static_cast<unsigned long long int>(atoll(str.c_str( )));
+		this->value = static_cast<unsigned long long int>(atoll(str));
 	}
-
-	const string RULongLong::ToString()
+	const int RULongLong::ToString(char *str)
 	{
-		return to_string(this->value);
+		string strValue = to_string(this->value);
+		strncpy(str, strValue.c_str( ), strValue.length( ));
+		return strValue.length( );
 	}
 }
 

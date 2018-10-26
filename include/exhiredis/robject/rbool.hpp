@@ -4,6 +4,7 @@
 
 #ifndef EXHIREDIS_RBOOL_H
 #define EXHIREDIS_RBOOL_H
+#include <cstring>
 #include "robject.hpp"
 namespace exhiredis
 {
@@ -12,8 +13,8 @@ namespace exhiredis
 	public:
 		RBool();
 		RBool(bool value);
-		void FromString(const string &str) override;
-		const string ToString() override;
+		void FromString(char *str, int len) override;
+		const int ToString(char *str) override;
 	};
 
 	RBool::RBool()
@@ -26,19 +27,23 @@ namespace exhiredis
 		this->value = value;
 	}
 
-	void RBool::FromString(const string &str)
+	void RBool::FromString(char *str, int len)
 	{
-		this->value = str == "true";
+		string strValue(str);
+		this->value = strValue == "true";
 	}
 
-	const string RBool::ToString()
+	const int RBool::ToString(char *str)
 	{
+		string strValue;
 		if (this->value) {
-			return "true";
+			strValue = "true";
 		}
 		else {
-			return "false";
+			strValue = "false";
 		}
+		strncpy(str, strValue.c_str( ), strValue.length( ));
+		return strValue.length( );
 	}
 }
 #endif //EXHIREDIS_RBOOL_H

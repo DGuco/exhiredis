@@ -5,6 +5,7 @@
 #ifndef EXHIREDIS_RFLOAT_H
 #define EXHIREDIS_RFLOAT_H
 
+#include <cstring>
 #include "robject.hpp"
 namespace exhiredis
 {
@@ -13,8 +14,8 @@ namespace exhiredis
 	public:
 		RFloat();
 		RFloat(float value);
-		void FromString(const string &str) override;
-		const string ToString() override;
+		void FromString(char *str, int len) override;
+		const int ToString(char *str) override;
 	};
 
 	RFloat::RFloat()
@@ -26,14 +27,16 @@ namespace exhiredis
 	{
 		this->value = value;
 	}
-
-	void RFloat::FromString(const string &str)
+	void RFloat::FromString(char *str, int len)
 	{
-		this->value = static_cast<float>(atof(str.c_str( )));
+		this->value = static_cast<float>(atof(str));
 	}
-	const string RFloat::ToString()
+
+	const int RFloat::ToString(char *str)
 	{
-		return to_string(this->value);
+		string strValue = to_string(this->value);
+		strncpy(str, strValue.c_str( ), strValue.length( ));
+		return strValue.length( );
 	}
 }
 #endif //EXHIREDIS_RFLOAT_H

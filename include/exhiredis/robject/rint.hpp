@@ -5,16 +5,18 @@
 #ifndef EXHIREDIS_RINT_HPP
 #define EXHIREDIS_RINT_HPP
 
+#include <cstring>
 #include "robject.hpp"
 
-namespace exhiredis {
-	class RInt : public Robject<int>
+namespace exhiredis
+{
+	class RInt: public Robject<int>
 	{
 	public:
 		RInt();
 		RInt(int value);
-		void FromString(const string &str) override;
-		const string ToString() override;
+		void FromString(char *str, int len) override;
+		const int ToString(char *str) override;
 	};
 
 	RInt::RInt()
@@ -26,15 +28,15 @@ namespace exhiredis {
 	{
 		this->value = value;
 	}
-
-	void RInt::FromString(const string &str)
+	void RInt::FromString(char *str, int len)
 	{
-		this->value = atoi(str.c_str( ));
+		this->value = atoi(str);
 	}
-
-	const string RInt::ToString()
+	const int RInt::ToString(char *str)
 	{
-		return to_string(this->value);
+		string strValue = to_string(this->value);
+		strncpy(str, strValue.c_str( ), strValue.length( ));
+		return strValue.length( );
 	}
 }
 #endif //EXHIREDIS_RINT_HPP

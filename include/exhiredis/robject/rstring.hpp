@@ -5,6 +5,7 @@
 #ifndef EXHIREDIS_RSTRING_H
 #define EXHIREDIS_RSTRING_H
 
+#include <cstring>
 #include "robject.hpp"
 namespace exhiredis
 {
@@ -13,8 +14,8 @@ namespace exhiredis
 	public:
 		RString();
 		RString(string str);
-		void FromString(const string &str) override;
-		const string ToString() override;
+		void FromString(char *str, int len) override;
+		const int ToString(char *str) override;
 	};
 
 	RString::RString()
@@ -26,13 +27,16 @@ namespace exhiredis
 	{
 		this->value = value;
 	}
-	void RString::FromString(const string &str)
+
+	void RString::FromString(char *str, int len)
 	{
 		this->value = str;
 	}
-	const string RString::ToString()
+
+	const int RString::ToString(char *str)
 	{
-		return this->value;
+		strncpy(str, this->value.c_str( ), this->value.length( ));
+		return this->value.length( );
 	}
 }
 #endif //EXHIREDIS_RSTRING_H

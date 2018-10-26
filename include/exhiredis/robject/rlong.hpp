@@ -5,6 +5,7 @@
 #ifndef EXHIREDIS_RINT_HPP
 #define EXHIREDIS_RINT_HPP
 
+#include <cstring>
 #include "robject.hpp"
 
 namespace exhiredis
@@ -14,8 +15,8 @@ namespace exhiredis
 	public:
 		RLong();
 		RLong(long value);
-		void FromString(const string &str) override;
-		const string ToString() override;
+		void FromString(char *str, int len) override;
+		const int ToString(char *str) override;
 	};
 
 	RLong::RLong()
@@ -26,13 +27,16 @@ namespace exhiredis
 	{
 		this->value = value;
 	}
-	void RLong::FromString(const string &str)
+	void RLong::FromString(char *str, int len)
 	{
-		this->value = atol(str.c_str( ));
+		this->value = atol(str);
 	}
-	const string RLong::ToString()
+
+	const int RLong::ToString(char *str)
 	{
-		return to_string(this->value);
+		string strValue = to_string(this->value);
+		strncpy(str, strValue.c_str( ), strValue.length( ));
+		return strValue.length( );
 	}
 }
 #endif //EXHIREDIS_RINT_HPP
