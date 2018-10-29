@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include "exhiredis/rstl/rmap.hpp"
+#include "exhiredis/redis_conn.hpp"
 
 using namespace std;
 using namespace exhiredis;
@@ -42,7 +43,7 @@ std::future<int> &&getFuture()
 					  { return 0; });
 }
 
-int main()
+void testStr()
 {
 	Test1 test1;
 	Test2 test2;
@@ -57,6 +58,19 @@ int main()
 	string string1 = "\"213123123\ \0eewqeqwe\"";
 	printf("name1 = %s\n", str);
 	printf("name2 = %s,len = %d\n", string1.c_str( ), string1.length( ));
-
-	std::future<int> &&f1 = getFuture( );
+}
+int main()
+{
+	CLog::CreateInstance( );
+	std::shared_ptr<CRedisConn> conn = std::make_shared<CRedisConn>( );
+	conn->Connect("127.0.0.1", 6379);
+	RMap<RInt, RInt> *rMap = new RMap<RInt, RInt>("TestMap", conn);
+	const RInt key = RInt(1);
+	const RInt value = RInt(10);
+	rMap->Put(key, value);
+	std::shared_ptr<RInt> res = rMap->Get(key);
+	printf("-------------------\n");
+	int intva = res->Value();
+	printf("res  = %d \n", intva);
+	delete rMap;
 }

@@ -15,6 +15,10 @@ namespace exhiredis
 	class IRobject
 	{
 	public:
+		IRobject()
+		{
+
+		};
 		virtual void FromString(char *str, int len)  = 0;
 		virtual const int ToString(char *str)  = 0;
 	};

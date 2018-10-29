@@ -23,7 +23,6 @@ namespace exhiredis
 		static const int TIMEOUT = 5;     // No reply, timed out
 	};
 
-	template<class reply_type>
 	class CCommand
 	{
 	public:
@@ -32,46 +31,42 @@ namespace exhiredis
 		//获取cmd id
 		const unsigned long GetCommandId() const;
 		//获取cmd reply promise
-		const promise<reply_type> &GetPromise() const;
+		shared_ptr<promise<redisReply *>> &GetPromise();
 		//获取cmd 状态
-		const int &GetCommState() const;
+		const int GetCommState() const;
 		//设置cmd 状态
 		void SetCommState(const int iCommState);
 	private:
 		const unsigned long m_iCommandId;  //cmd id
 		std::atomic_int m_iCommState;
-		std::promise<reply_type> m_promise;
+		std::shared_ptr<promise<redisReply *>> m_pPromise;
 	};
 
-	template<class reply_type>
-	CCommand<reply_type>::CCommand(unsigned long id)
-		:m_iCommandId(id)
+	CCommand::CCommand(unsigned long id)
+		: m_iCommandId(id),
+		  m_pPromise(std::make_shared<promise<redisReply *>>(std::promise<redisReply *>( )))
 	{
 		m_iCommState.store(CCommandState::NO_REPLY);
 	}
 
-	template<class reply_type>
-	const promise<reply_type> &CCommand<reply_type>::GetPromise() const
-	{
-		return m_promise;
-	}
-
-	template<class reply_type>
-	const unsigned long CCommand<reply_type>::GetCommandId() const
+	const unsigned long CCommand::GetCommandId() const
 	{
 		return m_iCommandId;
 	}
 
-	template<class reply_type>
-	const int &CCommand<reply_type>::GetCommState() const
+	const int CCommand::GetCommState() const
 	{
 		return m_iCommState.load( );
 	}
 
-	template<class reply_type>
-	void CCommand<reply_type>::SetCommState(const int iCommState)
+	void CCommand::SetCommState(const int iCommState)
 	{
 		m_iCommState.store(iCommState);
+	}
+
+	shared_ptr<promise<redisReply *>> &CCommand::GetPromise()
+	{
+		return m_pPromise;
 	}
 }
 #endif //EXHIREDIS_COMMAND_H

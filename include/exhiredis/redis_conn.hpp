@@ -21,6 +21,7 @@
 #include "utils/log.hpp"
 #include "command.hpp"
 #include "utils/uuid.hpp"
+#include "robject/rint.hpp"
 
 using namespace std;
 
@@ -50,15 +51,13 @@ namespace exhiredis
 		//设置连接状态
 		void SetConnState(eConnState eConnState);
 		//执行命令
-		template<class return_type>
-		future<return_type> RedisAsyncCommand(std::shared_ptr<CCommand<return_type>> tmpCommand, char *cmd, ...);
+		std::shared_ptr<CCommand> RedisAsyncCommand(char *cmd, ...);
 		//构建cmd
-		template<class value_type>
-		std::shared_ptr<CCommand<value_type>> CreateCommand();
+		std::shared_ptr<CCommand> CreateCommand();
 	private:
 		unsigned long GenCommandId();
 		//remove redis command
-//		std::shared_ptr<CCommand> RemoveCmd(unsigned long cmdId);
+		std::shared_ptr<CCommand> RemoveCmd(unsigned long cmdId);
 	private:
 		//连接成功回调
 		static void lcb_OnConnectCallback(const redisAsyncContext *context, int status);
@@ -83,11 +82,11 @@ namespace exhiredis
 		bool m_bIsRuning;
 		eConnState m_eConnState;
 		std::mutex m_connectLock;
-		std::condition_variable m_connectWaiter;
+//		std::condition_variable m_connectWaiter;
 		std::mutex m_runingLock;
-		std::condition_variable m_runingWaiter;
+//		std::condition_variable m_runingWaiter;
 		atomic_ulong m_cmdId;
-//		std::unordered_map<unsigned long, std::shared_ptr<CCommand>> m_mCmdMap;
+		std::unordered_map<unsigned long, std::shared_ptr<CCommand>> m_mCmdMap;
 	};
 
 	CRedisConn::CRedisConn()
@@ -107,6 +106,7 @@ namespace exhiredis
 			redisAsyncFree(m_pRedisContext);
 		}
 		if (m_pEventBase != nullptr) {
+			event_base_loopbreak(m_pEventBase);
 			event_base_free(m_pEventBase);
 		}
 		if (m_pEventLoopThread != nullptr) {
@@ -136,14 +136,14 @@ namespace exhiredis
 		}
 		m_pEventLoopThread = std::make_shared<thread>([this]
 													  { RunEventLoop( ); });
-		{
-			unique_lock<mutex> ul(m_runingLock);
-			m_runingWaiter.wait(ul, [this]
-			{
-				lock_guard<mutex> lg(m_connectLock);
-				return m_bIsRuning || m_eConnState == eConnState::CONNECT_ERROR;
-			});
-		}
+//		{
+//			unique_lock<mutex> ul(m_runingLock);
+//			m_runingWaiter.wait(ul, [this]
+//			{
+//				lock_guard<mutex> lg(m_connectLock);
+//				return m_bIsRuning || m_eConnState == eConnState::CONNECT_ERROR;
+//			});
+//		}
 
 		return GetConnState( ) == eConnState::CONNECTED;
 	}
@@ -163,14 +163,14 @@ namespace exhiredis
 		m_pEventLoopThread = std::make_shared<thread>([this]
 													  { event_base_dispatch(m_pEventBase); });
 
-		{
-			unique_lock<mutex> ul(m_runingLock);
-			m_runingWaiter.wait(ul, [this]
-			{
-				lock_guard<mutex> lg(m_connectLock);
-				return m_bIsRuning || m_eConnState == eConnState::CONNECT_ERROR;
-			});
-		}
+//		{
+//			unique_lock<mutex> ul(m_runingLock);
+//			m_runingWaiter.wait(ul, [this]
+//			{
+//				lock_guard<mutex> lg(m_connectLock);
+//				return m_bIsRuning || m_eConnState == eConnState::CONNECT_ERROR;
+//			});
+//		}
 
 		return GetConnState( ) == eConnState::CONNECTED;
 	}
@@ -187,16 +187,15 @@ namespace exhiredis
 			std::lock_guard<mutex> lk(m_connectLock);
 			m_eConnState = eConnState;
 		}
-		m_connectWaiter.notify_all( );
+//		m_connectWaiter.notify_all( );
 	}
 
-	template<class return_type>
-	future<return_type> CRedisConn::RedisAsyncCommand(std::shared_ptr<CCommand<return_type>> tmpCommand,
-													  char *cmd,
-													  ...)
+	std::shared_ptr<CCommand> CRedisConn::RedisAsyncCommand(char *cmd,
+															...)
 	{
 		va_list ap;
 		va_start(ap, cmd);
+		std::shared_ptr<CCommand> tmpCommand = CreateCommand( );
 		unsigned long cmdId = tmpCommand->GetCommandId( );
 		int status = redisvAsyncCommand(m_pRedisContext,
 										&CRedisConn::lcb_OnCommandCallback,
@@ -205,25 +204,25 @@ namespace exhiredis
 										ap);
 		va_end(ap);
 		if (status == REDIS_OK) {
-//			m_mCmdMap.insert(std::make_pair(cmdId, tmpCommand));
+			m_mCmdMap.insert(std::make_pair(cmdId, tmpCommand));
 		}
 		else {
 			HIREDIS_LOG_ERROR("Push redis command failed,cmd = %s,redis status = %d", cmd, status);
 		}
-		return tmpCommand->GetPromise( ).get_future( );
+		return tmpCommand;
 	}
 
-//	std::shared_ptr<CCommand> CRedisConn::RemoveCmd(unsigned long cmdId)
-//	{
-//		std::lock_guard<mutex> lock(m_runingLock);
-//		auto it = m_mCmdMap.find(cmdId);
-//		std::shared_ptr<CCommand> cmd = nullptr;
-//		if (it != m_mCmdMap.end( )) {
-//			cmd = it->second;
-//			m_mCmdMap.erase(cmdId);
-//		}
-//		return cmd;
-//	}
+	std::shared_ptr<CCommand> CRedisConn::RemoveCmd(unsigned long cmdId)
+	{
+		std::lock_guard<mutex> lock(m_runingLock);
+		auto it = m_mCmdMap.find(cmdId);
+		std::shared_ptr<CCommand> cmd = nullptr;
+		if (it != m_mCmdMap.end( )) {
+			cmd = it->second;
+			m_mCmdMap.erase(cmdId);
+		}
+		return cmd;
+	}
 
 	void CRedisConn::lcb_OnConnectCallback(const redisAsyncContext *context, int status)
 	{
@@ -256,15 +255,16 @@ namespace exhiredis
 
 	void CRedisConn::lcb_OnCommandCallback(redisAsyncContext *context, void *reply, void *privdata)
 	{
-//		CRedisConn *conn = (CRedisConn *) context->data;
-//		unsigned long cmdId = (unsigned long) privdata;
-//		std::shared_ptr<CCommand> cmd = conn->RemoveCmd(cmdId);
-//		if (cmd != nullptr) {
-//			if (reply != nullptr) {
-//				redisReply *cmdReply = (redisReply *) reply;
-////				cmd->GetPromise( ).set_value(cmd->GetObj( ).FromString(cmdReply->str));
-//			}
-//		}
+		CRedisConn *conn = (CRedisConn *) context->data;
+		unsigned long cmdId = (unsigned long) privdata;
+		std::shared_ptr<CCommand> cmd = conn->RemoveCmd(cmdId);
+		if (cmd != nullptr) {
+			if (reply != nullptr) {
+				redisReply *cmdReply = (redisReply *) reply;
+				printf("===============cmdReply = %s\n", cmdReply->str);
+				cmd->GetPromise( )->set_value(cmdReply);
+			}
+		}
 	}
 
 	bool CRedisConn::InitHiredis()
@@ -285,6 +285,7 @@ namespace exhiredis
 			HIREDIS_LOG_ERROR("redisAsyncSetDisconnectCallback failed\n");
 			return false;
 		}
+		return true;
 	}
 
 	bool CRedisConn::InitLibevent()
@@ -292,13 +293,16 @@ namespace exhiredis
 		m_pEventBase = event_base_new( );
 		if (nullptr == m_pEventBase) {
 			HIREDIS_LOG_ERROR("Create event base error\n");
+			return false;
 		}
+		return true;
 	}
 
 	bool CRedisConn::RunEventLoop()
 	{
 		ignore_pipe( );
 		event_base_dispatch(m_pEventBase);
+		return true;
 	}
 
 	unsigned long CRedisConn::GenCommandId()
@@ -307,10 +311,9 @@ namespace exhiredis
 	}
 
 	//构建cmd
-	template<class value_type>
-	std::shared_ptr<CCommand<value_type>> CRedisConn::CreateCommand()
+	std::shared_ptr<CCommand> CRedisConn::CreateCommand()
 	{
-		return std::make_shared<CCommand<value_type>>(GenCommandId( ));
+		return std::make_shared<CCommand>(GenCommandId( ));
 	}
 
 }
