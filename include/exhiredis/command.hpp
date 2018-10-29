@@ -28,8 +28,12 @@ namespace exhiredis
 	public:
 		//构造函数
 		CCommand(unsigned long id);
+		//析构函数
+		~CCommand();
 		//获取cmd id
 		const unsigned long GetCommandId() const;
+		//设置promise value
+		void SetPromiseValue(redisReply *reply);
 		//获取cmd reply promise
 		shared_ptr<promise<redisReply *>> &GetPromise();
 		//获取cmd 状态
@@ -40,13 +44,23 @@ namespace exhiredis
 		const unsigned long m_iCommandId;  //cmd id
 		std::atomic_int m_iCommState;
 		std::shared_ptr<promise<redisReply *>> m_pPromise;
+		redisReply *m_pReply;
 	};
 
 	CCommand::CCommand(unsigned long id)
 		: m_iCommandId(id),
-		  m_pPromise(std::make_shared<promise<redisReply *>>(std::promise<redisReply *>( )))
+		  m_pPromise(std::make_shared<promise<redisReply *>>(std::promise<redisReply *>( ))),
+		  m_pReply(nullptr)
 	{
 		m_iCommState.store(CCommandState::NO_REPLY);
+	}
+
+	CCommand::~CCommand()
+	{
+		if (m_pReply != nullptr) {
+			//释放reply object
+			freeReplyObject(m_pReply);
+		}
 	}
 
 	const unsigned long CCommand::GetCommandId() const
@@ -62,6 +76,12 @@ namespace exhiredis
 	void CCommand::SetCommState(const int iCommState)
 	{
 		m_iCommState.store(iCommState);
+	}
+
+	void CCommand::SetPromiseValue(redisReply *reply)
+	{
+		m_pPromise->set_value(reply);
+		this->m_pReply = reply;
 	}
 
 	shared_ptr<promise<redisReply *>> &CCommand::GetPromise()

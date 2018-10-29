@@ -261,9 +261,11 @@ namespace exhiredis
 		if (cmd != nullptr) {
 			if (reply != nullptr) {
 				redisReply *cmdReply = (redisReply *) reply;
-				printf("===============cmdReply = %s\n", cmdReply->str);
-				cmd->GetPromise( )->set_value(cmdReply);
+				cmd->SetPromiseValue(cmdReply);
 			}
+		}
+		else {
+			cmd->SetPromiseValue(nullptr);
 		}
 	}
 

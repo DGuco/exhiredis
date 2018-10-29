@@ -77,7 +77,6 @@ namespace exhiredis
 	template<class key_type, class value_type>
 	std::shared_ptr<value_type> RMap<key_type, value_type>::Get(const key_type &key)
 	{
-		printf("==========Get=========\n");
 		return GetAsync(key).get( );
 	}
 
