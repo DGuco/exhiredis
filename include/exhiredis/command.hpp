@@ -45,6 +45,7 @@ namespace exhiredis
 		std::atomic_int m_iCommState;
 		std::shared_ptr<promise<redisReply *>> m_pPromise;
 		redisReply *m_pReply;
+		string m_sCmd;
 	};
 
 	CCommand::CCommand(unsigned long id)

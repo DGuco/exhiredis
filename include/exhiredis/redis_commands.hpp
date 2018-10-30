@@ -11,10 +11,8 @@ using namespace std;
 
 namespace exhiredis
 {
-	class CRedisCommands
-	{
-		static const string HGET = "HGET %s %s";
-		static const string HGET_B = "HGET %b %b";
-	};
+	const char *HGET = "HGET %s %b";
+	const char *HSET = "HSET %s %b %b";
+	const char *EVAL = "EVAL %s ";
 }
 #endif //EXHIREDIS_REDIS_COMMANDS_HPP

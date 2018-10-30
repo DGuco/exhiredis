@@ -9,6 +9,7 @@
 #include <utility>
 #include <future>
 #include "exhiredis/redis_conn.hpp"
+#include "exhiredis/redis_commands.hpp"
 
 namespace exhiredis
 {
@@ -34,16 +35,16 @@ namespace exhiredis
 		 * put
 		 * @param key
 		 * @param value
-		 * @return 0 success otherwise failed
+		 * @return true success false failed
 		 */
-		int Put(const key_type &key, const value_type &value);
+		bool Put(const key_type &key, const value_type &value);
 		/**
 		 * 异步 put
 		 * @param key
 		 * @param value
-		 * @return 0 success otherwise failed
+		 * @return true success false failed
 		 */
-		std::future<int> PutAsync(const key_type &key, const value_type &value);
+		std::future<bool> PutAsync(const key_type &key, const value_type &value);
 		/**
 		 * get
 		 * @param key
@@ -69,7 +70,7 @@ namespace exhiredis
 	}
 
 	template<class key_type, class value_type>
-	int RMap<key_type, value_type>::Put(const key_type &key, const value_type &value)
+	bool RMap<key_type, value_type>::Put(const key_type &key, const value_type &value)
 	{
 		return PutAsync(key, value).get( );
 	}
@@ -81,26 +82,18 @@ namespace exhiredis
 	}
 
 	template<class key_type, class value_type>
-	std::future<int> RMap<key_type, value_type>::PutAsync(const key_type &key, const value_type &value)
+	std::future<bool> RMap<key_type, value_type>::PutAsync(const key_type &key, const value_type &value)
 	{
 		char acKey[KEY_SIZE];
 		char acValue[VALUE_SIZE];
 		int keyLen = ((IRobject *) (&key))->ToString(acKey);
 		int valueLen = ((IRobject *) (&value))->ToString(acValue);
-		std::shared_ptr<CCommand> command = m_pRedisConn->RedisAsyncCommand("HSET %s %b %b",
-																			m_sName.c_str( ),
-																			acKey,
-																			keyLen,
-																			acValue,
-																			valueLen);
-		return std::async([command]() -> int
-						  {
-							  redisReply *res = command->GetPromise( )->get_future( ).get( );
-							  if (res == nullptr) {
-								  return -1;
-							  }
-							  return static_cast<int>(res->integer);
-						  });
+		return m_pRedisConn->RedisAsyncIsSucceedCommand(HSET,
+														m_sName.c_str( ),
+														acKey,
+														keyLen,
+														acValue,
+														valueLen);
 	}
 
 	template<class key_type, class value_type>
@@ -108,21 +101,10 @@ namespace exhiredis
 	{
 		char acKey[KEY_SIZE];
 		int keyLen = ((IRobject *) (&key))->ToString(acKey);
-		std::shared_ptr<CCommand> tmpCommand = m_pRedisConn->RedisAsyncCommand("HGET %s %b",
-																			   m_sName.c_str( ),
-																			   acKey,
-																			   keyLen);
-		return std::async([tmpCommand]() -> std::shared_ptr<value_type>
-						  {
-							  redisReply *res = tmpCommand->GetPromise( )->get_future( ).get( );
-							  if (res == nullptr) {
-								  return nullptr;
-							  }
-							  std::shared_ptr<value_type> value = std::make_shared<value_type>( );
-							  ((IRobject *) value.get( ))->FromString(res->str, res->len);
-							  printf("==========GetAsync=========\n");
-							  return value;
-						  });
+		return m_pRedisConn->RedisAsyncCommand<value_type>("HGET %s %b",
+														   m_sName.c_str( ),
+														   acKey,
+														   keyLen);
 	}
 }
 #endif //EXHIREDIS_RMAP_H

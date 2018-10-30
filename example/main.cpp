@@ -45,22 +45,24 @@ std::future<int> &&getFuture()
 
 void testStr()
 {
-	Test1 test1;
-	Test2 test2;
-	string name1 = typeid(1).name( );
-	string name2 = typeid(1).name( );
-	char str1[100] = "\"\\\"213123123\\ \\0eewqeqwe\\\"\"";
-	for (int i = 0; i < 100; i++) {
+	char *str = "2\0e";
+	string string1 = str;
+	string string2;
+	string2.assign(str, 3);
+	printf("name1 = %s,len = %d\n", string1.c_str( ), string1.length( ));
+	printf("name2 = %s,len = %d\n", string2.c_str( ), string2.length( ));
+	const char *str1 = string2.c_str( );
+	int i = 0;
+	printf("=========================\n");
+	while (i < string2.length( )) {
 		printf("%c", str1[i]);
+		i++;
 	}
 	printf("\n");
-	char *str = "\"213123123\ \0eewqeqwe\"";
-	string string1 = "\"213123123\ \0eewqeqwe\"";
-	printf("name1 = %s\n", str);
-	printf("name2 = %s,len = %d\n", string1.c_str( ), string1.length( ));
 }
 int main()
 {
+	testStr( );
 	CLog::CreateInstance( );
 	std::shared_ptr<CRedisConn> conn = std::make_shared<CRedisConn>( );
 	conn->Connect("127.0.0.1", 6379);
@@ -70,7 +72,7 @@ int main()
 	rMap->Put(key, value);
 	std::shared_ptr<RInt> res = rMap->Get(key);
 	printf("-------------------\n");
-	int intva = res->Value();
+	int intva = res->Value( );
 	printf("res  = %d \n", intva);
 	delete rMap;
 }

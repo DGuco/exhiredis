@@ -50,11 +50,19 @@ namespace exhiredis
 		eConnState GetConnState();
 		//设置连接状态
 		void SetConnState(eConnState eConnState);
-		//执行命令
-		std::shared_ptr<CCommand> RedisAsyncCommand(char *cmd, ...);
+		//执行redis命令 返回是否成功
+		std::future<bool> RedisAsyncIsSucceedCommand(const char *cmd, ...);
+		//执行redis命令 返回是否成功
+		std::future<std::shared_ptr<long long>> RedisAsyncReturnIntegerCommand(const char *cmd, ...);
+		//执行redis命令 返回return_type
+		template<class return_type>
+		std::future<std::shared_ptr<return_type>> RedisAsyncCommand(const char *cmd, ...);
 		//构建cmd
 		std::shared_ptr<CCommand> CreateCommand();
 	private:
+		//执行命令
+		std::shared_ptr<CCommand> RedisvAsyncCommand(const char *cmd, va_list ap);
+		//生成command id
 		unsigned long GenCommandId();
 		//remove redis command
 		std::shared_ptr<CCommand> RemoveCmd(unsigned long cmdId);
@@ -190,11 +198,9 @@ namespace exhiredis
 //		m_connectWaiter.notify_all( );
 	}
 
-	std::shared_ptr<CCommand> CRedisConn::RedisAsyncCommand(char *cmd,
-															...)
+	std::shared_ptr<CCommand> CRedisConn::RedisvAsyncCommand(const char *cmd,
+															 va_list ap)
 	{
-		va_list ap;
-		va_start(ap, cmd);
 		std::shared_ptr<CCommand> tmpCommand = CreateCommand( );
 		unsigned long cmdId = tmpCommand->GetCommandId( );
 		int status = redisvAsyncCommand(m_pRedisContext,
@@ -202,7 +208,6 @@ namespace exhiredis
 										(void *) cmdId,
 										cmd,
 										ap);
-		va_end(ap);
 		if (status == REDIS_OK) {
 			m_mCmdMap.insert(std::make_pair(cmdId, tmpCommand));
 		}
@@ -210,6 +215,79 @@ namespace exhiredis
 			HIREDIS_LOG_ERROR("Push redis command failed,cmd = %s,redis status = %d", cmd, status);
 		}
 		return tmpCommand;
+	}
+
+	std::future<bool> CRedisConn::RedisAsyncIsSucceedCommand(const char *cmd, ...)
+	{
+		va_list ap;
+		va_start(ap, cmd);
+		std::shared_ptr<CCommand> command = RedisvAsyncCommand(cmd, ap);
+		va_end(ap);
+		return std::async([command]() -> bool
+						  {
+							  redisReply *res = command->GetPromise( )->get_future( ).get( );
+							  if (res == nullptr) {
+								  return false;
+							  }
+							  if (res->type == REDIS_REPLY_ERROR) {
+								  HIREDIS_LOG_ERROR("Redis reply error,error msg: %s", res->str);
+								  return false;
+							  }
+							  return true;
+						  });
+	}
+
+	std::future<std::shared_ptr<long long>> CRedisConn::RedisAsyncReturnIntegerCommand(const char *cmd, ...)
+	{
+		va_list ap;
+		va_start(ap, cmd);
+		std::shared_ptr<CCommand> command = RedisvAsyncCommand(cmd, ap);
+		va_end(ap);
+		return std::async([command]() -> std::shared_ptr<long long>
+						  {
+							  redisReply *res = command->GetPromise( )->get_future( ).get( );
+							  if (res == nullptr) {
+								  return nullptr;
+							  }
+							  if (res->type == REDIS_REPLY_ERROR || res->type == REDIS_REPLY_NIL) {
+								  HIREDIS_LOG_ERROR("Redis reply error,error msg: %s.", res->str);
+								  return nullptr;
+							  }
+							  if (res->type != REDIS_REPLY_INTEGER) {
+								  HIREDIS_LOG_ERROR("Redis reply type is not REDIS_REPLY_INTEGER.");
+								  return nullptr;
+							  }
+							  return std::make_shared<long long>(res->integer);
+						  });
+	}
+
+	template<class return_type>
+	std::future<std::shared_ptr<return_type>> CRedisConn::RedisAsyncCommand(const char *cmd, ...)
+	{
+		va_list ap;
+		va_start(ap, cmd);
+		std::shared_ptr<CCommand> tmpCommand = RedisvAsyncCommand(cmd, ap);
+		va_end(ap);
+		return std::async([tmpCommand]() -> std::shared_ptr<return_type>
+						  {
+							  redisReply *res = tmpCommand->GetPromise( )->get_future( ).get( );
+							  if (res == nullptr) {
+								  return nullptr;
+							  }
+
+							  if (res->type == REDIS_REPLY_ERROR || res->type == REDIS_REPLY_NIL) {
+								  HIREDIS_LOG_ERROR("Redis reply error,error msg: %s.", res->str);
+								  return nullptr;
+							  }
+
+							  if (res->type != REDIS_REPLY_STRING) {
+								  HIREDIS_LOG_ERROR("Redis reply type is not REDIS_REPLY_STRING.");
+								  return nullptr;
+							  }
+							  std::shared_ptr<return_type> value = std::make_shared<return_type>( );
+							  ((IRobject *) value.get( ))->FromString(res->str, res->len);
+							  return value;
+						  });
 	}
 
 	std::shared_ptr<CCommand> CRedisConn::RemoveCmd(unsigned long cmdId)
