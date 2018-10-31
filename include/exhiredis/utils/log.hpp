@@ -1,5 +1,6 @@
 //
 // Created by dguco on 18-10-20.
+// exhiredis log
 //
 
 #ifndef EXHIREDIS_LOG_HPP

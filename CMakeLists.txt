@@ -9,8 +9,8 @@ add_definitions()
 
 set(EXHIREDIS
         include/exhiredis/command.hpp
-        include/exhiredis/connect_manager.hpp
-        include/exhiredis/redis_conn.hpp
+        include/exhiredis/connection_manager.hpp
+        include/exhiredis/redis_connection.hpp
         include/exhiredis/lock/rlock.hpp
         include/exhiredis/utils/uuid.hpp
         include/exhiredis/utils/singleton.hpp
@@ -31,12 +31,16 @@ set(EXHIREDIS
         include/exhiredis/robject/rlonglong.hpp
         include/exhiredis/robject/rulong.hpp
         include/exhiredis/robject/rulonglong.hpp
-        include/exhiredis/rstl/rmap.hpp include/exhiredis/redis_commands.hpp include/exhiredis/rstl/rscript.hpp)
+        include/exhiredis/rstl/rmap.hpp
+        include/exhiredis/redis_commands.hpp
+        include/exhiredis/rstl/rscript.hpp
+        include/exhiredis/connection_pool.hpp
+        include/exhiredis/redis_client.hpp
+        include/exhiredis/single_connection_manager.hpp)
 
 include_directories(
         /usr/include/
         /usr/local/include/
-        ${CMAKE_SOURCE_DIR}/include/
 )
 
 link_directories(

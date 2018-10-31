@@ -7,7 +7,7 @@
 #define EXHIREDIS_RSCRIPT_HPP
 
 #include <list>
-#include "exhiredis/redis_conn.hpp"
+#include "exhiredis/redis_connection.hpp"
 #include "rmap.hpp"
 
 namespace exhiredis
@@ -15,7 +15,7 @@ namespace exhiredis
 	class RScript
 	{
 	public:
-		RScript(const shared_ptr<CRedisConn> pRedisConn);
+		RScript(const shared_ptr<CRedisConnection> pRedisConn);
 	public:
 		template<class return_type>
 		std::shared_ptr<return_type> Eval(const std::string &script,
@@ -27,7 +27,7 @@ namespace exhiredis
 															const std::list<std::string> &keys,
 															const std::list<std::string> &args);
 	private:
-		std::shared_ptr<CRedisConn> m_pRedisConn;
+		std::shared_ptr<CRedisConnection> m_pRedisConn;
 	};
 
 	template<class return_type>
@@ -44,22 +44,20 @@ namespace exhiredis
 																 const std::list<std::string> &keys,
 																 const std::list<std::string> &args)
 	{
-		string scriptCmd = EVAL + to_string(keys.size( ));
-		string parm = "";
+		string scriptCmd = redis_commands::EVAL + to_string(keys.size( )) + " ";
 		for (auto str : keys) {
-			parm += str + " ";
+			scriptCmd += str + " ";
 		}
 		for (auto str : args) {
-			parm += str + " ";
+			scriptCmd += str + " ";
 		}
 
 		return m_pRedisConn->RedisAsyncCommand<return_type>(scriptCmd.c_str( ),
-															script.c_str( ),
-															parm);
+															script.c_str( ));
 
 	}
 
-	RScript::RScript(const shared_ptr<CRedisConn> pRedisConn)
+	RScript::RScript(const shared_ptr<CRedisConnection> pRedisConn)
 		: m_pRedisConn(pRedisConn)
 	{
 

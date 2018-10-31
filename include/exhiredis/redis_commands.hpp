@@ -11,8 +11,12 @@ using namespace std;
 
 namespace exhiredis
 {
-	const char *HGET = "HGET %s %b";
-	const char *HSET = "HSET %s %b %b";
-	const char *EVAL = "EVAL %s ";
+	namespace redis_commands
+	{
+		const char *HGET = "HGET %s %b";
+		const char *HSET = "HSET %s %b %b";
+		const char *EVAL = "EVAL %s ";
+	};
+
 }
 #endif //EXHIREDIS_REDIS_COMMANDS_HPP

@@ -7,7 +7,7 @@
 
 namespace exhiredis
 {
-	class IConnectManager
+	class IConnectionManager
 	{
 	public:
 		virtual void shutDown() = 0;

@@ -5,10 +5,8 @@
 #ifndef EXHIREDIS_MASTER_SLAVE_CONFIG_HPP
 #define EXHIREDIS_MASTER_SLAVE_CONFIG_HPP
 
-#include <hash_set>
 #include <list>
-#include <utility>
-#include "config/base_master_slave_config.hpp"
+#include "base_master_slave_config.hpp"
 
 using namespace std;
 

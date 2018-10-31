@@ -4,7 +4,7 @@
 
 #include <iostream>
 #include "exhiredis/rstl/rmap.hpp"
-#include "exhiredis/redis_conn.hpp"
+#include "exhiredis/rstl/rscript.hpp"
 
 using namespace std;
 using namespace exhiredis;
@@ -60,11 +60,10 @@ void testStr()
 	}
 	printf("\n");
 }
-int main()
+
+void testMap()
 {
-	testStr( );
-	CLog::CreateInstance( );
-	std::shared_ptr<CRedisConn> conn = std::make_shared<CRedisConn>( );
+	std::shared_ptr<CRedisConnection> conn = std::make_shared<CRedisConnection>( );
 	conn->Connect("127.0.0.1", 6379);
 	RMap<RInt, RInt> *rMap = new RMap<RInt, RInt>("TestMap", conn);
 	const RInt key = RInt(1);
@@ -75,4 +74,27 @@ int main()
 	int intva = res->Value( );
 	printf("res  = %d \n", intva);
 	delete rMap;
+}
+
+int main()
+{
+//	testStr( );
+//	testMap( );
+	CLog::CreateInstance( );
+	std::shared_ptr<CRedisConnection> conn = std::make_shared<CRedisConnection>( );
+	conn->Connect("127.0.0.1", 6379);
+	RScript *rScript = new RScript(conn);
+	string cmd = "if (redis.call('exists', KEYS[1]) == 0) then " \
+        "redis.call('hset', KEYS[1], ARGV[2], 1); " \
+        "redis.call('pexpire', KEYS[1], ARGV[1]); " \
+        "return -3; " \
+        "end; " \
+        "if (redis.call('hexists', KEYS[1], ARGV[2]) == 1) then " \
+        "redis.call('hincrby', KEYS[1], ARGV[2], 1); " \
+        "redis.call('pexpire', KEYS[1], ARGV[1]); " \
+        "return -3; " \
+        "end; " \
+        "return redis.call('pttl', KEYS[1]);";
+	rScript->Eval<string>(cmd.c_str( ), {"TestLock:lock1"}, {"100", "3132"});
+	delete rScript;
 }

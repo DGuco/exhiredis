@@ -34,6 +34,8 @@ namespace exhiredis
 		const unsigned long GetCommandId() const;
 		//设置promise value
 		void SetPromiseValue(redisReply *reply);
+		//promise 异常
+		void SetPromiseException(exception_ptr exception);
 		//获取cmd reply promise
 		shared_ptr<promise<redisReply *>> &GetPromise();
 		//获取cmd 状态
@@ -45,7 +47,6 @@ namespace exhiredis
 		std::atomic_int m_iCommState;
 		std::shared_ptr<promise<redisReply *>> m_pPromise;
 		redisReply *m_pReply;
-		string m_sCmd;
 	};
 
 	CCommand::CCommand(unsigned long id)
@@ -83,6 +84,11 @@ namespace exhiredis
 	{
 		m_pPromise->set_value(reply);
 		this->m_pReply = reply;
+	}
+
+	void CCommand::SetPromiseException(exception_ptr exception)
+	{
+		m_pPromise->set_exception(exception);
 	}
 
 	shared_ptr<promise<redisReply *>> &CCommand::GetPromise()

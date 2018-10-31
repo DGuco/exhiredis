@@ -8,8 +8,8 @@
 #include <memory>
 #include <utility>
 #include <future>
-#include "exhiredis/redis_conn.hpp"
-#include "exhiredis/redis_commands.hpp"
+#include "../redis_connection.hpp"
+#include "../redis_commands.hpp"
 
 namespace exhiredis
 {
@@ -30,7 +30,7 @@ namespace exhiredis
 		 * @param name
 		 * @param conn
 		 */
-		RMap(string name, std::shared_ptr<CRedisConn> conn);
+		RMap(string name, std::shared_ptr<CRedisConnection> conn);
 		/**
 		 * put
 		 * @param key
@@ -59,11 +59,11 @@ namespace exhiredis
 		std::future<std::shared_ptr<value_type>> GetAsync(const key_type &key);
 	private:
 		std::string m_sName;
-		std::shared_ptr<CRedisConn> m_pRedisConn;
+		std::shared_ptr<CRedisConnection> m_pRedisConn;
 	};
 
 	template<class key_type, class value_type>
-	RMap<key_type, value_type>::RMap(string name, std::shared_ptr<CRedisConn> conn)
+	RMap<key_type, value_type>::RMap(string name, std::shared_ptr<CRedisConnection> conn)
 		: m_sName(std::move(name)),
 		  m_pRedisConn(conn)
 	{
@@ -88,7 +88,7 @@ namespace exhiredis
 		char acValue[VALUE_SIZE];
 		int keyLen = ((IRobject *) (&key))->ToString(acKey);
 		int valueLen = ((IRobject *) (&value))->ToString(acValue);
-		return m_pRedisConn->RedisAsyncIsSucceedCommand(HSET,
+		return m_pRedisConn->RedisAsyncIsSucceedCommand(redis_commands::HSET,
 														m_sName.c_str( ),
 														acKey,
 														keyLen,
@@ -101,7 +101,7 @@ namespace exhiredis
 	{
 		char acKey[KEY_SIZE];
 		int keyLen = ((IRobject *) (&key))->ToString(acKey);
-		return m_pRedisConn->RedisAsyncCommand<value_type>("HGET %s %b",
+		return m_pRedisConn->RedisAsyncCommand<value_type>(redis_commands::HGET,
 														   m_sName.c_str( ),
 														   acKey,
 														   keyLen);

@@ -29,8 +29,7 @@ namespace exhiredis
 
 	void RBool::FromString(char *str, int len)
 	{
-		string strValue(str);
-		this->value = strValue == "true";
+		this->value = strcmp(str, "true") == 0;
 	}
 
 	const int RBool::ToString(char *str)
