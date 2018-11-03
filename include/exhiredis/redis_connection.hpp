@@ -42,43 +42,45 @@ namespace exhiredis
 	public:
 		CRedisConnection();
 		virtual ~CRedisConnection();
-		//连接redis
+		//connect redis
 		bool Connect(const string &host, int port);
-		//连接redis
+		//connect redis
 		bool ConnecToUnix(const string &address);
-		//获取连接状态
+		//get status of the connecton
 		eConnState GetConnState();
-		//设置连接状态
+		//set status of the connecton
 		void SetConnState(eConnState eConnState);
-		//执行redis命令 返回是否成功
+		//execute redis command ,don't care what redis returns,only care whether the command succeed or not
 		std::future<bool> RedisAsyncIsSucceedCommand(const char *cmd, ...);
-		//执行redis命令 返回redis integer 指针 or nullptr
+		//execute redis command return integer pointer or nullptr
 		std::future<std::shared_ptr<long long>> RedisAsyncReturnIntCommand(const char *cmd, ...);
-		//执行redis命令 返回return_type 指针 or nullptr
+		//execute redis command return bool pointer or nullptr
+		std::future<std::shared_ptr<bool>> RedisAsyncReturnBoolCommand(const char *cmd, ...);
+		//execute redis command return bool pointer or nullptr,return_type must be the subclass of the IRobject
 		template<class return_type>
 		std::future<std::shared_ptr<return_type>> RedisAsyncCommand(const char *cmd, ...);
 	private:
-		//构建cmd
+		//create cmd
 		std::shared_ptr<CCommand> CreateCommand(const char *cmd, va_list vaList);
-		//执行命令
+		//execute redis
 		std::shared_ptr<CCommand> RedisvAsyncCommand(const char *cmd, va_list ap);
-		//生成command id
+		//create command id
 		unsigned long GenCommandId();
 		//remove redis command
 		std::shared_ptr<CCommand> RemoveCmd(unsigned long cmdId);
 	private:
-		//连接成功回调
+		//connected callback
 		static void lcb_OnConnectCallback(const redisAsyncContext *context, int status);
-		//断开连接回调
+		//disconnected callback
 		static void lcb_OnDisconnectCallback(const redisAsyncContext *context, int status);
 		//redis command callback
 		static void lcb_OnCommandCallback(redisAsyncContext *context, void *reply, void *privdata);
 	private:
-		//初始化hiredis
+		//init hiredis
 		bool InitHiredis();
-		//初始化libevent
+		//init libevent
 		bool InitLibevent();
-		//运行eventloop
+		//run eventloop
 		bool RunEventLoop();
 	private:
 		redisAsyncContext *m_pRedisContext;
@@ -234,7 +236,11 @@ namespace exhiredis
 								  return false;
 							  }
 
-							  return res->type == REDIS_REPLY_STATUS && strcmp(res->str, "OK") == 0;
+							  if (res->type == REDIS_REPLY_STATUS) {
+								  return strcmp(res->str, "OK") == 0;
+							  }
+							  //don't care what the result is
+							  return true;
 						  });
 	}
 
@@ -255,15 +261,44 @@ namespace exhiredis
 								  return nullptr;
 							  }
 
-							  if (res->type == REDIS_REPLY_NIL) {
-								  return nullptr;
-							  }
-
 							  if (res->type != REDIS_REPLY_INTEGER) {
 								  HIREDIS_LOG_ERROR("Redis reply type is not REDIS_REPLY_INTEGER.");
 								  return nullptr;
 							  }
 							  return std::make_shared<long long>(res->integer);
+						  });
+	}
+
+	std::future<std::shared_ptr<bool>> CRedisConnection::RedisAsyncReturnBoolCommand(const char *cmd, ...)
+	{
+		va_list ap;
+		va_start(ap, cmd);
+		std::shared_ptr<CCommand> command = RedisvAsyncCommand(cmd, ap);
+		va_end(ap);
+		return std::async([command]() -> std::shared_ptr<bool>
+						  {
+							  redisReply *res = command->GetPromise( )->get_future( ).get( );
+							  if (res == nullptr) {
+								  return nullptr;
+							  }
+							  if (res->type == REDIS_REPLY_ERROR) {
+								  HIREDIS_LOG_ERROR("Redis reply error,error msg: %s.", res->str);
+								  return nullptr;
+							  }
+
+							  /*
+	 							*Lua boolean false -> Redis Nil bulk reply / Lua 的布尔值 false 转换成 Redis 的 Nil bulk 回复
+	 							*Lua boolean true -> Redis integer reply with value of 1 / Lua 布尔值 true 转换成 Redis 整数回复中的 1
+	 						   **/
+							  if (res->type == REDIS_REPLY_NIL) {
+								  return std::make_shared<bool>(false);
+							  }
+							  else if (res->type == REDIS_REPLY_INTEGER && res->integer == 1) {
+								  return std::make_shared<bool>(true);
+							  }
+							  else {
+								  return nullptr;
+							  }
 						  });
 	}
 
@@ -400,7 +435,7 @@ namespace exhiredis
 		return ++m_cmdId;
 	}
 
-//构建cmd
+	//构建cmd
 	std::shared_ptr<CCommand> CRedisConnection::CreateCommand(const char *cmd, va_list vaList)
 	{
 		return std::make_shared<CCommand>(GenCommandId( ), cmd, vaList);

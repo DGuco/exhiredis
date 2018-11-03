@@ -1,6 +1,6 @@
 //
 // Created by dguco on 18-10-18.
-// redis 基础 config
+// redis base config
 //
 
 #ifndef EXHIREDIS_BASE_CONFIG_HPP

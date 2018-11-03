@@ -79,17 +79,17 @@ int main()
 	std::shared_ptr<CRedisConnection> conn = std::make_shared<CRedisConnection>( );
 	conn->Connect("127.0.0.1", 6379);
 	//	testStr( );
-	testMap(conn);
+//	testMap(conn);
 	RScript *rScript = new RScript(conn);
 	string cmd = "if (redis.call('exists', KEYS[1]) == 0) then " \
         "redis.call('hset', KEYS[1], ARGV[2], 1); " \
         "redis.call('pexpire', KEYS[1], ARGV[1]); " \
-        "return -3; " \
+        "return true; " \
         "end; " \
         "if (redis.call('hexists', KEYS[1], ARGV[2]) == 1) then " \
         "redis.call('hincrby', KEYS[1], ARGV[2], 1); " \
         "redis.call('pexpire', KEYS[1], ARGV[1]); " \
-        "return -3; " \
+        "return true; " \
         "end; " \
         "return redis.call('pttl', KEYS[1]);";
 	auto res = rScript->EvalReturnInt(cmd.c_str( ), {"TestLock:lock1"}, {"100", "3132"});

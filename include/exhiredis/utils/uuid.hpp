@@ -1,6 +1,6 @@
 //
 // Created by dguco on 18-10-18.
-// 生成全球唯一id 依赖libuuid
+// libuuid
 //
 
 #ifndef EXHIREDIS_UUID_HPP

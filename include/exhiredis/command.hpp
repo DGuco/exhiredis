@@ -26,21 +26,21 @@ namespace exhiredis
 	class CCommand
 	{
 	public:
-		//构造函数
+		//CCommand
 		CCommand(unsigned long id, const char *cmd, va_list vaList);
-		//析构函数
+		//~CCommand
 		~CCommand();
-		//获取cmd id
+		//get cmd id
 		const unsigned long GetCommandId() const;
-		//设置promise value
+		//set promise value
 		void SetPromiseValue(redisReply *reply);
-		//promise 异常
+		//set promise exception
 		void SetPromiseException(exception_ptr exception);
-		//获取cmd reply promise
+		//get cmd reply promise
 		shared_ptr<promise<redisReply *>> &GetPromise();
-		//获取cmd 状态
+		//get cmd status
 		const int GetCommState() const;
-		//设置cmd 状态
+		//set cmd status
 		void SetCommState(const int iCommState);
 	private:
 		const unsigned long m_iCommandId;  //cmd id

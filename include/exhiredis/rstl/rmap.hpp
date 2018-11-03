@@ -19,15 +19,15 @@ namespace exhiredis
 
 	/**
 	 * redis hashes
-	 * @tparam key_type
-	 * @tparam value_type
+	 * @tparam key_type key_type must be the subclass of the IRobject ,ex:RBool,RInt,RFloat......
+	 * @tparam value_type value_type must be the subclass of the IRobject,ex:RBool,RInt,RFloat......
 	 */
 	template<class key_type, class value_type>
 	class RMap
 	{
 	public:
 		/**
-		 * 构造函数
+		 * RMap
 		 * @param name
 		 * @param conn
 		 */
@@ -40,7 +40,7 @@ namespace exhiredis
 		 */
 		bool Put(const key_type &key, const value_type &value);
 		/**
-		 * 异步 put
+		 * async put
 		 * @param key
 		 * @param value
 		 * @return true success false failed
@@ -53,7 +53,7 @@ namespace exhiredis
 		 */
 		std::shared_ptr<value_type> Get(const key_type &key);
 		/**
-		 * 异步 get
+		 * async get
 		 * @param key
 		 * @return
 		 */
