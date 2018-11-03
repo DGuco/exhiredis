@@ -27,7 +27,7 @@ namespace exhiredis
 	{
 	public:
 		//构造函数
-		CCommand(unsigned long id);
+		CCommand(unsigned long id, const char *cmd, va_list vaList);
 		//析构函数
 		~CCommand();
 		//获取cmd id
@@ -47,14 +47,18 @@ namespace exhiredis
 		std::atomic_int m_iCommState;
 		std::shared_ptr<promise<redisReply *>> m_pPromise;
 		redisReply *m_pReply;
+		const string m_sCmd;
+		va_list m_param;
 	};
 
-	CCommand::CCommand(unsigned long id)
+	CCommand::CCommand(unsigned long id, const char *cmd, va_list vaList)
 		: m_iCommandId(id),
 		  m_pPromise(std::make_shared<promise<redisReply *>>(std::promise<redisReply *>( ))),
-		  m_pReply(nullptr)
+		  m_pReply(nullptr),
+		  m_sCmd(cmd)
 	{
 		m_iCommState.store(CCommandState::NO_REPLY);
+		va_copy(m_param, vaList);
 	}
 
 	CCommand::~CCommand()
@@ -63,6 +67,7 @@ namespace exhiredis
 			//释放reply object
 			freeReplyObject(m_pReply);
 		}
+		va_end(m_param);
 	}
 
 	const unsigned long CCommand::GetCommandId() const

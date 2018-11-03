@@ -12,7 +12,9 @@ namespace exhiredis
 {
 	class CSingleConnectionManager: public IConnectionManager
 	{
-
+	public:
+		static const int MAX_SLOT = 16384;
+	private:
 	};
 }
 #endif //EXHIREDIS_SINGLE_CONNECTION_MANAGER_HPP

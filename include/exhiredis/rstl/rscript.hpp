@@ -17,6 +17,14 @@ namespace exhiredis
 	public:
 		RScript(const shared_ptr<CRedisConnection> pRedisConn);
 	public:
+		std::shared_ptr<long long> EvalReturnInt(const std::string &script,
+												 const std::list<std::string> &keys,
+												 const std::list<std::string> &args);
+
+		std::future<std::shared_ptr<long long>> EvalReturnIntAsync(const std::string &script,
+																   const std::list<std::string> &keys,
+																   const std::list<std::string> &args);
+
 		template<class return_type>
 		std::shared_ptr<return_type> Eval(const std::string &script,
 										  const std::list<std::string> &keys,
@@ -29,6 +37,29 @@ namespace exhiredis
 	private:
 		std::shared_ptr<CRedisConnection> m_pRedisConn;
 	};
+
+	std::shared_ptr<long long> RScript::EvalReturnInt(const std::string &script,
+													  const std::list<std::string> &keys,
+													  const std::list<std::string> &args)
+	{
+		return EvalReturnIntAsync(script, keys, args).get( );
+	}
+
+	std::future<std::shared_ptr<long long>> RScript::EvalReturnIntAsync(const std::string &script,
+																		const std::list<std::string> &keys,
+																		const std::list<std::string> &args)
+	{
+		string scriptCmd = redis_commands::EVAL + to_string(keys.size( )) + " ";
+		for (auto str : keys) {
+			scriptCmd += str + " ";
+		}
+		for (auto str : args) {
+			scriptCmd += str + " ";
+		}
+
+		return m_pRedisConn->RedisAsyncReturnIntCommand(scriptCmd.c_str( ),
+														script.c_str( ));
+	}
 
 	template<class return_type>
 	std::shared_ptr<return_type> RScript::Eval(const std::string &script,

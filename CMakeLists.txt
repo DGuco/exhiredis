@@ -36,7 +36,7 @@ set(EXHIREDIS
         include/exhiredis/rstl/rscript.hpp
         include/exhiredis/connection_pool.hpp
         include/exhiredis/redis_client.hpp
-        include/exhiredis/single_connection_manager.hpp)
+        include/exhiredis/single_connection_manager.hpp include/exhiredis/config/sentinel_servers_config.hpp)
 
 include_directories(
         /usr/include/

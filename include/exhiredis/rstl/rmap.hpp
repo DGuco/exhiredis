@@ -1,5 +1,6 @@
 //
 // Created by dguco on 18-10-23.
+// redis hashes
 //
 
 #ifndef EXHIREDIS_RMAP_H
@@ -8,8 +9,8 @@
 #include <memory>
 #include <utility>
 #include <future>
-#include "../redis_connection.hpp"
-#include "../redis_commands.hpp"
+#include "exhiredis/redis_connection.hpp"
+#include "exhiredis/redis_commands.hpp"
 
 namespace exhiredis
 {

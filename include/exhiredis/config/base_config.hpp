@@ -15,44 +15,17 @@ namespace exhiredis
 {
 	class CBaseConfig
 	{
-
 	public:
 		CBaseConfig(string sPassword,
 					string sClientName,
 					int iPingConnectionInterval,
 					bool bKeepAlive,
-					bool bTtcpNoDelay,
-					int iIdleConnectionTimeout,
-					int iPingTimeout,
-					int iConnectTimeout,
-					int iTimeout,
-					int iRetryAttempts,
-					int iRetryInterval,
-					int iSubscriptionsPerConnection)
+					bool bTcpNoDelay)
 			: m_sPassword(std::move(sPassword)),
 			  m_sClientName(std::move(sClientName)),
 			  m_iPingConnectionInterval(iPingConnectionInterval),
 			  m_bKeepAlive(bKeepAlive),
-			  m_bTtcpNoDelay(bTtcpNoDelay),
-			  m_iIdleConnectionTimeout(iIdleConnectionTimeout),
-			  m_iPingTimeout(iPingTimeout),
-			  m_iConnectTimeout(iConnectTimeout),
-			  m_iTimeout(iTimeout),
-			  m_iRetryAttempts(iRetryAttempts),
-			  m_iRetryInterval(iRetryInterval),
-			  m_iSubscriptionsPerConnection(iSubscriptionsPerConnection)
-		{}
-
-		CBaseConfig(string sPassword,
-					string sClientName,
-					int iPingConnectionInterval,
-					bool bKeepAlive,
-					bool bTtcpNoDelay)
-			: m_sPassword(std::move(sPassword)),
-			  m_sClientName(std::move(sClientName)),
-			  m_iPingConnectionInterval(iPingConnectionInterval),
-			  m_bKeepAlive(bKeepAlive),
-			  m_bTtcpNoDelay(bTtcpNoDelay),
+			  m_bTcpNoDelay(bTcpNoDelay),
 			  m_iIdleConnectionTimeout(10000),
 			  m_iPingTimeout(1000),
 			  m_iConnectTimeout(10000),
@@ -80,7 +53,7 @@ namespace exhiredis
 		}
 		bool IsTtcpNoDelay() const
 		{
-			return m_bTtcpNoDelay;
+			return m_bTcpNoDelay;
 		}
 		int GetIdleConnectionTimeout() const
 		{
@@ -130,7 +103,7 @@ namespace exhiredis
 		}
 		void SetTtcpNoDelay(bool bTtcpNoDelay)
 		{
-			m_bTtcpNoDelay = bTtcpNoDelay;
+			m_bTcpNoDelay = bTtcpNoDelay;
 		}
 		void SetIdleConnectionTimeout(int iIdleConnectionTimeout)
 		{
@@ -166,7 +139,7 @@ namespace exhiredis
 		string m_sClientName;
 		int m_iPingConnectionInterval;
 		bool m_bKeepAlive;
-		bool m_bTtcpNoDelay;
+		bool m_bTcpNoDelay;
 		int m_iIdleConnectionTimeout;
 		int m_iPingTimeout;
 		int m_iConnectTimeout;

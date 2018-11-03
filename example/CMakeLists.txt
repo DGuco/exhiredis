@@ -22,5 +22,5 @@ link_directories(
 )
 
 add_executable(example ${SOURCES})
-target_link_libraries(example exhiredis pthread hiredis uuid event)
+target_link_libraries(example exhiredis pthread hiredis uuid event jemalloc)
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/bin/)

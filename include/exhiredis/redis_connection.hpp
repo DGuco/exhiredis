@@ -53,13 +53,13 @@ namespace exhiredis
 		//执行redis命令 返回是否成功
 		std::future<bool> RedisAsyncIsSucceedCommand(const char *cmd, ...);
 		//执行redis命令 返回redis integer 指针 or nullptr
-		std::future<std::shared_ptr<long long>> RedisAsyncReturnIntegerCommand(const char *cmd, ...);
+		std::future<std::shared_ptr<long long>> RedisAsyncReturnIntCommand(const char *cmd, ...);
 		//执行redis命令 返回return_type 指针 or nullptr
 		template<class return_type>
 		std::future<std::shared_ptr<return_type>> RedisAsyncCommand(const char *cmd, ...);
 	private:
 		//构建cmd
-		std::shared_ptr<CCommand> CreateCommand();
+		std::shared_ptr<CCommand> CreateCommand(const char *cmd, va_list vaList);
 		//执行命令
 		std::shared_ptr<CCommand> RedisvAsyncCommand(const char *cmd, va_list ap);
 		//生成command id
@@ -201,7 +201,7 @@ namespace exhiredis
 	std::shared_ptr<CCommand> CRedisConnection::RedisvAsyncCommand(const char *cmd,
 																   va_list ap)
 	{
-		std::shared_ptr<CCommand> tmpCommand = CreateCommand( );
+		std::shared_ptr<CCommand> tmpCommand = CreateCommand(cmd, ap);
 		unsigned long cmdId = tmpCommand->GetCommandId( );
 		int status = redisvAsyncCommand(m_pRedisContext,
 										&CRedisConnection::lcb_OnCommandCallback,
@@ -238,7 +238,7 @@ namespace exhiredis
 						  });
 	}
 
-	std::future<std::shared_ptr<long long>> CRedisConnection::RedisAsyncReturnIntegerCommand(const char *cmd, ...)
+	std::future<std::shared_ptr<long long>> CRedisConnection::RedisAsyncReturnIntCommand(const char *cmd, ...)
 	{
 		va_list ap;
 		va_start(ap, cmd);
@@ -401,9 +401,9 @@ namespace exhiredis
 	}
 
 //构建cmd
-	std::shared_ptr<CCommand> CRedisConnection::CreateCommand()
+	std::shared_ptr<CCommand> CRedisConnection::CreateCommand(const char *cmd, va_list vaList)
 	{
-		return std::make_shared<CCommand>(GenCommandId( ));
+		return std::make_shared<CCommand>(GenCommandId( ), cmd, vaList);
 	}
 
 }
