@@ -67,7 +67,7 @@ namespace exhiredis
 		 * @param script
 		 * @param keys
 		 * @param args
-		 * @return lua script return return_type value
+		 * @return lua script return return_type value  必须实现IRobject接口
 		 */
 		template<class return_type>
 		std::shared_ptr<return_type> Eval(const std::string &script,
@@ -80,7 +80,7 @@ namespace exhiredis
 		 * @param script
 		 * @param keys
 		 * @param args
-		 * @return lua script async return return_type value
+		 * @return lua script async return return_type value  必须实现IRobject接口
 		 */
 		template<class return_type>
 		std::future<std::shared_ptr<return_type>> EvalAsync(const std::string &script,

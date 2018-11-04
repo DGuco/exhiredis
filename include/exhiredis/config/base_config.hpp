@@ -9,8 +9,6 @@
 #include <string>
 #include <utility>
 
-using namespace std;
-
 namespace exhiredis
 {
 	class CBaseConfig

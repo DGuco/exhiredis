@@ -6,9 +6,6 @@
 #ifndef EXHIREDIS_REDIS_COMMANDS_HPP
 #define EXHIREDIS_REDIS_COMMANDS_HPP
 
-#include <string>
-using namespace std;
-
 namespace exhiredis
 {
 	namespace redis_commands

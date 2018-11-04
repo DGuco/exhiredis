@@ -6,7 +6,9 @@
 #define EXHIREDIS_RSTRING_H
 
 #include <cstring>
+#include <string>
 #include "robject.hpp"
+
 namespace exhiredis
 {
 	class RString: public Robject<string>

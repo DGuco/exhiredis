@@ -4,8 +4,10 @@
 
 #ifndef EXHIREDIS_RBOOL_H
 #define EXHIREDIS_RBOOL_H
+
 #include <cstring>
 #include "robject.hpp"
+
 namespace exhiredis
 {
 	class RBool: public Robject<bool>

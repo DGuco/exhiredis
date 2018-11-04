@@ -7,6 +7,7 @@
 
 #include <cstring>
 #include "robject.hpp"
+
 namespace exhiredis
 {
 	class RDouble: public Robject<double>

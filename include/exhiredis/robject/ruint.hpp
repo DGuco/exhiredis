@@ -7,6 +7,7 @@
 
 #include <cstring>
 #include "robject.hpp"
+
 namespace exhiredis
 {
 	class RUint: public Robject<unsigned int>

@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.6)
-project(exhiredis C CXX)
+project(exhiredis)
 add_subdirectory(example)
 
 set(CMAKE_C_COMPILER gcc)
 set(CMAKE_CXX_COMPILER g++)
-add_compile_options(-Wall -g -pipe -std=c++14)
+add_compile_options(-Wall -g -pipe -std=c++11)
 add_definitions()
 
 set(EXHIREDIS
@@ -20,6 +20,7 @@ set(EXHIREDIS
         include/exhiredis/config/base_master_slave_config.hpp
         include/exhiredis/config/master_slave_config.hpp
         include/exhiredis/config/single_server_config.hpp
+        include/exhiredis/config/sentinel_servers_config.hpp
         include/exhiredis/robject/robject.hpp
         include/exhiredis/robject/rint.hpp
         include/exhiredis/robject/rlong.hpp
@@ -31,12 +32,10 @@ set(EXHIREDIS
         include/exhiredis/robject/rlonglong.hpp
         include/exhiredis/robject/rulong.hpp
         include/exhiredis/robject/rulonglong.hpp
+        include/exhiredis/rstl/rscript.hpp
         include/exhiredis/rstl/rmap.hpp
         include/exhiredis/redis_commands.hpp
-        include/exhiredis/rstl/rscript.hpp
-        include/exhiredis/connection_pool.hpp
-        include/exhiredis/redis_client.hpp
-        include/exhiredis/single_connection_manager.hpp include/exhiredis/config/sentinel_servers_config.hpp)
+        include/exhiredis/connection_pool.hpp)
 
 include_directories(
         /usr/include/

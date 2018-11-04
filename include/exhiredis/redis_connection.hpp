@@ -6,11 +6,11 @@
 #ifndef EXHIREDIS_REDIS_CONN_H
 #define EXHIREDIS_REDIS_CONN_H
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <iostream>
+#include <memory>
 #include <hiredis/async.h>
 #include <hiredis/adapters/libevent.h>
-#include <memory>
 #include <string>
 #include <event.h>
 #include <thread>
@@ -22,8 +22,6 @@
 #include "command.hpp"
 #include "utils/uuid.hpp"
 #include "robject/rint.hpp"
-
-using namespace std;
 
 namespace exhiredis
 {
@@ -40,7 +38,9 @@ namespace exhiredis
 			INIT_ERROR = 5         // Failed to init data structures
 		};
 	public:
+		//构造函数
 		CRedisConnection();
+		//析构函数
 		virtual ~CRedisConnection();
 		//connect redis
 		bool Connect(const string &host, int port);
