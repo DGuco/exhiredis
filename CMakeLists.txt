@@ -35,7 +35,7 @@ set(EXHIREDIS
         include/exhiredis/rstl/rscript.hpp
         include/exhiredis/rstl/rmap.hpp
         include/exhiredis/redis_commands.hpp
-        include/exhiredis/connection_pool.hpp)
+        include/exhiredis/connection_pool.hpp include/exhiredis/config/redis_config.hpp)
 
 include_directories(
         /usr/include/

@@ -5,13 +5,16 @@
 #ifndef EXHIREDIS_CONNECT_MANAGER_H
 #define EXHIREDIS_CONNECT_MANAGER_H
 
+#include ""
 namespace exhiredis
 {
-	class IConnectionManager
-	{
-	public:
-		virtual void shutDown() = 0;
-		virtual bool isShubDown() = 0;
-	};
+class IConnectionManager
+{
+public:
+    virtual void
+    shutDown() = 0;
+    virtual bool
+    isShubDown() = 0;
+};
 }
 #endif //EXHIREDIS_CONNECT_MANAGER_H

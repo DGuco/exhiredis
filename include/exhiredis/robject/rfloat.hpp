@@ -9,34 +9,40 @@
 #include <string>
 #include "robject.hpp"
 
-namespace exhiredis {
-    class RFloat : public Robject<float> {
-    public:
-        RFloat();
+namespace exhiredis
+{
+class RFloat: public Robject<float>
+{
+public:
+    RFloat();
 
-        RFloat(float value);
+    RFloat(float value);
 
-        void FromString(char *str, int len) override;
+    void FromString(char *str, int len) override;
 
-        const int ToString(char *str) override;
-    };
+    const int ToString(char *str) override;
+};
 
-    RFloat::RFloat() {
-        this->value = 0.0f;
-    }
+RFloat::RFloat()
+{
+    this->value = 0.0f;
+}
 
-    RFloat::RFloat(float value) {
-        this->value = value;
-    }
+RFloat::RFloat(float value)
+{
+    this->value = value;
+}
 
-    void RFloat::FromString(char *str, int len) {
-        this->value = static_cast<float>(atof(str));
-    }
+void RFloat::FromString(char *str, int len)
+{
+    this->value = static_cast<float>(atof(str));
+}
 
-    const int RFloat::ToString(char *str) {
-        string strValue = to_string(this->value);
-        strncpy(str, strValue.c_str(), strValue.length());
-        return strValue.length();
-    }
+const int RFloat::ToString(char *str)
+{
+    string strValue = to_string(this->value);
+    strncpy(str, strValue.c_str(), strValue.length());
+    return strValue.length();
+}
 }
 #endif //EXHIREDIS_RFLOAT_H

@@ -8,43 +8,43 @@
 #include <string>
 #include <memory>
 
-using  namespace std;
+using namespace std;
 
 namespace exhiredis
 {
-	class IRobject
-	{
-	public:
-		IRobject()
-		{
+class IRobject
+{
+public:
+    IRobject()
+    {
 
-		};
-		virtual void FromString(char *str, int len)  = 0;
-		virtual const int ToString(char *str)  = 0;
-	};
+    };
+    virtual void FromString(char *str, int len)  = 0;
+    virtual const int ToString(char *str)  = 0;
+};
 
-	template<class T>
-	class Robject: public IRobject
-	{
-	public:
-		/**
-		 *
-		 * @param str
-		 * @param len  char* len
-		 */
-		virtual void FromString(char *str, int len)  = 0;
-		/**
-		 *
-		 * @param str
-		 * @return  char* len
-		 */
-		virtual const int ToString(char *str)  = 0;
-		T &Value()
-		{
-			return value;
-		};
-	protected:
-		T value;
-	};
+template<class T>
+class Robject: public IRobject
+{
+public:
+    /**
+     *
+     * @param str
+     * @param len  char* len
+     */
+    virtual void FromString(char *str, int len)  = 0;
+    /**
+     *
+     * @param str
+     * @return  char* len
+     */
+    virtual const int ToString(char *str)  = 0;
+    T &Value()
+    {
+        return value;
+    };
+protected:
+    T value;
+};
 }
 #endif //EXHIREDIS_ROBJECT_H

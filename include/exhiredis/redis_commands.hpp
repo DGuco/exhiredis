@@ -8,14 +8,18 @@
 
 namespace exhiredis
 {
-	namespace redis_commands
-	{
-		const char* GET  = "GET %s";
-		const char* SET  = "SET %s %b";
-		const char *HGET = "HGET %s %b";
-		const char *HSET = "HSET %s %b %b";
-		const char *EVAL = "EVAL %s ";
-	};
+namespace redis_commands
+{
+const char *GET = "GET %s";
+
+const char *SET = "SET %s %b";
+
+const char *HGET = "HGET %s %b";
+
+const char *HSET = "HSET %s %b %b";
+
+const char *EVAL = "EVAL %s ";
+};
 
 }
 #endif //EXHIREDIS_REDIS_COMMANDS_HPP

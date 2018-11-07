@@ -10,34 +10,36 @@
 
 namespace exhiredis
 {
-	class RUint: public Robject<unsigned int>
-	{
-	public:
-		RUint();
-		RUint(unsigned int value);
-		void FromString(char *str, int len) override;
-		const int ToString(char *str) override;
-	};
+class RUint: public Robject<unsigned int>
+{
+public:
+    RUint();
+    RUint(unsigned int value);
+    void FromString(char *str, int len) override;
+    const int ToString(char *str) override;
+};
 
-	RUint::RUint()
-	{
-		this->value = 0;
-	}
-	RUint::RUint(unsigned int value)
-	{
-		this->value = value;
-	}
-	void RUint::FromString(char *str, int len)
-	{
-		this->value = static_cast<unsigned int>(atoi(str));
-	}
+RUint::RUint()
+{
+    this->value = 0;
+}
 
-	const int RUint::ToString(char *str)
-	{
-		string strValue = to_string(this->value);
-		strncpy(str, strValue.c_str( ), strValue.length( ));
-		return strValue.length( );
-	}
+RUint::RUint(unsigned int value)
+{
+    this->value = value;
+}
+
+void RUint::FromString(char *str, int len)
+{
+    this->value = static_cast<unsigned int>(atoi(str));
+}
+
+const int RUint::ToString(char *str)
+{
+    string strValue = to_string(this->value);
+    strncpy(str, strValue.c_str(), strValue.length());
+    return strValue.length();
+}
 }
 
 #endif //EXHIREDIS_RUINT_HPP
