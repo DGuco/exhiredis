@@ -41,7 +41,9 @@ public:
     }
 
 private:
-    //at last one should not be nullptr
+    /**
+     * There is only one should be not null at the same time
+     */
     shared_ptr<CBaseMasterSlaveConfig> m_pMasterSlaveConfig;
     shared_ptr<CSingleServerConfig> m_pSingleServerConfig;
     shared_ptr<CSentinelServersConfig> m_pSentinelServerConfig;

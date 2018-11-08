@@ -67,14 +67,14 @@ testStr()
 void
 testMap(std::shared_ptr<CRedisConnection> conn)
 {
-    RMap<RInt, RInt> *rMap = new RMap<RInt, RInt>("TestMap", conn);
-    const RInt key = RInt(1);
-    const RInt value = RInt(10);
-    rMap->Put(key, value);
-    std::shared_ptr<RInt> res = rMap->Get(key);
-    printf("-------------------\n");
-    int intva = res->Value();
-    printf("res  = %d \n", intva);
+//    RMap<RInt, RInt> *rMap = new RMap<RInt, RInt>("TestMap", conn);
+//    const RInt key = RInt(1);
+//    const RInt value = RInt(10);
+//    rMap->Put(key, value);
+//    std::shared_ptr<RInt> res = rMap->Get(key);
+//    printf("-------------------\n");
+//    int intva = res->Value();
+//    printf("res  = %d \n", intva);
 }
 
 class CCCC
@@ -95,7 +95,7 @@ main()
     std::shared_ptr<CRedisConnection> conn = std::make_shared<CRedisConnection>();
     conn->Connect("127.0.0.1", 6379);
     //	testStr( );
-//	testMap(conn);
+    testMap(conn);
     RScript *rScript = new RScript(conn);
     CCCC *c = new CCCC;
     if (c->getTestptr() != nullptr) {

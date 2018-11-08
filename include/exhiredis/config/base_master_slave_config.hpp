@@ -8,14 +8,14 @@
 
 namespace exhiredis
 {
-enum eReadMode
+enum class eReadMode
 {
     SLAVE,
     MASTER,
     MASTER_SLAVE,
 };
 
-enum eSubscriptionMode
+enum class eSubscriptionMode
 {
     SLAVE,
     MASTER,
