@@ -40,7 +40,7 @@ public:
     }
 
 private:
-    std::list<string> m_slaveAddresses;
+    list<string> m_slaveAddresses;
     string m_sMasterAddress;
     int database;
 };

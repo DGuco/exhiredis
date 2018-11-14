@@ -39,7 +39,7 @@ CConnectionPool::CConnectionPool(const shared_ptr<IConnectionManager> pConnManag
 
 void CConnectionPool::AddConnection(shared_ptr<CRedisConnection> conn)
 {
-    m_connList.push_back(std::move(conn));
+    m_connList.push_back(move(conn));
 }
 
 shared_ptr<CRedisConnection> CConnectionPool::BorrowOneConnection()
@@ -54,7 +54,7 @@ shared_ptr<CRedisConnection> CConnectionPool::BorrowOneConnection()
 
 shared_ptr<CRedisConnection> CConnectionPool::BackOneConnection(shared_ptr<CRedisConnection> conn)
 {
-    m_connList.push_back(std::move(conn));
+    m_connList.push_back(move(conn));
 }
 }
 

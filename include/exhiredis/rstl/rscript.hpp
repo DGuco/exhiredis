@@ -24,9 +24,9 @@ public:
      * @param args
      * @return lua script return int value
      */
-    std::shared_ptr<long long> EvalReturnInt(const std::string &script,
-                                             const std::list<std::string> &keys,
-                                             const std::list<std::string> &args);
+    shared_ptr<long long> EvalReturnInt(const string &script,
+                                             const list<string> &keys,
+                                             const list<string> &args);
 
     /**
      *
@@ -35,9 +35,9 @@ public:
      * @param args
      * @return lua script async return int value
      */
-    std::future<std::shared_ptr<long long>> EvalReturnIntAsync(const std::string &script,
-                                                               const std::list<std::string> &keys,
-                                                               const std::list<std::string> &args);
+    future<shared_ptr<long long>> EvalReturnIntAsync(const string &script,
+                                                               const list<string> &keys,
+                                                               const list<string> &args);
 
     /**
      *
@@ -46,9 +46,9 @@ public:
      * @param args
      * @return lua script return bool value
      */
-    std::shared_ptr<bool> EvalReturnBool(const std::string &script,
-                                         const std::list<std::string> &keys,
-                                         const std::list<std::string> &args);
+    shared_ptr<bool> EvalReturnBool(const string &script,
+                                         const list<string> &keys,
+                                         const list<string> &args);
 
     /**
      *
@@ -57,9 +57,9 @@ public:
      * @param args
      * @return lua script async return bool value
      */
-    std::future<std::shared_ptr<bool>> EvalReturnBoolAsync(const std::string &script,
-                                                           const std::list<std::string> &keys,
-                                                           const std::list<std::string> &args);
+    future<shared_ptr<bool>> EvalReturnBoolAsync(const string &script,
+                                                           const list<string> &keys,
+                                                           const list<string> &args);
 
     /**
      *
@@ -70,9 +70,9 @@ public:
      * @return lua script return return_type value  必须实现IRobject接口
      */
     template<class return_type>
-    std::shared_ptr<return_type> Eval(const std::string &script,
-                                      const std::list<std::string> &keys,
-                                      const std::list<std::string> &args);
+    shared_ptr<return_type> Eval(const string &script,
+                                      const list<string> &keys,
+                                      const list<string> &args);
 
     /**
      *
@@ -83,13 +83,13 @@ public:
      * @return lua script async return return_type value  必须实现IRobject接口
      */
     template<class return_type>
-    std::future<std::shared_ptr<return_type>> EvalAsync(const std::string &script,
-                                                        const std::list<std::string> &keys,
-                                                        const std::list<std::string> &args);
+    future<shared_ptr<return_type>> EvalAsync(const string &script,
+                                                        const list<string> &keys,
+                                                        const list<string> &args);
 private:
-    const string BuildScriptCmd(const std::list<std::string> &keys, const std::list<std::string> &args);
+    const string BuildScriptCmd(const list<string> &keys, const list<string> &args);
 private:
-    std::shared_ptr<CRedisConnection> m_pRedisConn;
+    shared_ptr<CRedisConnection> m_pRedisConn;
 };
 
 RScript::RScript(const shared_ptr<CRedisConnection> pRedisConn)
@@ -98,55 +98,55 @@ RScript::RScript(const shared_ptr<CRedisConnection> pRedisConn)
 
 }
 
-std::shared_ptr<long long> RScript::EvalReturnInt(const std::string &script,
-                                                  const std::list<std::string> &keys,
-                                                  const std::list<std::string> &args)
+shared_ptr<long long> RScript::EvalReturnInt(const string &script,
+                                                  const list<string> &keys,
+                                                  const list<string> &args)
 {
     return EvalReturnIntAsync(script, keys, args).get();
 }
 
-std::future<std::shared_ptr<long long>> RScript::EvalReturnIntAsync(const std::string &script,
-                                                                    const std::list<std::string> &keys,
-                                                                    const std::list<std::string> &args)
+future<shared_ptr<long long>> RScript::EvalReturnIntAsync(const string &script,
+                                                                    const list<string> &keys,
+                                                                    const list<string> &args)
 {
     return m_pRedisConn->RedisAsyncReturnIntCommand(BuildScriptCmd(keys, args).c_str(),
                                                     script.c_str());
 }
 
-std::shared_ptr<bool> RScript::EvalReturnBool(const std::string &script,
-                                              const std::list<std::string> &keys,
-                                              const std::list<std::string> &args)
+shared_ptr<bool> RScript::EvalReturnBool(const string &script,
+                                              const list<string> &keys,
+                                              const list<string> &args)
 {
     return EvalReturnBoolAsync(script, keys, args).get();
 }
 
-std::future<std::shared_ptr<bool>> RScript::EvalReturnBoolAsync(const std::string &script,
-                                                                const std::list<std::string> &keys,
-                                                                const std::list<std::string> &args)
+future<shared_ptr<bool>> RScript::EvalReturnBoolAsync(const string &script,
+                                                                const list<string> &keys,
+                                                                const list<string> &args)
 {
     return m_pRedisConn->RedisAsyncReturnBoolCommand(BuildScriptCmd(keys, args).c_str(),
                                                      script.c_str());
 }
 
 template<class return_type>
-std::shared_ptr<return_type> RScript::Eval(const std::string &script,
-                                           const std::list<std::string> &keys,
-                                           const std::list<std::string> &args)
+shared_ptr<return_type> RScript::Eval(const string &script,
+                                           const list<string> &keys,
+                                           const list<string> &args)
 {
     return EvalAsync<return_type>(script, keys, args).get();
 
 }
 
 template<class return_type>
-std::future<std::shared_ptr<return_type>> RScript::EvalAsync(const std::string &script,
-                                                             const std::list<std::string> &keys,
-                                                             const std::list<std::string> &args)
+future<shared_ptr<return_type>> RScript::EvalAsync(const string &script,
+                                                             const list<string> &keys,
+                                                             const list<string> &args)
 {
     return m_pRedisConn->RedisAsyncCommand<return_type>(BuildScriptCmd(keys, args).c_str(),
                                                         script.c_str());
 }
 
-const string RScript::BuildScriptCmd(const std::list<std::string> &keys, const std::list<std::string> &args)
+const string RScript::BuildScriptCmd(const list<string> &keys, const list<string> &args)
 {
     string scriptCmd = redis_commands::EVAL + to_string(keys.size()) + " ";
     for (auto str : keys) {

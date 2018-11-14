@@ -21,7 +21,7 @@ namespace exhiredis
 {
 class CRedisClients
 {
-public:
+private:
     //construct
     CRedisClients(shared_ptr<IConnectionManager> m_pConnectionManager);
     //forbidden operation
@@ -45,18 +45,18 @@ private:
 };
 
 CRedisClients::CRedisClients(shared_ptr<IConnectionManager> m_pConnectionManager)
-    : m_pConnectionManager(std::move(m_pConnectionManager))
+    : m_pConnectionManager(move(m_pConnectionManager))
 {
     CLog::CreateInstance();
 }
 
 shared_ptr<exhiredis::CRedisClients> CRedisClients::CreateInstance(shared_ptr<CRedisConfig> config)
 {
-    if (config->getSingleServerConfig() != nullptr) {
+    if (config->GetSingleServerConfig() != nullptr) {
         shared_ptr<IConnectionManager> tmpManager = make_shared<CMasterSlaveManager>(config);
         return make_shared<CRedisClients>(tmpManager);
     }
-    else if (config->getMasterSlaveConfig()) {
+    else if (config->GetMasterSlaveConfig()) {
         return shared_ptr<CRedisClients>();
     }
 

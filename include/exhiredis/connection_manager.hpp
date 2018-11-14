@@ -31,7 +31,7 @@ public:
     //is shutdown
     virtual bool IsShutDown() = 0;
     //get config
-    virtual shared_ptr<CRedisConfig> &GetRedisConfig() = 0;
+    virtual shared_ptr<CRedisConfig> GetRedisConfig() = 0;
 };
 }
 #endif //EXHIREDIS_CONNECT_MANAGER_H

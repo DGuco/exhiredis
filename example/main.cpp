@@ -38,10 +38,10 @@ class Test2: public Test
 
 };
 
-std::future<int> &&
+future<int> &&
 getFuture()
 {
-    return std::async([]
+    return async([]
                       { return 0; });
 }
 
@@ -65,42 +65,46 @@ testStr()
 }
 
 void
-testMap(std::shared_ptr<CRedisConnection> conn)
+testMap(shared_ptr<CRedisConnection> conn)
 {
 //    RMap<RInt, RInt> *rMap = new RMap<RInt, RInt>("TestMap", conn);
 //    const RInt key = RInt(1);
 //    const RInt value = RInt(10);
 //    rMap->Put(key, value);
-//    std::shared_ptr<RInt> res = rMap->Get(key);
+//    shared_ptr<RInt> res = rMap->Get(key);
 //    printf("-------------------\n");
 //    int intva = res->Value();
 //    printf("res  = %d \n", intva);
 }
 
+template<int MAX_SLOT = 1>
 class CCCC
 {
 public:
-    shared_ptr<int> testptr;
-    const shared_ptr<int> &
-    getTestptr() const
+    int GetSlot()
     {
-        return testptr;
+        return MAX_SLOT;
     }
+};
+
+class DDDD: public CCCC<>
+{
+
 };
 
 int
 main()
 {
+    CCCC<> c;
+    DDDD d;
+    int c1 = c.GetSlot();
+    int d1 = d.GetSlot();
     CLog::CreateInstance();
-    std::shared_ptr<CRedisConnection> conn = std::make_shared<CRedisConnection>();
+    shared_ptr<CRedisConnection> conn = make_shared<CRedisConnection>();
     conn->Connect("127.0.0.1", 6379);
     //	testStr( );
     testMap(conn);
     RScript *rScript = new RScript(conn);
-    CCCC *c = new CCCC;
-    if (c->getTestptr() != nullptr) {
-        int a = 1;
-    }
     string cmd = "if (redis.call('exists', KEYS[1]) == 0) then " \
         "redis.call('hset', KEYS[1], ARGV[2], 1); " \
         "redis.call('pexpire', KEYS[1], ARGV[1]); " \

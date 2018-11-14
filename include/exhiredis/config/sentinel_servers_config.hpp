@@ -61,7 +61,7 @@ public:
         CSentinelServersConfig::m_iScanInterval = scanInterval;
     }
 private:
-    std::list<string> m_sentinelAddresses;
+    list<string> m_sentinelAddresses;
     string m_sMasterName;
     int m_iDatabase;
     int m_iScanInterval;

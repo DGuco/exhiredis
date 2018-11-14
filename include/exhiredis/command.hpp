@@ -44,8 +44,8 @@ public:
     void SetCommState(const int iCommState);
 private:
     const unsigned long m_iCommandId;  //cmd id
-    std::atomic_int m_iCommState;
-    std::shared_ptr<promise<redisReply *>> m_pPromise;
+    atomic_int m_iCommState;
+    shared_ptr<promise<redisReply *>> m_pPromise;
     redisReply *m_pReply;
     const string m_sCmd;
     va_list m_param;
@@ -53,7 +53,7 @@ private:
 
 CCommand::CCommand(unsigned long id, const char *cmd, va_list vaList)
     : m_iCommandId(id),
-      m_pPromise(std::make_shared<promise<redisReply *>>(std::promise<redisReply *>())),
+      m_pPromise(make_shared<promise<redisReply *>>(promise<redisReply *>())),
       m_pReply(nullptr),
       m_sCmd(cmd)
 {

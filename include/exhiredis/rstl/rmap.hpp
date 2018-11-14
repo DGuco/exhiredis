@@ -32,7 +32,7 @@ public:
      * @param name
      * @param conn
      */
-    RMap(const string& name, std::shared_ptr<IConnectionManager> conn);
+    RMap(const string& name, shared_ptr<IConnectionManager> conn);
     /**
      * put
      * @param key
@@ -46,26 +46,26 @@ public:
      * @param value
      * @return true success false failed
      */
-    std::future<bool> PutAsync(const key_type &key, const value_type &value);
+    future<bool> PutAsync(const key_type &key, const value_type &value);
     /**
      * get
      * @param key
      * @return
      */
-    std::shared_ptr<value_type> Get(const key_type &key);
+    shared_ptr<value_type> Get(const key_type &key);
     /**
      * async get
      * @param key
      * @return
      */
-    std::future<std::shared_ptr<value_type>> GetAsync(const key_type &key);
+    future<shared_ptr<value_type>> GetAsync(const key_type &key);
 private:
-    std::string m_sName;
-    std::shared_ptr<IConnectionManager> m_pRedisConn;
+    string m_sName;
+    shared_ptr<IConnectionManager> m_pRedisConn;
 };
 
 template<class key_type, class value_type>
-RMap<key_type, value_type>::RMap(const string& name, std::shared_ptr<IConnectionManager> conn)
+RMap<key_type, value_type>::RMap(const string& name, shared_ptr<IConnectionManager> conn)
     : m_sName(name),
       m_pRedisConn(conn)
 {
@@ -78,13 +78,13 @@ bool RMap<key_type, value_type>::Put(const key_type &key, const value_type &valu
 }
 
 template<class key_type, class value_type>
-std::shared_ptr<value_type> RMap<key_type, value_type>::Get(const key_type &key)
+shared_ptr<value_type> RMap<key_type, value_type>::Get(const key_type &key)
 {
     return GetAsync(key).get();
 }
 
 template<class key_type, class value_type>
-std::future<bool> RMap<key_type, value_type>::PutAsync(const key_type &key, const value_type &value)
+future<bool> RMap<key_type, value_type>::PutAsync(const key_type &key, const value_type &value)
 {
     char acKey[KEY_SIZE];
     char acValue[VALUE_SIZE];
@@ -99,7 +99,7 @@ std::future<bool> RMap<key_type, value_type>::PutAsync(const key_type &key, cons
 }
 
 template<class key_type, class value_type>
-std::future<std::shared_ptr<value_type>> RMap<key_type, value_type>::GetAsync(const key_type &key)
+future<shared_ptr<value_type>> RMap<key_type, value_type>::GetAsync(const key_type &key)
 {
     char acKey[KEY_SIZE];
     int keyLen = ((IRobject *) (&key))->ToString(acKey);

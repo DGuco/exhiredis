@@ -17,7 +17,7 @@ namespace exhiredis
 class CRedisConfig
 {
 public:
-    CRedisConfig(const shared_ptr<CBaseMasterSlaveConfig> &m_pMasterSlaveConfig,
+    CRedisConfig(const shared_ptr<MasterSlaveServersConfig> &m_pMasterSlaveConfig,
                  const shared_ptr<CSingleServerConfig> &m_pSingleServerConfig,
                  const shared_ptr<CSentinelServersConfig> &m_pSentinelServerConfig)
         : m_pMasterSlaveConfig(m_pMasterSlaveConfig),
@@ -25,17 +25,17 @@ public:
           m_pSentinelServerConfig(m_pSentinelServerConfig)
     {}
 
-    const shared_ptr<CBaseMasterSlaveConfig> &getMasterSlaveConfig() const
+    shared_ptr<MasterSlaveServersConfig> GetMasterSlaveConfig() const
     {
         return m_pMasterSlaveConfig;
     }
 
-    const shared_ptr<CSingleServerConfig> &getSingleServerConfig() const
+    shared_ptr<CSingleServerConfig> GetSingleServerConfig() const
     {
         return m_pSingleServerConfig;
     }
 
-    const shared_ptr<CSentinelServersConfig> &getSentinelServerConfig() const
+    shared_ptr<CSentinelServersConfig> GetSentinelServerConfig() const
     {
         return m_pSentinelServerConfig;
     }
@@ -44,7 +44,7 @@ private:
     /**
      * There is only one should be not null at the same time
      */
-    shared_ptr<CBaseMasterSlaveConfig> m_pMasterSlaveConfig;
+    shared_ptr<MasterSlaveServersConfig> m_pMasterSlaveConfig;
     shared_ptr<CSingleServerConfig> m_pSingleServerConfig;
     shared_ptr<CSentinelServersConfig> m_pSentinelServerConfig;
 };

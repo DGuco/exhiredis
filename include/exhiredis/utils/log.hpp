@@ -40,7 +40,7 @@ public:
     template<typename... Args>
     int Log(eLogLevel vPriority, const char *vFmt, const Args &... args);
 private:
-    std::mutex m_logLock;
+    mutex m_logLock;
 };
 
 template<> shared_ptr<CLog> CSingleton<CLog>::spSingleton = NULL;
@@ -51,7 +51,7 @@ int CLog::LogTrace(const char *vFmt, const Args &... args)
     char buff[1024];
     sprintf(buff, vFmt, args...);
     {
-        std::lock_guard<mutex> lock(m_logLock);
+        lock_guard<mutex> lock(m_logLock);
         printf("[HIREDIS] TRACE : %s\n", buff);
     }
     return 0;
@@ -63,7 +63,7 @@ int CLog::LogDebug(const char *vFmt, const Args &... args)
     char buff[1024];
     sprintf(buff, vFmt, args...);
     {
-        std::lock_guard<mutex> lock(m_logLock);
+        lock_guard<mutex> lock(m_logLock);
         printf("[HIREDIS] DEBUG : %s\n", buff);
     }
     return 0;
@@ -74,7 +74,7 @@ int CLog::LogInfo(const char *vFmt, const Args &... args)
     char buff[1024];
     sprintf(buff, vFmt, args...);
     {
-        std::lock_guard<mutex> lock(m_logLock);
+        lock_guard<mutex> lock(m_logLock);
         printf("[HIREDIS] INFO : %s\n", buff);
     }
     return 0;
@@ -85,7 +85,7 @@ int CLog::LogWarn(const char *vFmt, const Args &... args)
     char buff[1024];
     sprintf(buff, vFmt, args...);
     {
-        std::lock_guard<mutex> lock(m_logLock);
+        lock_guard<mutex> lock(m_logLock);
         printf("[HIREDIS] WARN : %s\n", buff);
     }
     return 0;
@@ -96,7 +96,7 @@ int CLog::LogError(const char *vFmt, const Args &... args)
     char buff[1024];
     sprintf(buff, vFmt, args...);
     {
-        std::lock_guard<mutex> lock(m_logLock);
+        lock_guard<mutex> lock(m_logLock);
         printf("[HIREDIS] ERROR : %s\n", buff);
     }
     return 0;
@@ -107,7 +107,7 @@ int CLog::LogCritical(const char *vFmt, const Args &... args)
     char buff[1024];
     sprintf(buff, vFmt, args...);
     {
-        std::lock_guard<mutex> lock(m_logLock);
+        lock_guard<mutex> lock(m_logLock);
         printf("[HIREDIS] CRITICAL : %s\n", buff);
     }
     return 0;
