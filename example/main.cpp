@@ -5,6 +5,7 @@
 #include <iostream>
 #include "exhiredis/rstl/rmap.hpp"
 #include "exhiredis/rstl/rscript.hpp"
+#include "exhiredis/concurrent/thread_pool.hpp"
 
 using namespace std;
 using namespace exhiredis;
@@ -42,7 +43,7 @@ future<int> &&
 getFuture()
 {
     return async([]
-                      { return 0; });
+                 { return 0; });
 }
 
 void
@@ -81,7 +82,7 @@ template<int MAX_SLOT = 1>
 class CCCC
 {
 public:
-    int GetSlot()
+    int GetSlot() volatile
     {
         return MAX_SLOT;
     }
@@ -95,10 +96,11 @@ class DDDD: public CCCC<>
 int
 main()
 {
-    CCCC<> c;
-    DDDD d;
-    int c1 = c.GetSlot();
-    int d1 = d.GetSlot();
+    CThreadPool cThreadPool;
+    cThreadPool.PushTaskBack([]
+                             {
+                                 printf("Hello world\n");
+                             });
     CLog::CreateInstance();
     shared_ptr<CRedisConnection> conn = make_shared<CRedisConnection>();
     conn->Connect("127.0.0.1", 6379);
@@ -117,5 +119,7 @@ main()
         "end; " \
         "return redis.call('pttl', KEYS[1]);";
     auto res = rScript->EvalReturnInt(cmd.c_str(), {"TestLock:lock1"}, {"100", "3132"});
+    atomic_bool aBool;
+    aBool.exchange(1);
     printf("res = %ld\n", *(res.get()));
 }

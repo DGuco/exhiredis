@@ -4,7 +4,7 @@ add_subdirectory(example)
 
 set(CMAKE_C_COMPILER gcc)
 set(CMAKE_CXX_COMPILER g++)
-add_compile_options(-Wall -g -pipe -std=c++11)
+add_compile_options(-Wall -g -pipe -std=c++14)
 add_definitions()
 
 set(EXHIREDIS
@@ -35,7 +35,13 @@ set(EXHIREDIS
         include/exhiredis/rstl/rscript.hpp
         include/exhiredis/rstl/rmap.hpp
         include/exhiredis/redis_commands.hpp
-        include/exhiredis/connection_pool.hpp include/exhiredis/config/redis_config.hpp include/exhiredis/redis_clients.hpp include/exhiredis/master_slave_manager.hpp include/exhiredis/master_slave_entry.hpp include/exhiredis/utils/crc16.hpp)
+        include/exhiredis/connection_pool.hpp
+        include/exhiredis/config/redis_config.hpp
+        include/exhiredis/redis_clients.hpp
+        include/exhiredis/master_slave_manager.hpp
+        include/exhiredis/master_slave_entry.hpp
+        include/exhiredis/utils/crc16.hpp
+        include/exhiredis/concurrent/thread_pool.hpp)
 
 include_directories(
         /usr/include/
