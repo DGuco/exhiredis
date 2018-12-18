@@ -3,6 +3,8 @@
 //
 
 #include <iostream>
+#include <tuple>
+#include <vector>
 #include "exhiredis/rstl/rmap.hpp"
 #include "exhiredis/rstl/rscript.hpp"
 #include "exhiredis/concurrent/thread_pool.hpp"
@@ -24,14 +26,40 @@ private:
     T value;
 };
 
-class Test
+class Test: public std::enable_shared_from_this<Test>
 {
-
+public:
+    Test()
+    {
+    }
+    shared_ptr<Test> getPtr()
+    {
+        return shared_from_this();
+    }
 };
 
-class Test1: public Test
+class Test1
 {
+public:
+    Test1()
+    {
 
+    }
+
+    Test1(const Test1 &test)
+    {
+        printf("Test1 copy\n");
+    }
+
+    Test1(const Test1 &&test)
+    {
+        printf("Test1 move\n");
+    }
+
+    Test1 &operator=(const Test1 &test)
+    {
+        printf("Test1 operator=\n");
+    }
 };
 
 class Test2: public Test
@@ -78,29 +106,18 @@ testMap(shared_ptr<CRedisConnection> conn)
 //    printf("res  = %d \n", intva);
 }
 
-template<int MAX_SLOT = 1>
-class CCCC
-{
-public:
-    int GetSlot() volatile
-    {
-        return MAX_SLOT;
-    }
-};
-
-class DDDD: public CCCC<>
-{
-
-};
-
 int
 main()
 {
-    CThreadPool cThreadPool;
-    cThreadPool.PushTaskBack([]
-                             {
-                                 printf("Hello world\n");
-                             });
+    vector<Test1> vector1;
+    vector1.push_back(std::move(Test1()));
+    vector1.push_back(std::move(Test1()));
+    vector1.push_back(std::move(Test1()));
+
+    for (auto it : vector1) {
+
+    }
+
     CLog::CreateInstance();
     shared_ptr<CRedisConnection> conn = make_shared<CRedisConnection>();
     conn->Connect("127.0.0.1", 6379);

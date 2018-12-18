@@ -345,7 +345,7 @@ future<shared_ptr<return_type>> CRedisConnection::RedisAsyncCommand(const char *
                          return nullptr;
                      }
                      shared_ptr<return_type> value = make_shared<return_type>();
-                     ((IRobject *) value.get())->FromString(res->str, res->len);
+                     static_pointer_cast<IRobject>(value)->FromString(res->str, res->len);
                      return value;
                  });
 }
