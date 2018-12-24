@@ -14,13 +14,11 @@ namespace exhiredis
 class CCommandState
 {
 public:
-    static const int NO_REPLY = -1;   // No reply yet
-    static const int OK_REPLY = 0;    // Successful reply of the expected type
-    static const int NIL_REPLY = 1;   // Got a nil reply
-    static const int ERROR_REPLY = 2; // Got an error reply
-    static const int SEND_ERROR = 3;  // Could not send to server
-    static const int WRONG_TYPE = 4;  // Got reply, but it was not the expected type
-    static const int TIMEOUT = 5;     // No reply, timed out
+    static const int NOT_SEND = 1;  //Has not send to server
+    static const int SEND_ERROR = 2;  // Could not send to server
+    static const int NO_REPLY = 3;   // No reply yet
+    static const int TIMEOUT = 4;     // No reply, timed out
+    static const int REPLY_DONE = 5;     // redis reply done
 };
 
 class CCommand
@@ -44,7 +42,7 @@ public:
     void SetCommState(const int iCommState);
 private:
     const unsigned long m_iCommandId;  //cmd id
-    atomic_int m_iCommState;
+    atomic_short m_iCommState;
     shared_ptr<promise<redisReply *>> m_pPromise;
     redisReply *m_pReply;
     const string m_sCmd;
@@ -57,7 +55,7 @@ CCommand::CCommand(unsigned long id, const char *cmd, va_list vaList)
       m_pReply(nullptr),
       m_sCmd(cmd)
 {
-    m_iCommState.store(CCommandState::NO_REPLY);
+    m_iCommState.store(CCommandState::NOT_SEND);
     va_copy(m_param, vaList);
 }
 

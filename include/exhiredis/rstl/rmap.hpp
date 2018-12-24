@@ -19,7 +19,7 @@ namespace exhiredis
 #define VALUE_SIZE 2048
 
 /**
- * redis hashes  key_type value_type (必须实现Robject接口)
+ * redis hashes  key_type value_type (必须实现IRobject接口)
  * @tparam key_type key_typ e must be the subclass of the IRobject ,ex:RBool,RInt,RFloat......
  * @tparam key_type value_type must be the subclass of the IRobject,ex:RBool,RInt,RFloat......
  */
@@ -32,7 +32,7 @@ public:
      * @param name
      * @param conn
      */
-    RMap(const string& name, shared_ptr<IConnectionManager> conn);
+    RMap(const string &name, shared_ptr<IConnectionManager> &conn);
     /**
      * put
      * @param key
@@ -65,7 +65,7 @@ private:
 };
 
 template<class key_type, class value_type>
-RMap<key_type, value_type>::RMap(const string& name, shared_ptr<IConnectionManager> conn)
+RMap<key_type, value_type>::RMap(const string &name, shared_ptr<IConnectionManager> &conn)
     : m_sName(name),
       m_pRedisConn(conn)
 {

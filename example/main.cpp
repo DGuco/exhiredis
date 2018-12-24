@@ -67,13 +67,6 @@ class Test2: public Test
 
 };
 
-future<int> &&
-getFuture()
-{
-    return async([]
-                 { return 0; });
-}
-
 void
 testStr()
 {
@@ -109,15 +102,7 @@ testMap(shared_ptr<CRedisConnection> conn)
 int
 main()
 {
-    vector<Test1> vector1;
-    vector1.push_back(std::move(Test1()));
-    vector1.push_back(std::move(Test1()));
-    vector1.push_back(std::move(Test1()));
-
-    for (auto it : vector1) {
-
-    }
-
+    pthread_rwlock_t pthread_rwlock;
     CLog::CreateInstance();
     shared_ptr<CRedisConnection> conn = make_shared<CRedisConnection>();
     conn->Connect("127.0.0.1", 6379);
@@ -127,16 +112,13 @@ main()
     string cmd = "if (redis.call('exists', KEYS[1]) == 0) then " \
         "redis.call('hset', KEYS[1], ARGV[2], 1); " \
         "redis.call('pexpire', KEYS[1], ARGV[1]); " \
-        "return true; " \
+        "return nil; " \
         "end; " \
         "if (redis.call('hexists', KEYS[1], ARGV[2]) == 1) then " \
         "redis.call('hincrby', KEYS[1], ARGV[2], 1); " \
         "redis.call('pexpire', KEYS[1], ARGV[1]); " \
-        "return true; " \
+        "return nil; " \
         "end; " \
         "return redis.call('pttl', KEYS[1]);";
-    auto res = rScript->EvalReturnInt(cmd.c_str(), {"TestLock:lock1"}, {"100", "3132"});
-    atomic_bool aBool;
-    aBool.exchange(1);
-    printf("res = %ld\n", *(res.get()));
+    shared_ptr<long long> res = rScript->EvalReturnInt(cmd, {"TestLock:lock1"}, {"1000000000000", "3133213232"});
 }
