@@ -42,7 +42,9 @@ set(EXHIREDIS
         include/exhiredis/master_slave_entry.hpp
         include/exhiredis/utils/crc16.hpp
         include/exhiredis/concurrent/thread_pool.hpp
-        include/exhiredis/lock/redis_lock.hpp)
+        include/exhiredis/lock/redis_lock.hpp
+        include/exhiredis/utils/rwlock.hpp
+        include/exhiredis/utils/exception.hpp)
 
 include_directories(
         /usr/include/

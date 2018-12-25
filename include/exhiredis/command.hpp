@@ -39,13 +39,13 @@ public:
     //get cmd status
     const int GetCommState() const;
     //set cmd status
-    void SetCommState(const int iCommState);
+    void SetCommState(unsigned short iCommState);
 private:
     const unsigned long m_iCommandId;  //cmd id
-    atomic_short m_iCommState;
+    unsigned short m_iCommState;
     shared_ptr<promise<redisReply *>> m_pPromise;
     redisReply *m_pReply;
-    const string m_sCmd;
+    const char *m_sCmd;
     va_list m_param;
 };
 
@@ -53,9 +53,9 @@ CCommand::CCommand(unsigned long id, const char *cmd, va_list vaList)
     : m_iCommandId(id),
       m_pPromise(make_shared<promise<redisReply *>>(promise<redisReply *>())),
       m_pReply(nullptr),
-      m_sCmd(cmd)
+      m_sCmd(cmd),
+      m_iCommState(CCommandState::NOT_SEND)
 {
-    m_iCommState.store(CCommandState::NOT_SEND);
     va_copy(m_param, vaList);
 }
 
@@ -75,12 +75,12 @@ const unsigned long CCommand::GetCommandId() const
 
 const int CCommand::GetCommState() const
 {
-    return m_iCommState.load();
+    return m_iCommState;
 }
 
-void CCommand::SetCommState(const int iCommState)
+void CCommand::SetCommState(unsigned short iCommState)
 {
-    m_iCommState.store(iCommState);
+    m_iCommState = iCommState;
 }
 
 void CCommand::SetPromiseValue(redisReply *reply)
