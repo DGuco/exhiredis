@@ -15,9 +15,9 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
-#include <unordered_map>
 #include <queue>
 #include <list>
+#include <unordered_map>
 #include "utils/signal.hpp"
 #include "utils/log.hpp"
 #include "command.hpp"
@@ -26,17 +26,19 @@
 
 namespace exhiredis
 {
-class CConnState
-{
-public:
-    static const int NOT_YET_CONNECTED = 0; // Starting state
-    static const int CONNECTED = 1;         // Successfully connected
-    static const int DISCONNECTED = 2;      // Successfully disconnected
-    static const int CONNECT_ERROR = 3;     // Error connecting
-    static const int INIT_ERROR = 4;        // Failed to init data structures
-};
 class CRedisConnection
 {
+public:
+    enum enConnState
+    {
+        DESTROYING = -1,       //call the ~CRedisConnection 析构函数
+        NOT_YET_CONNECTED = 0, // Starting state
+        CONNECTING = 1,        // connecting
+        CONNECTED = 2,        // Successfully connected
+        DISCONNECTED = 3,      // Successfully disconnected
+        CONNECT_ERROR = 4,     // Error connecting
+        INIT_ERROR = 5,        // Failed to init data structures
+    };
 public:
     //构造函数
     CRedisConnection();
@@ -51,9 +53,9 @@ public:
     //connect redis
     bool ConnecToUnix(const string &address);
     //get status of the connecton
-    int GetConnState();
+    enConnState GetConnState();
     //set status of the connecton
-    void SetConnState(int eConnState);
+    void SetConnState(enConnState eConnState);
     //execute redis command ,don't care what redis returns,only care whether the command succeed or not
     future<bool> RedisAsyncIsSucceedCommand(const char *cmd, ...);
     //execute redis command return integer pointer or nullptr
@@ -70,17 +72,21 @@ private:
     shared_ptr<CCommand> CreateCommand(const char *cmd, va_list vaList);
     //execute redis
     shared_ptr<CCommand> RedisvAsyncCommand(const char *cmd, va_list ap);
+    //execute redis
+    int SendCommandAsync(shared_ptr<CCommand> &command);
     //create command id
     unsigned long GenCommandId();
-    //remove redis command
-    shared_ptr<CCommand> RemoveCmd(unsigned long cmdId);
     //shutdown the connection
     void ShutDown();
+    //flush all command
+    void RetryFailedOrWaitCommands();
 private:
     //connected callback
     static void lcb_OnConnectCallback(const redisAsyncContext *context, int status);
-    //disconnected callback
+    //disconnected callback(this callback will not call until we found the connection is gone when we send failed or we closed ourselves)
     static void lcb_OnDisconnectCallback(const redisAsyncContext *context, int status);
+    //the server closed our connection
+    static void lcb_OnDisconnectEventCallback(int socket, int event, void *data);
     //redis command callback
     static void lcb_OnCommandCallback(redisAsyncContext *context, void *reply, void *privdata);
 private:
@@ -90,18 +96,22 @@ private:
     bool InitLibevent();
     //run eventloop
     bool RunEventLoop();
+    //set command reply
+    void SetCommandReply(unsigned long cmdId, redisReply *cmdReply);
 private:
     redisAsyncContext *m_pRedisContext;
     shared_ptr<thread> m_pEventLoopThread;
     event_base *m_pEventBase;
+    event *m_closedEvent;
     string m_sHost;
     int m_iPort;
     string m_sAddress;
-    atomic_int m_iConnState;
+    enConnState m_connState;
     mutex m_lock;
     atomic_ulong m_cmdId;
-    unordered_map<unsigned long, shared_ptr<CCommand>> m_mCmdMap;
-    queue<shared_ptr<CCommand>> m_failedCmdQueue;
+    unordered_map<unsigned long, shared_ptr<CCommand>> m_cmdMap;
+    queue<unsigned long> m_cmdQueue;
+    list<unsigned long> m_failedOrWaitList;
 };
 
 CRedisConnection::CRedisConnection()
@@ -109,13 +119,14 @@ CRedisConnection::CRedisConnection()
       m_pEventBase(nullptr),
       m_sHost(""),
       m_iPort(0),
-      m_iConnState(CConnState::NOT_YET_CONNECTED)
+      m_connState(enConnState::NOT_YET_CONNECTED)
 {
 
 }
 
 CRedisConnection::~CRedisConnection()
 {
+    SetConnState(enConnState::DESTROYING);
     ShutDown();
 }
 
@@ -127,31 +138,37 @@ bool CRedisConnection::Connect(const string &host, int port, bool isReconn)
     }
 
     if (!InitLibevent()) {
-        SetConnState(CConnState::INIT_ERROR);
+        SetConnState(enConnState::INIT_ERROR);
         return false;
     }
     m_pRedisContext = redisAsyncConnect(m_sHost.c_str(), m_iPort);
     if (nullptr == m_pRedisContext || m_pRedisContext->err) {
         HIREDIS_LOG_ERROR("Redis connect error: %s\n", m_pRedisContext->errstr);
-        SetConnState(CConnState::INIT_ERROR);
+        SetConnState(enConnState::INIT_ERROR);
         return false;
     }
     if (!InitHiredis()) {
         return false;
     }
+    SetConnState(enConnState::CONNECTING);
+    if (m_pEventLoopThread != nullptr) {
+        m_pEventLoopThread.reset();
+    }
     m_pEventLoopThread = make_shared<thread>([this]
                                              { RunEventLoop(); });
-    return GetConnState() == CConnState::CONNECTED;
+    return GetConnState() == enConnState::CONNECTED;
 }
 
 bool CRedisConnection::ReConnect()
 {
     {
         lock_guard<mutex> lock_guard(m_lock);
-        ShutDown();
-        Connect(m_sHost, m_iPort, true);
+        if (GetConnState() == enConnState::DISCONNECTED) {
+            ShutDown();
+            Connect(m_sHost, m_iPort, true);
+        }
     }
-    return GetConnState() == CConnState::CONNECTED;
+    return GetConnState() == enConnState::CONNECTED;
 }
 
 bool CRedisConnection::ConnecToUnix(const string &address)
@@ -168,40 +185,55 @@ bool CRedisConnection::ConnecToUnix(const string &address)
     }
     m_pEventLoopThread = make_shared<thread>([this]
                                              { event_base_dispatch(m_pEventBase); });
-    return GetConnState() == CConnState::CONNECTED;
+    return GetConnState() == enConnState::CONNECTED;
 }
 
-int CRedisConnection::GetConnState()
+enConnState CRedisConnection::GetConnState()
 {
-//    lock_guard<mutex> lk(m_connectLock);
-    return m_iConnState;
+    lock_guard<mutex> lk(m_lock);
+    return m_connState;
 }
 
-void CRedisConnection::SetConnState(int eConnState)
+void CRedisConnection::SetConnState(enConnState eConnState)
 {
-    m_iConnState = eConnState;
+    lock_guard<mutex> lk(m_lock);
+    m_connState = eConnState;
 }
 
 shared_ptr<CCommand> CRedisConnection::RedisvAsyncCommand(const char *cmd,
                                                           va_list ap)
 {
     shared_ptr<CCommand> tmpCommand = CreateCommand(cmd, ap);
-    unsigned long cmdId = tmpCommand->GetCommandId();
-    {
-        lock_guard<mutex> lk(m_lock);
-        int status = redisvAsyncCommand(m_pRedisContext,
-                                        &CRedisConnection::lcb_OnCommandCallback,
-                                        (void *) cmdId,
-                                        cmd,
-                                        ap);
-        if (status == REDIS_OK) {
-            m_mCmdMap.insert(make_pair(cmdId, tmpCommand));
-        }
-        else {
-            HIREDIS_LOG_ERROR("Push redis command failed,cmd = %s,redis status = %d", cmd, status);
+    lock_guard<mutex> lk(m_lock);
+    unsigned long commandId = tmpCommand->GetCommandId();
+    m_cmdMap.insert(make_pair(commandId, tmpCommand));
+    m_cmdQueue.push(commandId);
+    if (m_connState == enConnState::CONNECTED) {
+        //retry failed or commands
+        RetryFailedOrWaitCommands();
+        if (SendCommandAsync(tmpCommand) != REDIS_OK) {
+            tmpCommand->SetCommState(CCommandState::SEND_ERROR);
+            m_failedOrWaitList.push_back(commandId);
+            HIREDIS_LOG_ERROR("Send redis command failed,cmd = %s", tmpCommand->ToString());
         }
     }
+    else {
+        m_failedOrWaitList.push_back(commandId);
+    }
     return std::move(tmpCommand);
+}
+
+int CRedisConnection::SendCommandAsync(shared_ptr<CCommand> &command)
+{
+    int status = redisvAsyncCommand(m_pRedisContext,
+                                    &CRedisConnection::lcb_OnCommandCallback,
+                                    (void *) command->GetCommandId(),
+                                    command->GetCmd(),
+                                    command->GetParam());
+    if (status == REDIS_OK) {
+        command->SetCommState(CCommandState::NO_REPLY_YET);
+    }
+    return status;
 }
 
 future<bool> CRedisConnection::RedisAsyncIsSucceedCommand(const char *cmd, ...)
@@ -352,22 +384,11 @@ future<shared_ptr<return_type>> CRedisConnection::RedisAsyncCommand(const char *
                  });
 }
 
-shared_ptr<CCommand> CRedisConnection::RemoveCmd(unsigned long cmdId)
-{
-    shared_ptr<CCommand> cmd = nullptr;
-    {
-        lock_guard<mutex> lk(m_lock);
-        auto it = m_mCmdMap.find(cmdId);
-        if (it != m_mCmdMap.end()) {
-            cmd = it->second;
-            m_mCmdMap.erase(cmdId);
-        }
-    }
-    return cmd;
-}
-
 void CRedisConnection::ShutDown()
 {
+    if (m_closedEvent != nullptr) {
+        event_free(m_closedEvent);
+    }
     if (m_pRedisContext != nullptr) {
         redisAsyncFree(m_pRedisContext);
     }
@@ -382,28 +403,60 @@ void CRedisConnection::ShutDown()
     }
 }
 
+void CRedisConnection::RetryFailedOrWaitCommands()
+{
+    if (m_failedOrWaitList.size() > 0) {
+        list<unsigned long> tmpList = m_failedOrWaitList;
+        m_failedOrWaitList.clear();
+        while (tmpList.size() > 0) {
+            auto it = m_cmdMap.find(tmpList.front());
+            if (it != m_cmdMap.end()) {
+                shared_ptr<CCommand> &command = it->second;
+                int status = SendCommandAsync(command);
+                if (status != REDIS_OK && command->GetCommState() == CCommandState::SEND_ERROR) {
+                    HIREDIS_LOG_ERROR("Retry command failed,command = %s", command->ToString());
+                }
+            }
+        }
+    }
+}
+
 void CRedisConnection::lcb_OnConnectCallback(const redisAsyncContext *context, int status)
 {
     CRedisConnection *conn = (CRedisConnection *) context->data;
     if (status != REDIS_OK) {
         HIREDIS_LOG_ERROR("Could not connect to redis,error msg: %s,status: %d", context->errstr, status);
-        conn->SetConnState(CConnState::CONNECT_ERROR);
+        conn->SetConnState(enConnState::CONNECT_ERROR);
     }
     else {
         HIREDIS_LOG_INFO("Connected to Redis succeed.");
         //禁止hiredis 自动释放reply
         context->c.reader->fn->freeObject = [](void *reply)
         {};
-        conn->SetConnState(CConnState::CONNECTED);
+        conn->SetConnState(enConnState::CONNECTED);
     }
 }
 
 void CRedisConnection::lcb_OnDisconnectCallback(const redisAsyncContext *context, int status)
 {
     CRedisConnection *conn = (CRedisConnection *) context->data;
-    HIREDIS_LOG_ERROR("Disconnected from Redis");
+    if (conn == nullptr || conn->GetConnState() == enConnState::DESTROYING) {
+        return;
+    }
     if (conn != nullptr) {
-        conn->SetConnState(CConnState::DISCONNECTED);
+        conn->SetConnState(enConnState::DISCONNECTED);
+    }
+
+    HIREDIS_LOG_ERROR("Disconnected from redis");
+    conn->ReConnect();
+}
+
+void CRedisConnection::lcb_OnDisconnectEventCallback(int socket, int event, void *data)
+{
+    CRedisConnection *conn = (CRedisConnection *) data;
+    if (conn != nullptr) {
+        conn->SetConnState(enConnState::DISCONNECTED);
+        HIREDIS_LOG_ERROR("Disconnected from redis");
         conn->ReConnect();
     }
 }
@@ -412,38 +465,75 @@ void CRedisConnection::lcb_OnCommandCallback(redisAsyncContext *context, void *r
 {
     CRedisConnection *conn = (CRedisConnection *) context->data;
     unsigned long cmdId = (unsigned long) privdata;
-    shared_ptr<CCommand> cmd = conn->RemoveCmd(cmdId);
-    if (cmd != nullptr) {
-        if (reply != nullptr) {
-            redisReply *cmdReply = (redisReply *) reply;
-            cmd->SetPromiseValue(cmdReply);
+    redisReply *cmdReply = (redisReply *) reply;
+    conn->SetCommandReply(cmdId, cmdReply);
+}
+
+void CRedisConnection::SetCommandReply(unsigned long cmdId, redisReply *cmdReply)
+{
+    lock_guard<mutex> lock(m_lock);
+    unsigned long tmpCmdId = 0;
+    while (m_cmdQueue.size() > 0) {
+        tmpCmdId = m_cmdQueue.front();
+        m_cmdQueue.pop();
+        //this command timeout
+        auto it = m_cmdMap.find(tmpCmdId);
+        shared_ptr<CCommand> tmpCmd = it->second;
+        bool hasTimeOutCmds = false;
+        if (tmpCmdId != cmdId) {
+            if (it != m_cmdMap.end()) {
+                tmpCmd->SetCommState(CCommandState::TIMEOUT);
+                m_failedOrWaitList.push_back(tmpCmdId);
+                hasTimeOutCmds = true;
+            }
         }
-        else {
-            //In fact the hiredis keep the reply not null when call this function
-            HIREDIS_LOG_ERROR("Redis command get a null reply\n");
-            cmd->SetPromiseValue(nullptr);
+        if (tmpCmdId != cmdId) {
+            if (!hasTimeOutCmds) {
+                if (cmdReply != nullptr) {
+                    tmpCmd->SetPromiseValue(cmdReply);
+                }
+                else {
+                    //In fact the hiredis keep the reply not null when call this function
+                    HIREDIS_LOG_ERROR("Redis command get a null reply\n");
+                    tmpCmd->SetPromiseValue(nullptr);
+                }
+            }
+            else {
+                //if has commands timeout,try again later,must keep the the order of commands
+                //
+                tmpCmd->SetCommState(CCommandState::TIMEOUT);
+                m_failedOrWaitList.push_back(tmpCmdId);
+            }
+            break;
         }
     }
+
 }
 
 bool CRedisConnection::InitHiredis()
 {
     m_pRedisContext->data = this;
     if (redisLibeventAttach(m_pRedisContext, m_pEventBase) != REDIS_OK) {
-        SetConnState(CConnState::INIT_ERROR);
+        SetConnState(enConnState::INIT_ERROR);
         HIREDIS_LOG_ERROR("redisLibeventAttach failed\n");
         return false;
     }
     if (redisAsyncSetConnectCallback(m_pRedisContext, &CRedisConnection::lcb_OnConnectCallback) != REDIS_OK) {
-        SetConnState(CConnState::INIT_ERROR);
+        SetConnState(enConnState::INIT_ERROR);
         HIREDIS_LOG_ERROR("redisAsyncSetConnectCallback failed\n");
         return false;
     }
     if (redisAsyncSetDisconnectCallback(m_pRedisContext, &CRedisConnection::lcb_OnDisconnectCallback) != REDIS_OK) {
-        SetConnState(CConnState::INIT_ERROR);
+        SetConnState(enConnState::INIT_ERROR);
         HIREDIS_LOG_ERROR("redisAsyncSetDisconnectCallback failed\n");
         return false;
     }
+    redisContext *c = &(m_pRedisContext->c);
+    m_closedEvent = event_new(m_pEventBase,
+                              c->fd,
+                              EV_CLOSED,
+                              (event_callback_fn) &CRedisConnection::lcb_OnDisconnectEventCallback,
+                              this);
     return true;
 }
 

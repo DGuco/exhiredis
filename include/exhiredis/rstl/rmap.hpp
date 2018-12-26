@@ -103,7 +103,7 @@ future<shared_ptr<value_type>> RMap<key_type, value_type>::GetAsync(const key_ty
 {
     char acKey[KEY_SIZE];
     int keyLen = ((IRobject *) (&key))->ToString(acKey);
-//    return m_pRedisConn->RedisAsyncCommand<value_type>(redis_commands::HGET,
+//    return m_pRedisConn->SendRedisCommand<value_type>(redis_commands::HGET,
 //                                                       m_sName.c_str(),
 //                                                       acKey,
 //                                                       keyLen);

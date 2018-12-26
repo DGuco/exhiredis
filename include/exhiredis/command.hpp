@@ -16,9 +16,10 @@ class CCommandState
 public:
     static const int NOT_SEND = 1;  //Has not send to server
     static const int SEND_ERROR = 2;  // Could not send to server
-    static const int NO_REPLY = 3;   // No reply yet
+    static const int NO_REPLY_YET = 3;   // No reply yet
     static const int TIMEOUT = 4;     // No reply, timed out
     static const int REPLY_DONE = 5;     // redis reply done
+    static const int COMMAND_RETRYING = 6;     // command retrying
 };
 
 class CCommand
@@ -40,6 +41,12 @@ public:
     const int GetCommState() const;
     //set cmd status
     void SetCommState(unsigned short iCommState);
+    //get param
+    va_list GetParam() const;
+    //get cmd
+    const char *GetCmd() const;
+    //to string
+    const char *ToString();
 private:
     const unsigned long m_iCommandId;  //cmd id
     unsigned short m_iCommState;
@@ -54,7 +61,7 @@ CCommand::CCommand(unsigned long id, const char *cmd, va_list vaList)
       m_pPromise(make_shared<promise<redisReply *>>(promise<redisReply *>())),
       m_pReply(nullptr),
       m_sCmd(cmd),
-      m_iCommState(CCommandState::NOT_SEND)
+      m_iCommState(CCommandState::NOT_SEND),
 {
     va_copy(m_param, vaList);
 }
@@ -97,6 +104,21 @@ void CCommand::SetPromiseException(exception_ptr exception)
 shared_ptr<promise<redisReply *>> &CCommand::GetPromise()
 {
     return m_pPromise;
+}
+
+va_list CCommand::GetParam() const
+{
+    return m_param;
+}
+
+const char *CCommand::GetCmd() const
+{
+    return m_sCmd;
+}
+
+const char *CCommand::ToString()
+{
+    return m_sCmd;
 }
 }
 #endif //EXHIREDIS_COMMAND_H
