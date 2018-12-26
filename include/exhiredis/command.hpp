@@ -11,17 +11,15 @@
 
 namespace exhiredis
 {
-class CCommandState
+enum class eCommandState
 {
-public:
-    static const int NOT_SEND = 1;  //Has not send to server
-    static const int SEND_ERROR = 2;  // Could not send to server
-    static const int NO_REPLY_YET = 3;   // No reply yet
-    static const int TIMEOUT = 4;     // No reply, timed out
-    static const int REPLY_DONE = 5;     // redis reply done
-    static const int COMMAND_RETRYING = 6;     // command retrying
+    NOT_SEND = 1,  //Has not send to server
+    SEND_ERROR = 2,  // Could not send to server
+    NO_REPLY_YET = 3,   // No reply yet
+    TIMEOUT = 4,     // No reply, timed out
+    REPLY_DONE = 5,     // redis reply done
+    COMMAND_RETRYING = 6,     // command retrying
 };
-
 class CCommand
 {
 public:
@@ -38,9 +36,9 @@ public:
     //get cmd reply promise
     shared_ptr<promise<redisReply *>> &GetPromise();
     //get cmd status
-    const int GetCommState() const;
+    eCommandState GetCommState() const;
     //set cmd status
-    void SetCommState(unsigned short iCommState);
+    void SetCommState(eCommandState iCommState);
     //get param
     va_list GetParam() const;
     //get cmd
@@ -49,7 +47,7 @@ public:
     const char *ToString();
 private:
     const unsigned long m_iCommandId;  //cmd id
-    unsigned short m_iCommState;
+    eCommandState m_iCommState;
     shared_ptr<promise<redisReply *>> m_pPromise;
     redisReply *m_pReply;
     const char *m_sCmd;
@@ -61,7 +59,7 @@ CCommand::CCommand(unsigned long id, const char *cmd, va_list vaList)
       m_pPromise(make_shared<promise<redisReply *>>(promise<redisReply *>())),
       m_pReply(nullptr),
       m_sCmd(cmd),
-      m_iCommState(CCommandState::NOT_SEND),
+      m_iCommState(eCommandState::NOT_SEND)
 {
     va_copy(m_param, vaList);
 }
@@ -80,12 +78,12 @@ const unsigned long CCommand::GetCommandId() const
     return m_iCommandId;
 }
 
-const int CCommand::GetCommState() const
+eCommandState CCommand::GetCommState() const
 {
     return m_iCommState;
 }
 
-void CCommand::SetCommState(unsigned short iCommState)
+void CCommand::SetCommState(eCommandState iCommState)
 {
     m_iCommState = iCommState;
 }

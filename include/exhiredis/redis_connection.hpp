@@ -110,8 +110,8 @@ private:
     mutex m_lock;
     atomic_ulong m_cmdId;
     unordered_map<unsigned long, shared_ptr<CCommand>> m_cmdMap;
-    queue<unsigned long> m_cmdQueue;
-    list<unsigned long> m_failedOrWaitList;
+    list<unsigned long> m_cmdList;   //按照send的顺序排列
+    list<unsigned long> m_failedOrWaitList;//按照send的顺序排列
 };
 
 CRedisConnection::CRedisConnection()
@@ -207,12 +207,12 @@ shared_ptr<CCommand> CRedisConnection::RedisvAsyncCommand(const char *cmd,
     lock_guard<mutex> lk(m_lock);
     unsigned long commandId = tmpCommand->GetCommandId();
     m_cmdMap.insert(make_pair(commandId, tmpCommand));
-    m_cmdQueue.push(commandId);
+    m_cmdList.push_back(commandId);
     if (m_connState == enConnState::CONNECTED) {
         //retry failed or commands
         RetryFailedOrWaitCommands();
         if (SendCommandAsync(tmpCommand) != REDIS_OK) {
-            tmpCommand->SetCommState(CCommandState::SEND_ERROR);
+            tmpCommand->SetCommState(eCommandState::SEND_ERROR);
             m_failedOrWaitList.push_back(commandId);
             HIREDIS_LOG_ERROR("Send redis command failed,cmd = %s", tmpCommand->ToString());
         }
@@ -231,7 +231,7 @@ int CRedisConnection::SendCommandAsync(shared_ptr<CCommand> &command)
                                     command->GetCmd(),
                                     command->GetParam());
     if (status == REDIS_OK) {
-        command->SetCommState(CCommandState::NO_REPLY_YET);
+        command->SetCommState(eCommandState::NO_REPLY_YET);
     }
     return status;
 }
@@ -413,7 +413,7 @@ void CRedisConnection::RetryFailedOrWaitCommands()
             if (it != m_cmdMap.end()) {
                 shared_ptr<CCommand> &command = it->second;
                 int status = SendCommandAsync(command);
-                if (status != REDIS_OK && command->GetCommState() == CCommandState::SEND_ERROR) {
+                if (status != REDIS_OK && command->GetCommState() == eCommandState::SEND_ERROR) {
                     HIREDIS_LOG_ERROR("Retry command failed,command = %s", command->ToString());
                 }
             }
@@ -434,6 +434,7 @@ void CRedisConnection::lcb_OnConnectCallback(const redisAsyncContext *context, i
         context->c.reader->fn->freeObject = [](void *reply)
         {};
         conn->SetConnState(enConnState::CONNECTED);
+        conn->RetryFailedOrWaitCommands();
     }
 }
 
@@ -473,21 +474,24 @@ void CRedisConnection::SetCommandReply(unsigned long cmdId, redisReply *cmdReply
 {
     lock_guard<mutex> lock(m_lock);
     unsigned long tmpCmdId = 0;
-    while (m_cmdQueue.size() > 0) {
-        tmpCmdId = m_cmdQueue.front();
-        m_cmdQueue.pop();
+    auto cmdIdIt = m_cmdList.begin();
+    bool hasTimeOutCmds = false;
+    while (cmdIdIt != m_cmdList.end()) {
+        tmpCmdId = *cmdIdIt;
         //this command timeout
-        auto it = m_cmdMap.find(tmpCmdId);
-        shared_ptr<CCommand> tmpCmd = it->second;
-        bool hasTimeOutCmds = false;
-        if (tmpCmdId != cmdId) {
-            if (it != m_cmdMap.end()) {
-                tmpCmd->SetCommState(CCommandState::TIMEOUT);
-                m_failedOrWaitList.push_back(tmpCmdId);
-                hasTimeOutCmds = true;
-            }
+        auto cmdIt = m_cmdMap.find(tmpCmdId);
+        if (cmdIt == m_cmdMap.end()) {
+            cmdIdIt++;
+            continue;
         }
+        shared_ptr<CCommand> tmpCmd = cmdIt->second;
+        //redis单线程处理command如果收到的reply前面有没有收到reply的command则这个command已经超时
         if (tmpCmdId != cmdId) {
+            tmpCmd->SetCommState(eCommandState::TIMEOUT);
+            m_failedOrWaitList.push_back(tmpCmdId);
+            hasTimeOutCmds = true;
+        }
+        else {
             if (!hasTimeOutCmds) {
                 if (cmdReply != nullptr) {
                     tmpCmd->SetPromiseValue(cmdReply);
@@ -497,17 +501,27 @@ void CRedisConnection::SetCommandReply(unsigned long cmdId, redisReply *cmdReply
                     HIREDIS_LOG_ERROR("Redis command get a null reply\n");
                     tmpCmd->SetPromiseValue(nullptr);
                 }
+                //receive reply,remove command
+                //删除commandd
+                m_cmdMap.erase(tmpCmdId);
+                m_cmdList.erase(cmdIdIt);
             }
             else {
-                //if has commands timeout,try again later,must keep the the order of commands
-                //
-                tmpCmd->SetCommState(CCommandState::TIMEOUT);
+                /*if has commands timeout,try again later,must keep the the order of commands
+                 *redis单线程处理command如果收到的reply前面有没有收到reply的command则这个command已经超时
+                 *为了保证redis command的数据正确性必须保证command的执行顺序和发生顺序是一直的，
+                 *所以把该命令加入失败队列重新发送
+                **/
+                tmpCmd->SetCommState(eCommandState::TIMEOUT);
                 m_failedOrWaitList.push_back(tmpCmdId);
             }
             break;
         }
+        cmdIdIt++;
     }
-
+    if (hasTimeOutCmds) {
+        RetryFailedOrWaitCommands();
+    }
 }
 
 bool CRedisConnection::InitHiredis()
