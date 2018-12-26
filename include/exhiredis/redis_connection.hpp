@@ -413,7 +413,8 @@ void CRedisConnection::RetryFailedOrWaitCommands()
             if (it != m_cmdMap.end()) {
                 shared_ptr<CCommand> &command = it->second;
                 int status = SendCommandAsync(command);
-                if (status != REDIS_OK && command->GetCommState() == eCommandState::SEND_ERROR) {
+                eCommandState state = command->GetCommState();
+                if (status != REDIS_OK && (state == eCommandState::SEND_ERROR || state == eCommandState::TIMEOUT)) {
                     HIREDIS_LOG_ERROR("Retry command failed,command = %s", command->ToString());
                 }
             }
