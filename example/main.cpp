@@ -89,20 +89,34 @@ testStr()
 void
 testMap(shared_ptr<CRedisConnection> conn)
 {
-//    RMap<RInt, RInt> *rMap = new RMap<RInt, RInt>("TestMap", conn);
-//    const RInt key = RInt(1);
-//    const RInt value = RInt(10);
-//    rMap->Put(key, value);
-//    shared_ptr<RInt> res = rMap->Get(key);
-//    printf("-------------------\n");
-//    int intva = res->Value();
-//    printf("res  = %d \n", intva);
+    RMap<RInt, RInt> *rMap = new RMap<RInt, RInt>("TestMap", conn);
+    const RInt key = RInt(1);
+    const RInt value = RInt(10);
+    rMap->Put(key, value);
+    shared_ptr<RInt> res = rMap->Get(key);
+    printf("-------------------\n");
+    int intva = res->Value();
+    printf("res  = %d \n", intva);
+}
+
+void var_test(char *format, va_list list)
+{
+
+    char *ch;
+    while (1) {
+        ch = va_arg(list, char *);
+
+        if (strcmp(ch, "") == 0) {
+            printf("\n");
+            break;
+        }
+        printf("%s ", ch);
+    }
 }
 
 int
 main()
 {
-    pthread_rwlock_t pthread_rwlock;
     CLog::CreateInstance();
     shared_ptr<CRedisConnection> conn = make_shared<CRedisConnection>();
     conn->Connect("127.0.0.1", 6379);

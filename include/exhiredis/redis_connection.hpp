@@ -26,19 +26,18 @@
 
 namespace exhiredis
 {
+enum class enConnState
+{
+    DESTROYING = -1,       //call the ~CRedisConnection 析构函数
+    NOT_YET_CONNECTED = 0, // Starting state
+    CONNECTING = 1,        // connecting
+    CONNECTED = 2,        // Successfully connected
+    DISCONNECTED = 3,      // Successfully disconnected
+    CONNECT_ERROR = 4,     // Error connecting
+    INIT_ERROR = 5,        // Failed to init data structures
+};
 class CRedisConnection
 {
-public:
-    enum enConnState
-    {
-        DESTROYING = -1,       //call the ~CRedisConnection 析构函数
-        NOT_YET_CONNECTED = 0, // Starting state
-        CONNECTING = 1,        // connecting
-        CONNECTED = 2,        // Successfully connected
-        DISCONNECTED = 3,      // Successfully disconnected
-        CONNECT_ERROR = 4,     // Error connecting
-        INIT_ERROR = 5,        // Failed to init data structures
-    };
 public:
     //构造函数
     CRedisConnection();
@@ -229,7 +228,7 @@ int CRedisConnection::SendCommandAsync(shared_ptr<CCommand> &command)
                                     &CRedisConnection::lcb_OnCommandCallback,
                                     (void *) command->GetCommandId(),
                                     command->GetCmd(),
-                                    command->GetParam());
+                                    command->m_param);
     if (status == REDIS_OK) {
         command->SetCommState(eCommandState::NO_REPLY_YET);
     }
@@ -266,7 +265,6 @@ future<shared_ptr<long long>> CRedisConnection::RedisAsyncReturnIntCommand(const
     va_list ap;
     va_start(ap, cmd);
     shared_ptr<CCommand> command = RedisvAsyncCommand(cmd, ap);
-    va_end(ap);
     return async([command]() -> shared_ptr<long long>
                  {
                      redisReply *res = command->GetPromise()->get_future().get();
@@ -358,7 +356,6 @@ future<shared_ptr<return_type>> CRedisConnection::RedisAsyncCommand(const char *
     va_list ap;
     va_start(ap, cmd);
     shared_ptr<CCommand> tmpCommand = RedisvAsyncCommand(cmd, ap);
-    va_end(ap);
     return async([tmpCommand]() -> shared_ptr<return_type>
                  {
                      redisReply *res = tmpCommand->GetPromise()->get_future().get();

@@ -32,7 +32,7 @@ public:
      * @param name
      * @param conn
      */
-    RMap(const string &name, shared_ptr<IConnectionManager> &conn);
+    RMap(const string &name, shared_ptr<CRedisConnection> &conn);
     /**
      * put
      * @param key
@@ -61,11 +61,11 @@ public:
     future<shared_ptr<value_type>> GetAsync(const key_type &key);
 private:
     string m_sName;
-    shared_ptr<IConnectionManager> m_pRedisConn;
+    shared_ptr<CRedisConnection> m_pRedisConn;
 };
 
 template<class key_type, class value_type>
-RMap<key_type, value_type>::RMap(const string &name, shared_ptr<IConnectionManager> &conn)
+RMap<key_type, value_type>::RMap(const string &name, shared_ptr<CRedisConnection> &conn)
     : m_sName(name),
       m_pRedisConn(conn)
 {
@@ -90,12 +90,12 @@ future<bool> RMap<key_type, value_type>::PutAsync(const key_type &key, const val
     char acValue[VALUE_SIZE];
     int keyLen = ((IRobject *) (&key))->ToString(acKey);
     int valueLen = ((IRobject *) (&value))->ToString(acValue);
-//    return m_pRedisConn->RedisAsyncIsSucceedCommand(redis_commands::HSET,
-//                                                    m_sName.c_str(),
-//                                                    acKey,
-//                                                    keyLen,
-//                                                    acValue,
-//                                                    valueLen);
+    return m_pRedisConn->RedisAsyncIsSucceedCommand(redis_commands::HSET,
+                                                    m_sName.c_str(),
+                                                    acKey,
+                                                    keyLen,
+                                                    acValue,
+                                                    valueLen);
 }
 
 template<class key_type, class value_type>
@@ -103,10 +103,10 @@ future<shared_ptr<value_type>> RMap<key_type, value_type>::GetAsync(const key_ty
 {
     char acKey[KEY_SIZE];
     int keyLen = ((IRobject *) (&key))->ToString(acKey);
-//    return m_pRedisConn->SendRedisCommand<value_type>(redis_commands::HGET,
-//                                                       m_sName.c_str(),
-//                                                       acKey,
-//                                                       keyLen);
+    return m_pRedisConn->RedisAsyncCommand<value_type>(redis_commands::HGET,
+                                                       m_sName.c_str(),
+                                                       acKey,
+                                                       keyLen);
 }
 }
 #endif //EXHIREDIS_RMAP_H

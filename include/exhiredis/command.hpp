@@ -39,10 +39,8 @@ public:
     eCommandState GetCommState() const;
     //set cmd status
     void SetCommState(eCommandState iCommState);
-    //get param
-    va_list GetParam() const;
     //get cmd
-    const char *GetCmd() const;
+    const char *GetCmd();
     //to string
     const char *ToString();
 private:
@@ -51,6 +49,7 @@ private:
     shared_ptr<promise<redisReply *>> m_pPromise;
     redisReply *m_pReply;
     const char *m_sCmd;
+public:
     va_list m_param;
 };
 
@@ -104,12 +103,7 @@ shared_ptr<promise<redisReply *>> &CCommand::GetPromise()
     return m_pPromise;
 }
 
-va_list CCommand::GetParam() const
-{
-    return m_param;
-}
-
-const char *CCommand::GetCmd() const
+const char *CCommand::GetCmd()
 {
     return m_sCmd;
 }
