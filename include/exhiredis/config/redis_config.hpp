@@ -14,16 +14,22 @@
 using namespace std;
 namespace exhiredis
 {
+
+const int REDIS_MAX_KEY_VALUE_SIZE = 1024 * 1024 * 5;
+
 class CRedisConfig
 {
 public:
     CRedisConfig(const shared_ptr<MasterSlaveServersConfig> &m_pMasterSlaveConfig,
                  const shared_ptr<CSingleServerConfig> &m_pSingleServerConfig,
-                 const shared_ptr<CSentinelServersConfig> &m_pSentinelServerConfig)
+                 const shared_ptr<CSentinelServersConfig> &m_pSentinelServerConfig,
+                 int redisMaxKeyValueSize = 1024 * 1024 * 5 /*5MB*/)
         : m_pMasterSlaveConfig(m_pMasterSlaveConfig),
           m_pSingleServerConfig(m_pSingleServerConfig),
           m_pSentinelServerConfig(m_pSentinelServerConfig)
-    {}
+    {
+        *(const_cast<int *>(&REDIS_MAX_KEY_VALUE_SIZE)) = redisMaxKeyValueSize;
+    }
 
     shared_ptr<MasterSlaveServersConfig> GetMasterSlaveConfig() const
     {
@@ -39,7 +45,6 @@ public:
     {
         return m_pSentinelServerConfig;
     }
-
 private:
     /**
      * There is only one should be not null at the same time

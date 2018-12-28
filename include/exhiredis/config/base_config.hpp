@@ -129,7 +129,6 @@ public:
     {
         m_iSubscriptionsPerConnection = iSubscriptionsPerConnection;
     }
-
 private:
     string m_sPassword;
     string m_sClientName;

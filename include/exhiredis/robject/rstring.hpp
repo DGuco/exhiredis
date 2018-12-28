@@ -37,7 +37,7 @@ void RString::FromString(char *str, int len)
 
 const int RString::ToString(char *str)
 {
-    strncpy(str, this->value.c_str(), this->value.length());
+    memcpy(str, this->value.c_str(), this->value.length());
     return this->value.length();
 }
 }

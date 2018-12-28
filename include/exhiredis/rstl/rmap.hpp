@@ -9,6 +9,7 @@
 #include <memory>
 #include <utility>
 #include <future>
+#include <exhiredis/command_param.hpp>
 #include "exhiredis/redis_connection.hpp"
 #include "exhiredis/redis_commands.hpp"
 #include "../connection_manager.hpp"
@@ -86,27 +87,27 @@ shared_ptr<value_type> RMap<key_type, value_type>::Get(const key_type &key)
 template<class key_type, class value_type>
 future<bool> RMap<key_type, value_type>::PutAsync(const key_type &key, const value_type &value)
 {
-    char acKey[KEY_SIZE];
-    char acValue[VALUE_SIZE];
-    int keyLen = ((IRobject *) (&key))->ToString(acKey);
-    int valueLen = ((IRobject *) (&value))->ToString(acValue);
-    return m_pRedisConn->RedisAsyncIsSucceedCommand(redis_commands::HSET,
-                                                    m_sName.c_str(),
-                                                    acKey,
-                                                    keyLen,
-                                                    acValue,
-                                                    valueLen);
+    shared_ptr<CCmdParam> keyPara = make_shared<CCmdParam>();
+    shared_ptr<CCmdParam> valuePara = make_shared<CCmdParam>();
+    int keyLen = ((IRobject *) (&key))->ToString(keyPara->m_data);
+    int valueLen = ((IRobject *) (&value))->ToString(valuePara->m_data);
+    vector<shared_ptr<CCmdParam>> list = {make_shared<CCmdParam>(m_sName.c_str()),
+                                          move(keyPara),
+                                          make_shared<CCmdParam>(keyLen),
+                                          move(valuePara),
+                                          make_shared<CCmdParam>(valueLen)};
+    return m_pRedisConn->RedisAsyncIsSucceedCommand(redis_commands::HSET, list);
 }
 
 template<class key_type, class value_type>
 future<shared_ptr<value_type>> RMap<key_type, value_type>::GetAsync(const key_type &key)
 {
-    char acKey[KEY_SIZE];
-    int keyLen = ((IRobject *) (&key))->ToString(acKey);
-    return m_pRedisConn->RedisAsyncCommand<value_type>(redis_commands::HGET,
-                                                       m_sName.c_str(),
-                                                       acKey,
-                                                       keyLen);
+    shared_ptr<CCmdParam> keyPara = make_shared<CCmdParam>();
+    int keyLen = ((IRobject *) (&key))->ToString(keyPara->m_data);
+    vector<shared_ptr<CCmdParam>> list = {make_shared<CCmdParam>(m_sName),
+                                          move(keyPara),
+                                          make_shared<CCmdParam>((size_t) keyLen)};
+    return m_pRedisConn->RedisAsyncCommand<value_type>(redis_commands::HGET, list);
 }
 }
 #endif //EXHIREDIS_RMAP_H

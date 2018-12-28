@@ -43,7 +43,7 @@ const int RBool::ToString(char *str)
     else {
         strValue = "false";
     }
-    strncpy(str, strValue.c_str(), strValue.length());
+    memcpy(str, strValue.c_str(), strValue.length());
     return strValue.length();
 }
 }

@@ -8,14 +8,17 @@ add_compile_options(-Wall -g -pipe -std=c++14)
 add_definitions()
 
 set(EXHIREDIS
-        include/exhiredis/command.hpp
-        include/exhiredis/connection_manager.hpp
-        include/exhiredis/redis_connection.hpp
-        include/exhiredis/lock/rlock.hpp
         include/exhiredis/utils/uuid.hpp
         include/exhiredis/utils/singleton.hpp
         include/exhiredis/utils/log.hpp
         include/exhiredis/utils/signal.hpp
+        include/exhiredis/utils/crc16.hpp
+        include/exhiredis/utils/rwlock.hpp
+        include/exhiredis/utils/exception.hpp
+        include/exhiredis/command.hpp
+        include/exhiredis/connection_manager.hpp
+        include/exhiredis/redis_connection.hpp
+        include/exhiredis/lock/rlock.hpp
         include/exhiredis/config/base_config.hpp
         include/exhiredis/config/base_master_slave_config.hpp
         include/exhiredis/config/master_slave_config.hpp
@@ -40,11 +43,9 @@ set(EXHIREDIS
         include/exhiredis/redis_clients.hpp
         include/exhiredis/master_slave_manager.hpp
         include/exhiredis/master_slave_entry.hpp
-        include/exhiredis/utils/crc16.hpp
         include/exhiredis/concurrent/thread_pool.hpp
         include/exhiredis/lock/redis_lock.hpp
-        include/exhiredis/utils/rwlock.hpp
-        include/exhiredis/utils/exception.hpp)
+        include/exhiredis/command_param.hpp)
 
 include_directories(
         /usr/include/

@@ -7,6 +7,7 @@
 #define EXHIREDIS_COMMAND_H
 
 #include <future>
+#include <cstring>
 #include "robject/robject.hpp"
 
 namespace exhiredis
@@ -24,7 +25,7 @@ class CCommand
 {
 public:
     //CCommand
-    CCommand(unsigned long id, const char *cmd, va_list vaList);
+    CCommand(unsigned long id, const char *cmd, const vector<shared_ptr<CCmdParam>> &m_paramList);
     //~CCommand
     ~CCommand();
     //get cmd id
@@ -43,24 +44,24 @@ public:
     const char *GetCmd();
     //to string
     const char *ToString();
+    const vector<shared_ptr<CCmdParam>> &GetParamList() const;
 private:
     const unsigned long m_iCommandId;  //cmd id
     eCommandState m_iCommState;
     shared_ptr<promise<redisReply *>> m_pPromise;
     redisReply *m_pReply;
     const char *m_sCmd;
-public:
-    va_list m_param;
+    const vector<shared_ptr<CCmdParam>> m_paramList;
 };
 
-CCommand::CCommand(unsigned long id, const char *cmd, va_list vaList)
+CCommand::CCommand(unsigned long id, const char *cmd, const vector<shared_ptr<CCmdParam>> &m_paramList)
     : m_iCommandId(id),
       m_pPromise(make_shared<promise<redisReply *>>(promise<redisReply *>())),
       m_pReply(nullptr),
       m_sCmd(cmd),
-      m_iCommState(eCommandState::NOT_SEND)
+      m_iCommState(eCommandState::NOT_SEND),
+      m_paramList(std::move(m_paramList))
 {
-    va_copy(m_param, vaList);
 }
 
 CCommand::~CCommand()
@@ -69,7 +70,6 @@ CCommand::~CCommand()
         //释放reply object
         freeReplyObject(m_pReply);
     }
-    va_end(m_param);
 }
 
 const unsigned long CCommand::GetCommandId() const
@@ -111,6 +111,11 @@ const char *CCommand::GetCmd()
 const char *CCommand::ToString()
 {
     return m_sCmd;
+}
+
+const vector<shared_ptr<CCmdParam>> &CCommand::GetParamList() const
+{
+    return m_paramList;
 }
 }
 #endif //EXHIREDIS_COMMAND_H

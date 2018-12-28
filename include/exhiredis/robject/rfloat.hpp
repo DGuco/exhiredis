@@ -41,7 +41,7 @@ void RFloat::FromString(char *str, int len)
 const int RFloat::ToString(char *str)
 {
     string strValue = to_string(this->value);
-    strncpy(str, strValue.c_str(), strValue.length());
+    memcpy(str, strValue.c_str(), strValue.length());
     return strValue.length();
 }
 }
