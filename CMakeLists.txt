@@ -45,7 +45,10 @@ set(EXHIREDIS
         include/exhiredis/master_slave_entry.hpp
         include/exhiredis/concurrent/thread_pool.hpp
         include/exhiredis/lock/redis_lock.hpp
-        include/exhiredis/command_param.hpp)
+        include/exhiredis/command_param.hpp
+        include/exhiredis/utils/sds.cpp
+        include/exhiredis/utils/sds.h
+        include/exhiredis/utils/sdsalloc.h)
 
 include_directories(
         /usr/include/

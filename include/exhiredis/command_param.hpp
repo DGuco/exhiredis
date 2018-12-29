@@ -7,7 +7,9 @@
 #include <cstddef>
 #include <cstring>
 #include <memory>
+#include <hiredis/sds.h>
 #include "config/redis_config.hpp"
+#include "utils/exception.hpp"
 
 using namespace std;
 
@@ -34,8 +36,7 @@ struct CCmdParam
 
     CCmdParam(size_t size)
     {
-        this->m_data = nullptr;
-        this->m_len = 0;
+        this->m_len = size;
     }
 
     virtual ~CCmdParam()
@@ -45,14 +46,19 @@ struct CCmdParam
         }
     }
 
-    void *GetData() const
+    char *GetData()
     {
         if (m_data != nullptr) {
-            return (void *) m_data;
+            return m_data;
         }
         else {
-            return (void *) (&m_len);
+            throw CRException("The cmd param is illegal");
         }
+    }
+
+    size_t GetLen()
+    {
+        return m_len;
     }
 
     CCmdParam(const CCmdParam &parm) = delete;
