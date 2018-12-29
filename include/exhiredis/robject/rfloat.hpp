@@ -17,10 +17,8 @@ public:
     RFloat();
 
     RFloat(float value);
-
-    void FromString(char *str, int len) override;
-
-    const int ToString(char *str) override;
+    void FromString(const string &str) override;
+    const string ToString() override;
 };
 
 RFloat::RFloat()
@@ -33,16 +31,14 @@ RFloat::RFloat(float value)
     this->value = value;
 }
 
-void RFloat::FromString(char *str, int len)
+void RFloat::FromString(const string &str)
 {
-    this->value = static_cast<float>(atof(str));
+    this->value = stof(str);
+}
+const string RFloat::ToString()
+{
+    return to_string(this->value);
 }
 
-const int RFloat::ToString(char *str)
-{
-    string strValue = to_string(this->value);
-    memcpy(str, strValue.c_str(), strValue.length());
-    return strValue.length();
-}
 }
 #endif //EXHIREDIS_RFLOAT_H

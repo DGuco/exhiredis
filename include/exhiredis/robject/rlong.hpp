@@ -15,8 +15,8 @@ class RLong: public Robject<long>
 public:
     RLong();
     RLong(long value);
-    void FromString(char *str, int len) override;
-    const int ToString(char *str) override;
+    void FromString(const string &str) override;
+    const string ToString() override;
 };
 
 RLong::RLong()
@@ -29,16 +29,13 @@ RLong::RLong(long value)
     this->value = value;
 }
 
-void RLong::FromString(char *str, int len)
+void RLong::FromString(const string &str)
 {
-    this->value = atol(str);
+    this->value = stol(str);
 }
-
-const int RLong::ToString(char *str)
+const string RLong::ToString()
 {
-    string strValue = to_string(this->value);
-    memcpy(str, strValue.c_str(), strValue.length());
-    return strValue.length();
+    return to_string(this->value);
 }
 }
 #endif //EXHIREDIS_RINT_HPP

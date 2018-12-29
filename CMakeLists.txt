@@ -31,7 +31,6 @@ set(EXHIREDIS
         include/exhiredis/robject/rbool.hpp
         include/exhiredis/robject/rfloat.hpp
         include/exhiredis/robject/rdouble.hpp
-        include/exhiredis/robject/ruint.hpp
         include/exhiredis/robject/rlonglong.hpp
         include/exhiredis/robject/rulong.hpp
         include/exhiredis/robject/rulonglong.hpp

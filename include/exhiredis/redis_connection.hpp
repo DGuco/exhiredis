@@ -59,21 +59,21 @@ public:
     //set status of the connecton
     void SetConnState(enConnState eConnState);
     //execute redis command ,don't care what redis returns,only care whether the command succeed or not
-    future<bool> RedisAsyncIsSucceedCommand(const char *cmd, vector<shared_ptr<CCmdParam>> &param);
+    future<bool> RedisAsyncIsSucceedCommand(const char *format, vector<shared_ptr<CCmdParam>> &param);
     //execute redis command return integer pointer or nullptr
-    future<shared_ptr<long long>> RedisAsyncReturnIntCommand(const char *cmd, vector<shared_ptr<CCmdParam>> &param);
+    future<shared_ptr<long long>> RedisAsyncReturnIntCommand(const char *format, vector<shared_ptr<CCmdParam>> &param);
     //execute redis command return bool pointer or nullptr
-    future<shared_ptr<bool>> RedisAsyncReturnBoolCommand(const char *cmd, vector<shared_ptr<CCmdParam>> &param);
+    future<shared_ptr<bool>> RedisAsyncReturnBoolCommand(const char *format, vector<shared_ptr<CCmdParam>> &param);
     //execute redis command return string pointer or nullptr
-    future<shared_ptr<string>> RedisAsyncReturnStringCommand(const char *cmd, vector<shared_ptr<CCmdParam>> &param);
+    future<shared_ptr<string>> RedisAsyncReturnStringCommand(const char *format, vector<shared_ptr<CCmdParam>> &param);
     //execute redis command return bool pointer or nullptr,return_type must be the subclass of the IRobject
     template<class return_type>
-    future<shared_ptr<return_type>> RedisAsyncCommand(const char *cmd, vector<shared_ptr<CCmdParam>> &param);
+    future<shared_ptr<return_type>> RedisAsyncCommand(const char *format, vector<shared_ptr<CCmdParam>> &param);
 private:
     //create cmd
-    shared_ptr<CCommand> CreateCommand(const char *cmd, vector<shared_ptr<CCmdParam>> &param);
+    shared_ptr<CCommand> CreateCommand(const char *format, vector<shared_ptr<CCmdParam>> &param);
     //execute redis
-    shared_ptr<CCommand> RedisvAsyncCommand(const char *cmd, vector<shared_ptr<CCmdParam>> &param);
+    shared_ptr<CCommand> RedisvAsyncCommand(const char *format, vector<shared_ptr<CCmdParam>> &param);
     //execute redis
     int SendCommandAsync(shared_ptr<CCommand> &command);
     //create command id
@@ -202,9 +202,9 @@ void CRedisConnection::SetConnState(enConnState eConnState)
     m_connState = eConnState;
 }
 
-future<bool> CRedisConnection::RedisAsyncIsSucceedCommand(const char *cmd, vector<shared_ptr<CCmdParam>> &param)
+future<bool> CRedisConnection::RedisAsyncIsSucceedCommand(const char *format, vector<shared_ptr<CCmdParam>> &param)
 {
-    shared_ptr<CCommand> command = RedisvAsyncCommand(cmd, param);
+    shared_ptr<CCommand> command = RedisvAsyncCommand(format, param);
     return async([command]() -> bool
                  {
                      redisReply *res = command->GetPromise()->get_future().get();
@@ -224,10 +224,10 @@ future<bool> CRedisConnection::RedisAsyncIsSucceedCommand(const char *cmd, vecto
                  });
 }
 
-future<shared_ptr<long long>> CRedisConnection::RedisAsyncReturnIntCommand(const char *cmd,
+future<shared_ptr<long long>> CRedisConnection::RedisAsyncReturnIntCommand(const char *format,
                                                                            vector<shared_ptr<CCmdParam>> &param)
 {
-    shared_ptr<CCommand> command = RedisvAsyncCommand(cmd, param);
+    shared_ptr<CCommand> command = RedisvAsyncCommand(format, param);
     return async([command]() -> shared_ptr<long long>
                  {
                      redisReply *res = command->GetPromise()->get_future().get();
@@ -246,10 +246,10 @@ future<shared_ptr<long long>> CRedisConnection::RedisAsyncReturnIntCommand(const
                  });
 }
 
-future<shared_ptr<bool>> CRedisConnection::RedisAsyncReturnBoolCommand(const char *cmd,
+future<shared_ptr<bool>> CRedisConnection::RedisAsyncReturnBoolCommand(const char *format,
                                                                        vector<shared_ptr<CCmdParam>> &param)
 {
-    shared_ptr<CCommand> command = RedisvAsyncCommand(cmd, param);
+    shared_ptr<CCommand> command = RedisvAsyncCommand(format, param);
     return async([command]() -> shared_ptr<bool>
                  {
                      redisReply *res = command->GetPromise()->get_future().get();
@@ -277,10 +277,10 @@ future<shared_ptr<bool>> CRedisConnection::RedisAsyncReturnBoolCommand(const cha
                  });
 }
 
-future<shared_ptr<string>> CRedisConnection::RedisAsyncReturnStringCommand(const char *cmd,
+future<shared_ptr<string>> CRedisConnection::RedisAsyncReturnStringCommand(const char *format,
                                                                            vector<shared_ptr<CCmdParam>> &param)
 {
-    shared_ptr<CCommand> tmpCommand = RedisvAsyncCommand(cmd, param);
+    shared_ptr<CCommand> tmpCommand = RedisvAsyncCommand(format, param);
     return async([tmpCommand]() -> shared_ptr<string>
                  {
                      future<redisReply *> future = tmpCommand->GetPromise()->get_future();
@@ -302,7 +302,10 @@ future<shared_ptr<string>> CRedisConnection::RedisAsyncReturnStringCommand(const
 
                      if (res->type == REDIS_REPLY_STRING) {
                          string resValue;
-                         shared_ptr<string> value = make_shared<string>(resValue.assign(res->str, res->len));
+                         //binary safe
+                         resValue.assign(res->str, res->len);
+                         //resValue = res->str; error:not binary safe
+                         shared_ptr<string> value = make_shared<string>(resValue);
                          return value;
                      }
                      return nullptr;
@@ -310,10 +313,10 @@ future<shared_ptr<string>> CRedisConnection::RedisAsyncReturnStringCommand(const
 }
 
 template<class return_type>
-future<shared_ptr<return_type>> CRedisConnection::RedisAsyncCommand(const char *cmd,
+future<shared_ptr<return_type>> CRedisConnection::RedisAsyncCommand(const char *format,
                                                                     vector<shared_ptr<CCmdParam>> &param)
 {
-    shared_ptr<CCommand> tmpCommand = RedisvAsyncCommand(cmd, param);
+    shared_ptr<CCommand> tmpCommand = RedisvAsyncCommand(format, param);
     return async([tmpCommand]() -> shared_ptr<return_type>
                  {
                      redisReply *res = tmpCommand->GetPromise()->get_future().get();
@@ -332,17 +335,21 @@ future<shared_ptr<return_type>> CRedisConnection::RedisAsyncCommand(const char *
 
                      if (res->type == REDIS_REPLY_STRING) {
                          shared_ptr<return_type> value = make_shared<return_type>();
-                         static_pointer_cast<IRobject>(value)->FromString(res->str, res->len);
+                         string resValue;
+                         //binary safe 二进制安全
+                         resValue.assign(res->str, res->len);
+                         //resValue = res->str; error:not binary safe 非二进制安全
+                         static_pointer_cast<IRobject>(value)->FromString(resValue);
                          return value;
                      }
                      return nullptr;
                  });
 }
 
-shared_ptr<CCommand> CRedisConnection::RedisvAsyncCommand(const char *cmd,
+shared_ptr<CCommand> CRedisConnection::RedisvAsyncCommand(const char *format,
                                                           vector<shared_ptr<CCmdParam>> &param)
 {
-    shared_ptr<CCommand> tmpCommand = CreateCommand(cmd, param);
+    shared_ptr<CCommand> tmpCommand = CreateCommand(format, param);
     lock_guard<mutex> lk(m_lock);
     unsigned long commandId = tmpCommand->GetCommandId();
     m_cmdMap.insert(make_pair(commandId, tmpCommand));
@@ -364,22 +371,11 @@ shared_ptr<CCommand> CRedisConnection::RedisvAsyncCommand(const char *cmd,
 
 int CRedisConnection::SendCommandAsync(shared_ptr<CCommand> &command)
 {
-    const vector<shared_ptr<CCmdParam>> &paramlist = command->GetParamList();
-    char *cmd;
-    int len;
-    int status;
-    len = command->RedisvFormatCommand(&cmd, command->GetCmd());
-
-    /* We don't want to pass -1 or -2 to future functions as a length. */
-    if (len < 0)
-        return REDIS_ERR;
-
-    status = redisAsyncFormattedCommand(m_pRedisContext,
-                                        &CRedisConnection::lcb_OnCommandCallback,
-                                        (void *) command->GetCommandId(),
-                                        cmd,
-                                        len);
-    free(cmd);
+    int status = redisAsyncFormattedCommand(m_pRedisContext,
+                                            &CRedisConnection::lcb_OnCommandCallback,
+                                            (void *) command->GetCommandId(),
+                                            command->GetCmd(),
+                                            command->GetCmdLen());
     return status;
 }
 
@@ -574,9 +570,16 @@ unsigned long CRedisConnection::GenCommandId()
 }
 
 //构建cmd
-shared_ptr<CCommand> CRedisConnection::CreateCommand(const char *cmd, vector<shared_ptr<CCmdParam>> &param)
+shared_ptr<CCommand> CRedisConnection::CreateCommand(const char *format, vector<shared_ptr<CCmdParam>> &param)
 {
-    return std::move(make_shared<CCommand>(GenCommandId(), cmd, param));
+    unsigned long cmdId = GenCommandId();
+    char *cmd;
+    int len;
+    len = CCommand::RedisvFormatCommand(&cmd, format, param);
+
+    if (len < 0)
+        throw CRException("CreateCommand failed,error type : " + len);
+    return std::move(make_shared<CCommand>(cmdId, cmd, len));
 }
 }
 #endif //EXHIREDIS_REDIS_CONN_H

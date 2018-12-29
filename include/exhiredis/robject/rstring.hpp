@@ -16,8 +16,8 @@ class RString: public Robject<string>
 public:
     RString();
     RString(string str);
-    void FromString(char *str, int len) override;
-    const int ToString(char *str) override;
+    void FromString(const string &str) override;
+    const string ToString() override;
 };
 
 RString::RString()
@@ -30,15 +30,13 @@ RString::RString(string str)
     this->value = value;
 }
 
-void RString::FromString(char *str, int len)
+void RString::FromString(const string &str)
 {
     this->value = str;
 }
-
-const int RString::ToString(char *str)
+const string RString::ToString()
 {
-    memcpy(str, this->value.c_str(), this->value.length());
-    return this->value.length();
+    return this->value;
 }
 }
 #endif //EXHIREDIS_RSTRING_H

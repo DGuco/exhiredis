@@ -15,8 +15,9 @@ class RUlong: public Robject<unsigned long>
 public:
     RUlong();
     RUlong(unsigned long value);
-    void FromString(char *str, int len) override;
-    const int ToString(char *str) override;
+    void FromString(const string &str) override;
+    const string ToString() override;
+
 };
 
 RUlong::RUlong()
@@ -29,16 +30,13 @@ RUlong::RUlong(unsigned long value)
     this->value = value;
 }
 
-void RUlong::FromString(char *str, int len)
+void RUlong::FromString(const string &str)
 {
-    this->value = static_cast<unsigned long>(atol(str));
+    this->value = stoul(str);
 }
-
-const int RUlong::ToString(char *str)
+const string RUlong::ToString()
 {
-    string strValue = to_string(this->value);
-    memcpy(str, strValue.c_str(), strValue.length());
-    return strValue.length();
+    return to_string(this->value);
 }
 }
 

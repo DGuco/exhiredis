@@ -19,8 +19,8 @@ public:
     {
 
     };
-    virtual void FromString(char *str, int len)  = 0;
-    virtual const int ToString(char *str)  = 0;
+    virtual void FromString(const string &str)  = 0;
+    virtual const string ToString()  = 0;
 };
 
 template<class T>
@@ -32,13 +32,13 @@ public:
      * @param str
      * @param len  char* len
      */
-    virtual void FromString(char *str, int len)  = 0;
+    virtual void FromString(const string &str)  = 0;
     /**
      *
      * @param str
      * @return  char* len
      */
-    virtual const int ToString(char *str)  = 0;
+    virtual const string ToString()  = 0;
     T &Value()
     {
         return value;

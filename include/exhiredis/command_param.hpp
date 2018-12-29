@@ -17,26 +17,40 @@ namespace exhiredis
 {
 struct CCmdParam
 {
-    CCmdParam()
+    CCmdParam(const string &str)
     {
-        this->m_data = new char[REDIS_MAX_KEY_VALUE_SIZE];
+        this->m_data = new char[str.length() + 1]{0};
+        //binary safe 二进制安全
+        memcpy(m_data, str.c_str(), str.length());
+        //memcpy(m_data, str.c_str(), strlen(str.c_str())); binary not safe 非二进制安全
     }
 
     CCmdParam(const char *data, int len)
     {
-        this->m_data = new char[REDIS_MAX_KEY_VALUE_SIZE];
+        this->m_data = new char[len + 1]{0};
         memcpy(m_data, data, len);
-    }
-
-    CCmdParam(const string &str)
-    {
-        this->m_data = new char[REDIS_MAX_KEY_VALUE_SIZE];
-        memcpy(m_data, str.c_str(), str.length());
     }
 
     CCmdParam(size_t size)
     {
-        this->m_len = size;
+        InitData<size_t>(size);
+    }
+
+    CCmdParam(int param)
+    {
+        InitData<size_t>(param);
+    }
+
+    char *GetChar()
+    {
+        if (m_data != nullptr) {
+            return m_data;
+        }
+    }
+
+    size_t GetSize()
+    {
+        return GetParam<size_t>();
     }
 
     virtual ~CCmdParam()
@@ -46,26 +60,22 @@ struct CCmdParam
         }
     }
 
-    char *GetData()
+private:
+    template<class T>
+    void InitData(T t)
     {
-        if (m_data != nullptr) {
-            return m_data;
-        }
-        else {
-            throw CRException("The cmd param is illegal");
-        }
+        this->m_data = new char[sizeof(t)]{0};
+        memcpy(m_data, (void *) (&t), sizeof(t));
     }
-
-    size_t GetLen()
+    template<class T>
+    T GetParam()
     {
-        return m_len;
+        return *((T *) (m_data));
     }
-
     CCmdParam(const CCmdParam &parm) = delete;
     CCmdParam(const CCmdParam &&parm) = delete;
     CCmdParam &operator=(const CCmdParam &parm) = delete;
     char *m_data;
-    size_t m_len;
 };
 }
 #endif //EXHIREDIS_COMMAND_PARAM_HPP

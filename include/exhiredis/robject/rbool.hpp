@@ -15,8 +15,8 @@ class RBool: public Robject<bool>
 public:
     RBool();
     RBool(bool value);
-    void FromString(char *str, int len) override;
-    const int ToString(char *str) override;
+    void FromString(const string &str) override;
+    const string ToString() override;
 };
 
 RBool::RBool()
@@ -29,22 +29,20 @@ RBool::RBool(bool value)
     this->value = value;
 }
 
-void RBool::FromString(char *str, int len)
+void RBool::FromString(const string &str)
 {
-    this->value = strcmp(str, "true") == 0;
+    this->value = strcmp(str.c_str(), "true") == 0;
 }
 
-const int RBool::ToString(char *str)
+const string RBool::ToString()
 {
     string strValue;
     if (this->value) {
-        strValue = "true";
+        return "true";
     }
     else {
-        strValue = "false";
+        return "false";
     }
-    memcpy(str, strValue.c_str(), strValue.length());
-    return strValue.length();
 }
 }
 #endif //EXHIREDIS_RBOOL_H

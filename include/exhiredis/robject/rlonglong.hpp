@@ -15,8 +15,9 @@ class RLongLong: public Robject<long long>
 public:
     RLongLong();
     RLongLong(long long value);
-    void FromString(char *str, int len) override;
-    const int ToString(char *str) override;
+    void FromString(const string &str) override;
+    const string ToString() override;
+
 };
 
 RLongLong::RLongLong()
@@ -29,17 +30,13 @@ RLongLong::RLongLong(long long value)
     this->value = value;
 }
 
-void RLongLong::FromString(char *str, int len)
+void RLongLong::FromString(const string &str)
 {
-    this->value = atoll(str);
+    this->value = stoll(str);
 }
-
-const int RLongLong::ToString(char *str)
+const string RLongLong::ToString()
 {
-    string strValue = to_string(this->value);
-    memcpy(str, strValue.c_str(), strValue.length());
-    return strValue.length();
+    return to_string(this->value);
 }
-
 }
 #endif //EXHIREDIS_RLONGLONG_H

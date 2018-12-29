@@ -107,10 +107,10 @@ testMap(shared_ptr<CRedisConnection> conn)
 int
 main()
 {
+
     CLog::CreateInstance();
     shared_ptr<CRedisConnection> conn = make_shared<CRedisConnection>();
     conn->Connect("127.0.0.1", 6379);
-    //	testStr( );
     testMap(conn);
     RScript *rScript = new RScript(conn);
     string cmd = "if (redis.call('exists', KEYS[1]) == 0) then " \

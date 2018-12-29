@@ -15,8 +15,8 @@ class RDouble: public Robject<double>
 public:
     RDouble();
     RDouble(double value);
-    void FromString(char *str, int len) override;
-    const int ToString(char *str) override;
+    void FromString(const string &str) override;
+    const string ToString() override;
 };
 
 RDouble::RDouble()
@@ -29,16 +29,14 @@ RDouble::RDouble(double value)
     this->value = value;
 }
 
-void RDouble::FromString(char *str, int len)
+void RDouble::FromString(const string &str)
 {
-    this->value = atof(str);
+    this->value = stod(str);
 }
 
-const int RDouble::ToString(char *str)
+const string RDouble::ToString()
 {
-    string strValue = to_string(this->value);
-    memcpy(str, strValue.c_str(), strValue.length());
-    return strValue.length();
+    return to_string(this->value);
 }
 }
 #endif //EXHIREDIS_RFLOAT_H
