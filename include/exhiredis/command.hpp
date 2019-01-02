@@ -9,17 +9,20 @@
 #include <future>
 #include <cstring>
 #include <cassert>
+#include <chrono>
 #include "robject/robject.hpp"
 #include "utils/sds.h"
+
+using std::chrono::time_point;
 
 namespace exhiredis
 {
 enum class eCommandState
 {
-    NOT_SEND = 1,  //Has not send to server
-    SEND_ERROR = 2,  // Could not send to server
+    NOT_SEND = 1,       //Has not send to server
+    SEND_ERROR = 2,     // Could not send to server
     NO_REPLY_YET = 3,   // No reply yet
-    TIMEOUT = 4,     // No reply, timed out
+    REPLY_FAILED = 4,   // reply failed try again later
     REPLY_DONE = 5,     // redis reply done
     COMMAND_RETRYING = 6,     // command retrying
 };
@@ -47,6 +50,8 @@ public:
     //to string
     const char *ToString();
     const int GetCmdLen() const;
+    time_t GetSendTime() const;
+    void SetSendTime(time_t sendTime);
 public:
     /**
      * format command (copy from hiredis)
@@ -74,6 +79,7 @@ private:
     redisReply *m_pReply;
     const char *m_sCmd;
     const int m_cmdLen;
+    time_t m_tSendTime;
     eCommandState m_iCommState;
 };
 
@@ -83,6 +89,7 @@ CCommand::CCommand(unsigned long id, const char *cmd, int cmdLen)
       m_pReply(nullptr),
       m_sCmd(cmd),
       m_cmdLen(cmdLen),
+      m_tSendTime(0),
       m_iCommState(eCommandState::NOT_SEND)
 {
 }
@@ -224,9 +231,7 @@ int CCommand::RedisvFormatCommand(char **target, const char *format, vector<shar
                     if (size > 0)
                         newarg = sdscatlen(curarg, arg, size);
                     break;
-                case 'b':
-
-                    arg = param.at(paraIndex++)->GetChar();
+                case 'b':arg = param.at(paraIndex++)->GetChar();
                     size = param.at(paraIndex++)->GetSize();
                     if (size > 0)
                         newarg = sdscatlen(curarg, arg, size);
@@ -301,6 +306,16 @@ int CCommand::RedisvFormatCommand(char **target, const char *format, vector<shar
     free(cmd);
 
     return error_type;
+}
+
+time_t CCommand::GetSendTime() const
+{
+    return m_tSendTime;
+}
+
+void CCommand::SetSendTime(time_t sendTime)
+{
+    sendTime = sendTime;
 }
 
 }

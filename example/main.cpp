@@ -96,33 +96,48 @@ testMap(shared_ptr<CRedisConnection> conn)
 {
     RMap<RInt, RInt> *rMap = new RMap<RInt, RInt>("TestMap", conn);
     const RInt key = RInt(10);
-    const RInt value = RInt(100);
-    rMap->Put(key, value);
+//    const RInt value = RInt(100);
+//    rMap->Put(key, value);
     shared_ptr<RInt> res = rMap->Get(key);
     printf("-------------------\n");
     int intva = res->Value();
     printf("res  = %d \n", intva);
 }
 
+void myterminate()
+{
+    std::cout << "terminate handler called\n";
+    void *array[64];
+    int nSize = backtrace(array, 64);
+    char **symbols = backtrace_symbols(array, nSize);
+    string m_sBuffer;
+    for (int i = 0; i < nSize; i++) {
+        m_sBuffer += symbols[i];
+        m_sBuffer += "\n";
+    }
+    std::cout << m_sBuffer << std::endl;
+    free(symbols);
+}
+
 int
 main()
 {
-
+    return 0;
     CLog::CreateInstance();
     shared_ptr<CRedisConnection> conn = make_shared<CRedisConnection>();
     conn->Connect("127.0.0.1", 6379);
     testMap(conn);
-    RScript *rScript = new RScript(conn);
-    string cmd = "if (redis.call('exists', KEYS[1]) == 0) then " \
-        "redis.call('hset', KEYS[1], ARGV[2], 1); " \
-        "redis.call('pexpire', KEYS[1], ARGV[1]); " \
-        "return nil; " \
-        "end; " \
-        "if (redis.call('hexists', KEYS[1], ARGV[2]) == 1) then " \
-        "redis.call('hincrby', KEYS[1], ARGV[2], 1); " \
-        "redis.call('pexpire', KEYS[1], ARGV[1]); " \
-        "return nil; " \
-        "end; " \
-        "return redis.call('pttl', KEYS[1]);";
-    shared_ptr<long long> res = rScript->EvalReturnInt(cmd, {"TestLock:lock1"}, {"1000000000000", "3133213232"});
+//    RScript *rScript = new RScript(conn);
+//    string cmd = "if (redis.call('exists', KEYS[1]) == 0) then " \
+//        "redis.call('hset', KEYS[1], ARGV[2], 1); " \
+//        "redis.call('pexpire', KEYS[1], ARGV[1]); " \
+//        "return nil; " \
+//        "end; " \
+//        "if (redis.call('hexists', KEYS[1], ARGV[2]) == 1) then " \
+//        "redis.call('hincrby', KEYS[1], ARGV[2], 1); " \
+//        "redis.call('pexpire', KEYS[1], ARGV[1]); " \
+//        "return nil; " \
+//        "end; " \
+//        "return redis.call('pttl', KEYS[1]);";
+//    shared_ptr<long long> res = rScript->EvalReturnInt(cmd, {"TestLock:lock1"}, {"1000000000000", "3133213232"});
 }

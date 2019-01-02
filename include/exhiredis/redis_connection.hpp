@@ -18,14 +18,17 @@
 #include <condition_variable>
 #include <queue>
 #include <list>
-#include <map>
-#include <exhiredis/utils/exception.hpp>
+#include <unordered_map>
+#include <ctime>
+#include <ratio>
+#include "exhiredis/utils/exception.hpp"
 #include "utils/signal.hpp"
 #include "utils/log.hpp"
 #include "command.hpp"
 #include "utils/uuid.hpp"
 #include "robject/rint.hpp"
 
+using std::chrono::system_clock;
 namespace exhiredis
 {
 enum class enConnState
@@ -82,16 +85,6 @@ private:
     void ShutDown();
     //flush all command
     void RetryFailedOrWaitCommands();
-private:
-    //connected callback
-    static void lcb_OnConnectCallback(const redisAsyncContext *context, int status);
-    //disconnected callback(this callback will not call until we found the connection is gone when we send failed or we closed ourselves)
-    static void lcb_OnDisconnectCallback(const redisAsyncContext *context, int status);
-    //the server closed our connection
-    static void lcb_OnDisconnectEventCallback(int socket, int event, void *data);
-    //redis command callback
-    static void lcb_OnCommandCallback(redisAsyncContext *context, void *reply, void *privdata);
-private:
     //init hiredis
     bool InitHiredis();
     //init libevent
@@ -100,18 +93,34 @@ private:
     bool RunEventLoop();
     //set command reply
     void SetCommandReply(unsigned long cmdId, redisReply *cmdReply);
+    //start command check timer
+    void StartCheckTimer();
+    //check timerOut command
+    void CheckTimeOutCommand();
+private:
+    //connected callback
+    static void lcb_OnConnectCallback(const redisAsyncContext *context, int status);
+    //disconnected callback(this callback will not call until we found the connection is gone when we send failed or we closed ourselves)
+    static void lcb_OnDisconnectCallback(const redisAsyncContext *context, int status);
+    //the server closed our connection
+    static void lcb_OnDisconnectEventCallback(evutil_socket_t fd, short event, void *data);
+    //redis command callback
+    static void lcb_OnCommandCallback(redisAsyncContext *context, void *reply, void *privdata);
+    //check timeout commands
+    static void lcb_OnTimeoutCallback(evutil_socket_t fd, short events, void *arg);
 private:
     redisAsyncContext *m_pRedisContext;
-    shared_ptr<thread> m_pEventLoopThread;
     event_base *m_pEventBase;
-    event *m_closedEvent;
+    event *m_pClosedEvent;
+    event *m_pTimeOutEvent;
+    shared_ptr<thread> m_pEventLoopThread;
     string m_sHost;
     int m_iPort;
     string m_sAddress;
     enConnState m_connState;
     mutex m_lock;
     atomic_ulong m_cmdId;
-    map<unsigned long, shared_ptr<CCommand>> m_cmdMap;
+    unordered_map<unsigned long, shared_ptr<CCommand>> m_cmdMap;
     list<unsigned long> m_cmdList;
     list<unsigned long> m_failedOrWaitList;//按照send的顺序排列
 };
@@ -156,6 +165,7 @@ bool CRedisConnection::Connect(const string &host, int port, bool isReconn)
     if (m_pEventLoopThread != nullptr) {
         m_pEventLoopThread.reset();
     }
+    StartCheckTimer();
     m_pEventLoopThread = make_shared<thread>([this]
                                              { RunEventLoop(); });
     return GetConnState() == enConnState::CONNECTED;
@@ -359,8 +369,11 @@ shared_ptr<CCommand> CRedisConnection::RedisvAsyncCommand(const char *format,
         RetryFailedOrWaitCommands();
         if (SendCommandAsync(tmpCommand) != REDIS_OK) {
             tmpCommand->SetCommState(eCommandState::SEND_ERROR);
-            m_failedOrWaitList.push_back(commandId);
+            m_failedOrWaitList.push_back(commandId); //失败后再尝试一次
             HIREDIS_LOG_ERROR("Send redis command failed,cmd = %s", tmpCommand->ToString());
+        }
+        else {
+            tmpCommand->SetCommState(eCommandState::NO_REPLY_YET);
         }
     }
     else {
@@ -375,21 +388,31 @@ int CRedisConnection::SendCommandAsync(shared_ptr<CCommand> &command)
                                             &CRedisConnection::lcb_OnCommandCallback,
                                             (void *) command->GetCommandId(),
                                             command->GetCmd(),
-                                            command->GetCmdLen());
+                                            (size_t) command->GetCmdLen());
+    command->SetSendTime(system_clock::to_time_t(system_clock::now()));
     return status;
 }
 
 void CRedisConnection::ShutDown()
 {
-    if (m_closedEvent != nullptr) {
-        event_free(m_closedEvent);
+    if (m_pClosedEvent != nullptr) {
+        event_free(m_pClosedEvent);
+        m_pClosedEvent = nullptr;
     }
+
+    if (m_pTimeOutEvent != nullptr) {
+        event_free(m_pTimeOutEvent);
+        m_pTimeOutEvent = nullptr;
+    }
+
     if (m_pRedisContext != nullptr) {
         redisAsyncFree(m_pRedisContext);
+        m_pRedisContext = nullptr;
     }
     if (m_pEventBase != nullptr) {
         event_base_loopbreak(m_pEventBase);
         event_base_free(m_pEventBase);
+        m_pEventBase = nullptr;
     }
     if (m_pEventLoopThread != nullptr) {
         if (m_pEventLoopThread->joinable()) {
@@ -409,61 +432,17 @@ void CRedisConnection::RetryFailedOrWaitCommands()
                 shared_ptr<CCommand> &command = it->second;
                 int status = SendCommandAsync(command);
                 eCommandState state = command->GetCommState();
-                if (status != REDIS_OK && (state == eCommandState::SEND_ERROR || state == eCommandState::TIMEOUT)) {
-                    HIREDIS_LOG_ERROR("Retry command failed,command = %s", command->ToString());
+                if (status == REDIS_OK) {
+                    command->SetCommState(eCommandState::COMMAND_RETRYING);
+                }
+                else {
+                    if (state == eCommandState::SEND_ERROR || state == eCommandState::REPLY_FAILED) {
+                        HIREDIS_LOG_ERROR("Retry command failed,command = %s", command->ToString());
+                    }
                 }
             }
         }
     }
-}
-
-void CRedisConnection::lcb_OnConnectCallback(const redisAsyncContext *context, int status)
-{
-    CRedisConnection *conn = (CRedisConnection *) context->data;
-    if (status != REDIS_OK) {
-        HIREDIS_LOG_ERROR("Could not connect to redis,error msg: %s,status: %d", context->errstr, status);
-        conn->SetConnState(enConnState::CONNECT_ERROR);
-    }
-    else {
-        HIREDIS_LOG_INFO("Connected to Redis succeed.");
-        //禁止hiredis 自动释放reply
-        context->c.reader->fn->freeObject = [](void *reply)
-        {};
-        conn->SetConnState(enConnState::CONNECTED);
-        conn->RetryFailedOrWaitCommands();
-    }
-}
-
-void CRedisConnection::lcb_OnDisconnectCallback(const redisAsyncContext *context, int status)
-{
-    CRedisConnection *conn = (CRedisConnection *) context->data;
-    if (conn == nullptr || conn->GetConnState() == enConnState::DESTROYING) {
-        return;
-    }
-    if (conn != nullptr) {
-        conn->SetConnState(enConnState::DISCONNECTED);
-    }
-
-    HIREDIS_LOG_ERROR("Disconnected from redis");
-    conn->ReConnect();
-}
-
-void CRedisConnection::lcb_OnDisconnectEventCallback(int socket, int event, void *data)
-{
-    CRedisConnection *conn = (CRedisConnection *) data;
-    if (conn != nullptr) {
-        conn->SetConnState(enConnState::DISCONNECTED);
-        HIREDIS_LOG_ERROR("Disconnected from redis");
-        conn->ReConnect();
-    }
-}
-
-void CRedisConnection::lcb_OnCommandCallback(redisAsyncContext *context, void *reply, void *privdata)
-{
-    CRedisConnection *conn = (CRedisConnection *) context->data;
-    unsigned long cmdId = (unsigned long) privdata;
-    redisReply *cmdReply = (redisReply *) reply;
-    conn->SetCommandReply(cmdId, cmdReply);
 }
 
 void CRedisConnection::SetCommandReply(unsigned long cmdId, redisReply *cmdReply)
@@ -474,16 +453,15 @@ void CRedisConnection::SetCommandReply(unsigned long cmdId, redisReply *cmdReply
     bool hasTimeOutCmds = false;
     while (cmdIdIt != m_cmdList.end()) {
         tmpCmdId = *cmdIdIt;
-        //this command timeout
         auto cmdIt = m_cmdMap.find(tmpCmdId);
         if (cmdIt == m_cmdMap.end()) {
             cmdIdIt++;
             continue;
         }
         shared_ptr<CCommand> tmpCmd = cmdIt->second;
-        //redis单线程处理command如果收到的reply前面有没有收到reply的command则这个command已经超时
+        //redis单线程处理command如果收到的reply前面有没有收到reply的command则这个command reply failed
         if (tmpCmdId != cmdId) {
-            tmpCmd->SetCommState(eCommandState::TIMEOUT);
+            tmpCmd->SetCommState(eCommandState::REPLY_FAILED);
             m_failedOrWaitList.push_back(tmpCmdId);
             hasTimeOutCmds = true;
         }
@@ -508,7 +486,7 @@ void CRedisConnection::SetCommandReply(unsigned long cmdId, redisReply *cmdReply
                  *为了保证redis command的数据正确性必须保证command的执行顺序和发生顺序是一直的，
                  *所以把该命令加入失败队列重新发送
                 **/
-                tmpCmd->SetCommState(eCommandState::TIMEOUT);
+                tmpCmd->SetCommState(eCommandState::REPLY_FAILED);
                 m_failedOrWaitList.push_back(tmpCmdId);
             }
             break;
@@ -517,6 +495,43 @@ void CRedisConnection::SetCommandReply(unsigned long cmdId, redisReply *cmdReply
     }
     if (hasTimeOutCmds) {
         RetryFailedOrWaitCommands();
+    }
+}
+
+void CRedisConnection::StartCheckTimer()
+{
+    if (m_pTimeOutEvent == nullptr) {
+        m_pTimeOutEvent = new event;
+    }
+    //todo check timeount config
+    struct timeval tv;
+    tv.tv_sec = 5;    // 秒
+    tv.tv_usec = 0;  // 微秒
+    //timer 事件
+    evtimer_assign(m_pTimeOutEvent, m_pEventBase, &CRedisConnection::lcb_OnTimeoutCallback, (void *) this);
+    evtimer_add(m_pTimeOutEvent, &tv);
+}
+
+void CRedisConnection::CheckTimeOutCommand()
+{
+    time_t time = system_clock::to_time_t(system_clock::now());
+    lock_guard<mutex> lock(m_lock);
+    auto it = m_cmdList.begin();
+    while (it != m_cmdList.end()) {
+        auto cmdIt = m_cmdMap.find(*it);
+        if (cmdIt != m_cmdMap.end()) {
+            shared_ptr<CCommand> cmd = cmdIt->second;
+            if (time - cmd->GetSendTime() >= 5 && cmd->GetCommState() != eCommandState::NOT_SEND) {
+                //command timeout return null or throw an exception ?
+                //返回null或者抛出异常
+                cmd->SetPromiseValue(nullptr);
+                it = m_cmdList.erase(it);
+                m_cmdMap.erase(cmd->GetCommandId());
+            }
+            else {
+                break;
+            }
+        }
     }
 }
 
@@ -539,11 +554,11 @@ bool CRedisConnection::InitHiredis()
         return false;
     }
     redisContext *c = &(m_pRedisContext->c);
-    m_closedEvent = event_new(m_pEventBase,
-                              c->fd,
-                              EV_CLOSED,
-                              (event_callback_fn) &CRedisConnection::lcb_OnDisconnectEventCallback,
-                              this);
+    m_pClosedEvent = event_new(m_pEventBase,
+                               c->fd,
+                               EV_CLOSED,
+                               &CRedisConnection::lcb_OnDisconnectEventCallback,
+                               this);
     return true;
 }
 
@@ -580,6 +595,64 @@ shared_ptr<CCommand> CRedisConnection::CreateCommand(const char *format, vector<
     if (len < 0)
         throw CRException("CreateCommand failed,error type : " + len);
     return std::move(make_shared<CCommand>(cmdId, cmd, len));
+}
+
+void CRedisConnection::lcb_OnConnectCallback(const redisAsyncContext *context, int status)
+{
+    CRedisConnection *conn = (CRedisConnection *) context->data;
+    if (status != REDIS_OK) {
+        HIREDIS_LOG_ERROR("Could not connect to redis,error msg: %s,status: %d", context->errstr, status);
+        conn->SetConnState(enConnState::CONNECT_ERROR);
+    }
+    else {
+        HIREDIS_LOG_INFO("Connected to Redis succeed.");
+        //禁止hiredis 自动释放reply
+        context->c.reader->fn->freeObject = [](void *reply)
+        {};
+        conn->SetConnState(enConnState::CONNECTED);
+        conn->RetryFailedOrWaitCommands();
+    }
+}
+
+void CRedisConnection::lcb_OnDisconnectCallback(const redisAsyncContext *context, int status)
+{
+    CRedisConnection *conn = (CRedisConnection *) context->data;
+    if (conn == nullptr || conn->GetConnState() == enConnState::DESTROYING) {
+        return;
+    }
+    if (conn != nullptr) {
+        conn->SetConnState(enConnState::DISCONNECTED);
+    }
+
+    HIREDIS_LOG_ERROR("Disconnected from redis");
+    conn->ReConnect();
+}
+
+void CRedisConnection::lcb_OnCommandCallback(redisAsyncContext *context, void *reply, void *privdata)
+{
+    CRedisConnection *conn = (CRedisConnection *) context->data;
+    unsigned long cmdId = (unsigned long) privdata;
+    redisReply *cmdReply = (redisReply *) reply;
+    conn->SetCommandReply(cmdId, cmdReply);
+}
+
+void CRedisConnection::lcb_OnDisconnectEventCallback(evutil_socket_t fd, short event, void *data)
+{
+    CRedisConnection *conn = (CRedisConnection *) data;
+    if (conn != nullptr) {
+        conn->SetConnState(enConnState::DISCONNECTED);
+        HIREDIS_LOG_ERROR("Disconnected from redis");
+        conn->ReConnect();
+    }
+}
+
+void CRedisConnection::lcb_OnTimeoutCallback(evutil_socket_t fd, short events, void *arg)
+{
+    CRedisConnection *conn = (CRedisConnection *) arg;
+    if (conn != nullptr) {
+        conn->CheckTimeOutCommand();
+        conn->StartCheckTimer();
+    }
 }
 }
 #endif //EXHIREDIS_REDIS_CONN_H
