@@ -98,35 +98,20 @@ testMap(shared_ptr<CRedisConnection> conn)
     const RInt key = RInt(10);
 //    const RInt value = RInt(100);
 //    rMap->Put(key, value);
-    shared_ptr<RInt> res = rMap->Get(key);
+    rMap->Keys();
     printf("-------------------\n");
-    int intva = res->Value();
-    printf("res  = %d \n", intva);
-}
-
-void myterminate()
-{
-    std::cout << "terminate handler called\n";
-    void *array[64];
-    int nSize = backtrace(array, 64);
-    char **symbols = backtrace_symbols(array, nSize);
-    string m_sBuffer;
-    for (int i = 0; i < nSize; i++) {
-        m_sBuffer += symbols[i];
-        m_sBuffer += "\n";
-    }
-    std::cout << m_sBuffer << std::endl;
-    free(symbols);
+//    int intva = res->Value();
+//    printf("res  = %d \n", intva);
 }
 
 int
 main()
 {
-    return 0;
     CLog::CreateInstance();
     shared_ptr<CRedisConnection> conn = make_shared<CRedisConnection>();
     conn->Connect("127.0.0.1", 6379);
     testMap(conn);
+    return 0;
 //    RScript *rScript = new RScript(conn);
 //    string cmd = "if (redis.call('exists', KEYS[1]) == 0) then " \
 //        "redis.call('hset', KEYS[1], ARGV[2], 1); " \

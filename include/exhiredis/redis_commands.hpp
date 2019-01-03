@@ -10,15 +10,20 @@ namespace exhiredis
 {
 namespace redis_commands
 {
-const char* GET = "GET %s";
+const char *GET = "GET %b";
 
-const char* SET = "SET %s %b";
+const char *SET = "SET %b %b";
 
-const char* HGET = "HGET %s %b";
+const char *HGET = "HGET %s %b";
 
-const char* HSET = "HSET %s %b %b";
+const char *HSET = "HSET %s %b %b";
 
-const char* EVAL = "EVAL %s ";
+const char *HKEYS = "HKEYS %s";
+
+const char *HGETALL = "HGETALL %s";
+
+const char *EVAL = "EVAL %s ";
+
 };
 
 }

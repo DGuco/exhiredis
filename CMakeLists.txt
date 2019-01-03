@@ -47,7 +47,7 @@ set(EXHIREDIS
         include/exhiredis/command_param.hpp
         include/exhiredis/utils/sds.cpp
         include/exhiredis/utils/sds.h
-        include/exhiredis/utils/sdsalloc.h)
+        include/exhiredis/utils/sdsalloc.h include/exhiredis/command_executor_service.hpp)
 
 include_directories(
         /usr/include/

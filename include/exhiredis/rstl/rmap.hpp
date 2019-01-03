@@ -9,10 +9,12 @@
 #include <memory>
 #include <utility>
 #include <future>
+#include <linux/futex.h>
 #include <exhiredis/command_param.hpp>
 #include "exhiredis/redis_connection.hpp"
 #include "exhiredis/redis_commands.hpp"
-#include "../connection_manager.hpp"
+#include "exhiredis/connection_manager.hpp"
+#include "exhiredis/command_executor_service.hpp"
 
 namespace exhiredis
 {
@@ -60,6 +62,16 @@ public:
      * @return
      */
     future<shared_ptr<value_type>> GetAsync(const key_type &key);
+    /**
+    * Keys
+    * @return all map keys
+    */
+    shared_ptr<list<string>> Keys();
+    /**
+     * async Keys
+     * @return
+     */
+    future<shared_ptr<list<string>>> KeysAsync();
 private:
     string m_sName;
     shared_ptr<CRedisConnection> m_pRedisConn;
@@ -79,12 +91,6 @@ bool RMap<key_type, value_type>::Put(const key_type &key, const value_type &valu
 }
 
 template<class key_type, class value_type>
-shared_ptr<value_type> RMap<key_type, value_type>::Get(const key_type &key)
-{
-    return GetAsync(key).get();
-}
-
-template<class key_type, class value_type>
 future<bool> RMap<key_type, value_type>::PutAsync(const key_type &key, const value_type &value)
 {
     const string &key_str = ((IRobject *) (&key))->ToString();
@@ -94,7 +100,13 @@ future<bool> RMap<key_type, value_type>::PutAsync(const key_type &key, const val
                                           make_shared<CCmdParam>(key_str.length()),
                                           make_shared<CCmdParam>(value_str),
                                           make_shared<CCmdParam>(value_str.length())};
-    return m_pRedisConn->RedisAsyncIsSucceedCommand(redis_commands::HSET, list);
+    return CCommandExecutorService::RedisAsyncIsSucceedCommand(m_pRedisConn, redis_commands::HSET, list);
+}
+
+template<class key_type, class value_type>
+shared_ptr<value_type> RMap<key_type, value_type>::Get(const key_type &key)
+{
+    return GetAsync(key).get();
 }
 
 template<class key_type, class value_type>
@@ -104,7 +116,20 @@ future<shared_ptr<value_type>> RMap<key_type, value_type>::GetAsync(const key_ty
     vector<shared_ptr<CCmdParam>> list = {make_shared<CCmdParam>(m_sName),
                                           make_shared<CCmdParam>(key_str),
                                           make_shared<CCmdParam>(key_str.length())};
-    return m_pRedisConn->RedisAsyncCommand<value_type>(redis_commands::HGET, list);
+    return CCommandExecutorService::RedisAsyncCommand<value_type>(m_pRedisConn, redis_commands::HGET, list);
+}
+
+template<class key_type, class value_type>
+shared_ptr<list<string>> RMap<key_type, value_type>::Keys()
+{
+    return KeysAsync().get();
+}
+
+template<class key_type, class value_type>
+future<shared_ptr<list<string>>> RMap<key_type, value_type>::KeysAsync()
+{
+    vector<shared_ptr<CCmdParam>> list = {make_shared<CCmdParam>(m_sName)};
+    return CCommandExecutorService::RedisAsyncReturnStringListCommand(m_pRedisConn, redis_commands::HGETALL, list);
 }
 }
 #endif //EXHIREDIS_RMAP_H
