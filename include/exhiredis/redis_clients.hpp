@@ -9,14 +9,12 @@
 #include <memory>
 #include <string>
 #include <type_traits>
-#include "connection_manager.hpp"
-#include "rstl/rmap.hpp"
-#include "rstl/rscript.hpp"
-#include "utils/log.hpp"
-#include "master_slave_manager.hpp"
+#include "exhiredis/utils/log.hpp"
+#include "exhiredis/exhiredis_include.hpp"
+#include "exhiredis/connection_manager.hpp"
+#include "exhiredis/single_connection_manager.hpp"
 
 using namespace std;
-
 namespace exhiredis
 {
 class CRedisClients
@@ -40,6 +38,7 @@ public:
     shared_ptr<RMap<key_type, value_type>> GetMap(const string &name);
 public:
     static shared_ptr<CRedisClients> CreateInstance(shared_ptr<CRedisConfig> config);
+    shared_ptr<IConnectionManager> &GetConnectionManager() const;
 private:
     shared_ptr<IConnectionManager> m_pConnectionManager;
 };
@@ -53,7 +52,7 @@ CRedisClients::CRedisClients(shared_ptr<IConnectionManager> m_pConnectionManager
 shared_ptr<exhiredis::CRedisClients> CRedisClients::CreateInstance(shared_ptr<CRedisConfig> config)
 {
     if (config->GetSingleServerConfig() != nullptr) {
-        shared_ptr<IConnectionManager> tmpManager = make_shared<CMasterSlaveManager>(config);
+        shared_ptr<IConnectionManager> tmpManager = make_shared<CSingleConnectionManager>(config);
         return make_shared<CRedisClients>(tmpManager);
     }
     else if (config->GetMasterSlaveConfig()) {
@@ -71,6 +70,11 @@ shared_ptr<RMap<key_type, value_type>> CRedisClients::GetMap(const string &name)
         return nullptr;
     }
     return make_shared<RMap<key_type, value_type>>(name, m_pConnectionManager);
+}
+
+shared_ptr<IConnectionManager> &CRedisClients::GetConnectionManager() const
+{
+    return m_pConnectionManager;
 }
 }
 

@@ -13,15 +13,15 @@ namespace exhiredis
 class CMasterSlaveEntry
 {
 public:
-    CMasterSlaveEntry(shared_ptr<CConnectionPool> m_pConnectionPool,
-                      shared_ptr<IConnectionManager> m_pConnectionManager);
+    CMasterSlaveEntry(shared_ptr<CConnectionPool> &m_pConnectionPool,
+                      shared_ptr<IConnectionManager> &m_pConnectionManager);
 private:
     shared_ptr<CConnectionPool> m_pConnectionPool;
     weak_ptr<IConnectionManager> m_pConnectionManager;
 };
 
-CMasterSlaveEntry::CMasterSlaveEntry(shared_ptr<CConnectionPool> m_pConnectionPool,
-                                     shared_ptr<IConnectionManager> m_pConnectionManager)
+CMasterSlaveEntry::CMasterSlaveEntry(shared_ptr<CConnectionPool> &m_pConnectionPool,
+                                     shared_ptr<IConnectionManager> &m_pConnectionManager)
     : m_pConnectionPool(m_pConnectionPool),
       m_pConnectionManager(m_pConnectionManager)
 {

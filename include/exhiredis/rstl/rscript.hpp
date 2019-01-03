@@ -12,10 +12,11 @@
 
 namespace exhiredis
 {
+class CRedisClients;
 class RScript
 {
 public:
-    RScript(const shared_ptr<CRedisConnection> &pRedisConn);
+    RScript(const shared_ptr<CRedisClients> &pRedisConn);
 public:
     /**
      *
@@ -89,11 +90,11 @@ public:
 private:
     const string BuildScriptCmd(const list<string> &keys, const list<string> &args);
 private:
-    shared_ptr<CRedisConnection> m_pRedisConn;
+    shared_ptr<CRedisClients> m_pRedisClients;
 };
 
-RScript::RScript(const shared_ptr<CRedisConnection> &pRedisConn)
-    : m_pRedisConn(pRedisConn)
+RScript::RScript(const shared_ptr<CRedisClients> &pRedisConn)
+    : m_pRedisClients(pRedisConn)
 {
 
 }
@@ -110,7 +111,8 @@ future<shared_ptr<long long>> RScript::EvalReturnIntAsync(const string &script,
                                                           const list<string> &args)
 {
     vector<shared_ptr<CCmdParam>> list = {make_shared<CCmdParam>(script)};
-    return m_pRedisConn->RedisAsyncReturnIntCommand(BuildScriptCmd(keys, args).c_str(), list);
+    return m_pRedisClients->GetConnectionManager()->GetCommandExecutorService()
+    RedisAsyncReturnIntCommand(m_pRedisClients, BuildScriptCmd(keys, args).c_str(), list);
 }
 
 shared_ptr<bool> RScript::EvalReturnBool(const string &script,
@@ -125,7 +127,9 @@ future<shared_ptr<bool>> RScript::EvalReturnBoolAsync(const string &script,
                                                       const list<string> &args)
 {
     vector<shared_ptr<CCmdParam>> list = {make_shared<CCmdParam>(script)};
-    return m_pRedisConn->RedisAsyncReturnBoolCommand(BuildScriptCmd(keys, args).c_str(), list);
+    return CCommandExecutorService::RedisAsyncReturnBoolCommand(m_pRedisClients,
+                                                                BuildScriptCmd(keys, args).c_str(),
+                                                                list);
 }
 
 template<class return_type>
@@ -143,7 +147,9 @@ future<shared_ptr<return_type>> RScript::EvalAsync(const string &script,
                                                    const list<string> &args)
 {
     vector<shared_ptr<CCmdParam>> list = {make_shared<CCmdParam>(script)};
-    return m_pRedisConn->RedisAsyncCommand<return_type>(BuildScriptCmd(keys, args).c_str(), list);
+    return CCommandExecutorService::RedisAsyncCommand<return_type>(m_pRedisClients,
+                                                                   BuildScriptCmd(keys, args).c_str(),
+                                                                   list);
 }
 
 const string RScript::BuildScriptCmd(const list<string> &keys, const list<string> &args)

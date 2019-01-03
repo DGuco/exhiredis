@@ -38,7 +38,7 @@ public:
     }
 };
 
-class Test1
+class Test1: public std::enable_shared_from_this<Test1>
 {
 public:
     Test1()
@@ -64,6 +64,11 @@ public:
     Test1 &operator=(const Test1 &test)
     {
         printf("Test1 operator=\n");
+    }
+
+    shared_ptr<Test1> getPtr()
+    {
+        return shared_from_this();
     }
 };
 
@@ -104,9 +109,23 @@ testMap(shared_ptr<CRedisConnection> conn)
 //    printf("res  = %d \n", intva);
 }
 
+weak_ptr<Test1> test(shared_ptr<Test1> shared_ptr1)
+{
+    shared_ptr<Test1> test = shared_ptr1->shared_from_this();
+    return weak_ptr<Test1>(test);
+}
+
 int
 main()
 {
+    weak_ptr<Test1> weakPtr;
+    weak_ptr<Test1> weakPtr2;
+    {
+        shared_ptr<Test1> shared_ptr1 = make_shared<Test1>();
+        weakPtr = test(shared_ptr1);
+        weakPtr2 = weakPtr;
+    }
+    shared_ptr<Test1> ptr = weakPtr.lock();
     CLog::CreateInstance();
     shared_ptr<CRedisConnection> conn = make_shared<CRedisConnection>();
     conn->Connect("127.0.0.1", 6379);

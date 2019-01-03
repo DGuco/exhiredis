@@ -23,6 +23,35 @@ public:
           m_iDatabase(0),
           m_iDnsMonitoringInterval(5000)
     {}
+
+    const string &getM_sAddress() const
+    {
+        return m_sAddress;
+    }
+    int GetSubscriptionConnectionMinimumIdleSize() const
+    {
+        return m_iSubscriptionConnectionMinimumIdleSize;
+    }
+    int GetSubscriptionConnectionPoolSize() const
+    {
+        return m_iSubscriptionConnectionPoolSize;
+    }
+    int GetConnectionMinimumIdleSize() const
+    {
+        return m_iConnectionMinimumIdleSize;
+    }
+    int GetConnectionPoolSize() const
+    {
+        return m_iConnectionPoolSize;
+    }
+    int GetDatabase() const
+    {
+        return m_iDatabase;
+    }
+    int GetDnsMonitoringInterval() const
+    {
+        return m_iDnsMonitoringInterval;
+    }
 private:
     string m_sAddress;
     int m_iSubscriptionConnectionMinimumIdleSize;

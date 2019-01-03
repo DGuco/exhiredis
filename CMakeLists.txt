@@ -40,14 +40,14 @@ set(EXHIREDIS
         include/exhiredis/connection_pool.hpp
         include/exhiredis/config/redis_config.hpp
         include/exhiredis/redis_clients.hpp
-        include/exhiredis/master_slave_manager.hpp
+        include/exhiredis/single_connection_manager.hpp
         include/exhiredis/master_slave_entry.hpp
         include/exhiredis/concurrent/thread_pool.hpp
         include/exhiredis/lock/redis_lock.hpp
         include/exhiredis/command_param.hpp
         include/exhiredis/utils/sds.cpp
         include/exhiredis/utils/sds.h
-        include/exhiredis/utils/sdsalloc.h include/exhiredis/command_executor_service.hpp)
+        include/exhiredis/utils/sdsalloc.h include/exhiredis/command_executor_service.hpp include/exhiredis/exhiredis_include.hpp)
 
 include_directories(
         /usr/include/

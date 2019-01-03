@@ -18,7 +18,7 @@ class CBaseConfig
 public:
     CBaseConfig(string sPassword)
         : m_sPassword(sPassword),
-          m_sClientName(""),
+          m_sAddress(""),
           m_iPingConnectionInterval(0),
           m_bKeepAlive(false),
           m_bTcpNoDelay(false),
@@ -35,9 +35,9 @@ public:
     {
         return m_sPassword;
     }
-    const string &GetClientName() const
+    const string &GetAddress() const
     {
-        return m_sClientName;
+        return m_sAddress;
     }
     int GetPingConnectionInterval() const
     {
@@ -87,7 +87,7 @@ public:
 
     void SetClientName(const string &sClientName)
     {
-        m_sClientName = sClientName;
+        m_sAddress = sClientName;
     }
     void SetPingConnectionInterval(int iPingConnectionInterval)
     {
@@ -131,7 +131,7 @@ public:
     }
 private:
     string m_sPassword;
-    string m_sClientName;
+    string m_sAddress;
     int m_iPingConnectionInterval;
     bool m_bKeepAlive;
     bool m_bTcpNoDelay;

@@ -7,6 +7,7 @@
 #define EXHIREDIS_CONFIG_HPP
 
 #include <memory>
+#include "base_config.hpp"
 #include "master_slave_config.hpp"
 #include "sentinel_servers_config.hpp"
 #include "single_server_config.hpp"
@@ -31,19 +32,33 @@ public:
         *(const_cast<int *>(&REDIS_MAX_KEY_VALUE_SIZE)) = redisMaxKeyValueSize;
     }
 
-    shared_ptr<MasterSlaveServersConfig> GetMasterSlaveConfig() const
+    shared_ptr<MasterSlaveServersConfig> &GetMasterSlaveConfig()
     {
         return m_pMasterSlaveConfig;
     }
 
-    shared_ptr<CSingleServerConfig> GetSingleServerConfig() const
+    shared_ptr<CSingleServerConfig> &GetSingleServerConfig()
     {
         return m_pSingleServerConfig;
     }
 
-    shared_ptr<CSentinelServersConfig> GetSentinelServerConfig() const
+    shared_ptr<CSentinelServersConfig> &GetSentinelServerConfig()
     {
         return m_pSentinelServerConfig;
+    }
+
+    shared_ptr<CBaseConfig> GetConnConfig()
+    {
+        if (m_pMasterSlaveConfig != nullptr) {
+            return static_pointer_cast<CBaseConfig>(m_pMasterSlaveConfig);
+        }
+        if (m_pSingleServerConfig != nullptr) {
+            return static_pointer_cast<CBaseConfig>(m_pSingleServerConfig);
+        }
+//        if (m_pSentinelServerConfig != nullptr) {
+//            return static_pointer_cast<CBaseConfig>(m_pSentinelServerConfig);
+//        }
+        return nullptr;
     }
 private:
     /**
