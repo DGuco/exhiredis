@@ -8,50 +8,63 @@ add_compile_options(-Wall -g -pipe -std=c++14)
 add_definitions()
 
 set(EXHIREDIS
-        include/exhiredis/utils/uuid.hpp
-        include/exhiredis/utils/singleton.hpp
-        include/exhiredis/utils/log.hpp
-        include/exhiredis/utils/signal.hpp
-        include/exhiredis/utils/crc16.hpp
+        include/exhiredis/utils/uuid.h
+        include/exhiredis/utils/log.h
+        include/exhiredis/utils/signal.h
+        include/exhiredis/utils/crc16.h
         include/exhiredis/utils/rwlock.hpp
-        include/exhiredis/utils/exception.hpp
-        include/exhiredis/command.hpp
-        include/exhiredis/connection_manager.hpp
-        include/exhiredis/redis_connection.hpp
+        include/exhiredis/utils/exception.h
+        include/exhiredis/command.h
+        include/exhiredis/connection_manager.h
+        include/exhiredis/redis_connection.h
         include/exhiredis/lock/rlock.hpp
-        include/exhiredis/config/base_config.hpp
-        include/exhiredis/config/base_master_slave_config.hpp
-        include/exhiredis/config/master_slave_config.hpp
-        include/exhiredis/config/single_server_config.hpp
-        include/exhiredis/config/sentinel_servers_config.hpp
-        include/exhiredis/robject/robject.hpp
-        include/exhiredis/robject/rint.hpp
-        include/exhiredis/robject/rlong.hpp
-        include/exhiredis/robject/rstring.hpp
-        include/exhiredis/robject/rbool.hpp
-        include/exhiredis/robject/rfloat.hpp
-        include/exhiredis/robject/rdouble.hpp
-        include/exhiredis/robject/rlonglong.hpp
-        include/exhiredis/robject/rulong.hpp
-        include/exhiredis/robject/rulonglong.hpp
-        include/exhiredis/rstl/rscript.hpp
-        include/exhiredis/rstl/rmap.hpp
-        include/exhiredis/redis_commands.hpp
-        include/exhiredis/connection_pool.hpp
-        include/exhiredis/config/redis_config.hpp
-        include/exhiredis/redis_clients.hpp
-        include/exhiredis/single_connection_manager.hpp
-        include/exhiredis/master_slave_entry.hpp
-        include/exhiredis/concurrent/thread_pool.hpp
-        include/exhiredis/lock/redis_lock.hpp
+        include/exhiredis/config/base_config.h
+        include/exhiredis/config/base_master_slave_config.h
+        include/exhiredis/config/master_slave_config.h
+        include/exhiredis/config/single_server_config.h
+        include/exhiredis/config/sentinel_servers_config.h
+        include/exhiredis/robject/robject.h
+        include/exhiredis/robject/rint.h
+        include/exhiredis/robject/rlong.h
+        include/exhiredis/robject/rstring.h
+        include/exhiredis/robject/rbool.h
+        include/exhiredis/robject/rfloat.h
+        include/exhiredis/robject/rdouble.h
+        include/exhiredis/robject/rlonglong.h
+        include/exhiredis/robject/rulong.h
+        include/exhiredis/robject/rulonglong.h
+        include/exhiredis/rstl/rscript.h
+        include/exhiredis/rstl/rmap.h
+        include/exhiredis/redis_commands.h
+        include/exhiredis/connection_pool.h
+        include/exhiredis/config/redis_config.h
+        include/exhiredis/redis_clients.h
+        include/exhiredis/single_connection_manager.h
+        include/exhiredis/master_slave_entry.h
+        include/exhiredis/concurrent/thread_pool.h
+        include/exhiredis/lock/redis_lock.h
         include/exhiredis/command_param.hpp
         include/exhiredis/utils/sds.cpp
         include/exhiredis/utils/sds.h
-        include/exhiredis/utils/sdsalloc.h include/exhiredis/command_executor_service.hpp include/exhiredis/exhiredis_include.hpp)
+        include/exhiredis/utils/sdsalloc.h
+        include/exhiredis/command_executor_service.h
+        include/exhiredis/exhiredis_include.h
+        include/exhiredis/lock/redis_lock.cpp
+        include/exhiredis/rstl/rscript.cpp
+        include/exhiredis/command.cpp
+        include/exhiredis/command_executor_service.cpp
+        include/exhiredis/connection_pool.cpp
+        include/exhiredis/master_slave_entry.cpp
+        include/exhiredis/redis_clients.cpp
+        include/exhiredis/redis_connection.cpp
+        include/exhiredis/single_connection_manager.cpp
+        include/exhiredis/utils/signal.cpp
+        include/exhiredis/redis_commands.cpp include/exhiredis/utils/log.cpp include/exhiredis/comman_def.h)
 
 include_directories(
         /usr/include/
         /usr/local/include/
+        ${CMAKE_SOURCE_DIR}/include/
 )
 
 link_directories(

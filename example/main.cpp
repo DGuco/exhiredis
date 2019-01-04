@@ -5,9 +5,9 @@
 #include <iostream>
 #include <tuple>
 #include <vector>
-#include "exhiredis/rstl/rmap.hpp"
-#include "exhiredis/rstl/rscript.hpp"
-#include "exhiredis/concurrent/thread_pool.hpp"
+#include "exhiredis/rstl/rmap.h"
+#include "exhiredis/rstl/rscript.h"
+#include "exhiredis/concurrent/thread_pool.h"
 
 using namespace std;
 using namespace exhiredis;
@@ -99,11 +99,11 @@ testStr()
 void
 testMap(shared_ptr<CRedisConnection> conn)
 {
-    RMap<RInt, RInt> *rMap = new RMap<RInt, RInt>("TestMap", conn);
-    const RInt key = RInt(10);
+//    RMap<RInt, RInt> *rMap = new RMap<RInt, RInt>("TestMap", conn);
+//    const RInt key = RInt(10);
 //    const RInt value = RInt(100);
 //    rMap->Put(key, value);
-    rMap->Keys();
+//    rMap->Keys();
     printf("-------------------\n");
 //    int intva = res->Value();
 //    printf("res  = %d \n", intva);
@@ -118,18 +118,10 @@ weak_ptr<Test1> test(shared_ptr<Test1> shared_ptr1)
 int
 main()
 {
-    weak_ptr<Test1> weakPtr;
-    weak_ptr<Test1> weakPtr2;
-    {
-        shared_ptr<Test1> shared_ptr1 = make_shared<Test1>();
-        weakPtr = test(shared_ptr1);
-        weakPtr2 = weakPtr;
-    }
-    shared_ptr<Test1> ptr = weakPtr.lock();
-    CLog::CreateInstance();
-    shared_ptr<CRedisConnection> conn = make_shared<CRedisConnection>();
-    conn->Connect("127.0.0.1", 6379);
-    testMap(conn);
+    shared_ptr<CSingleServerConfig> config = make_shared<CSingleServerConfig>("127.0.0.1:6379", "");
+    config->SetConnectionPoolSize(5);
+    shared_ptr<CRedisConfig> redisConf = make_shared<CRedisConfig>(nullptr, config, nullptr);
+    shared_ptr<CRedisClients> redisClients = CRedisClients::CreateInstance(redisConf);
     return 0;
 //    RScript *rScript = new RScript(conn);
 //    string cmd = "if (redis.call('exists', KEYS[1]) == 0) then " \
