@@ -7,7 +7,7 @@
 #include <vector>
 #include "command.h"
 #include "utils/sds.h"
-#include "command_param.hpp"
+#include "command_param.h"
 
 namespace exhiredis
 {

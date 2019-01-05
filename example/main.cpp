@@ -56,7 +56,7 @@ public:
         printf("Test1 copy\n");
     }
 
-    Test1(const Test1 &&test)
+    Test1(Test1 &&test)
     {
         printf("Test1 move\n");
     }
@@ -115,9 +115,17 @@ weak_ptr<Test1> test(shared_ptr<Test1> shared_ptr1)
     return weak_ptr<Test1>(test);
 }
 
+Test1 aaa(Test1 &&test)
+{
+    printf("dddddd\n");
+    return std::move(test);
+}
+
 int
 main()
 {
+    Test1 test1;
+    Test1 test2 = aaa(std::move(test1));
     shared_ptr<CSingleServerConfig> config = make_shared<CSingleServerConfig>("127.0.0.1:6379", "");
     config->SetConnectionPoolSize(5);
     shared_ptr<CRedisConfig> redisConf = make_shared<CRedisConfig>(nullptr, config, nullptr);

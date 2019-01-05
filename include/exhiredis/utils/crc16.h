@@ -14,18 +14,18 @@ namespace exhiredis
 class CCrc16
 {
 public:
-    static unsigned short GetCrc16(char *bytes, int len)
+    static unsigned short GetCrc16(const char *bytes, int len)
     {
         unsigned short crc = 0x0;
 
-        char *tmp = bytes;
+        const char *tmp = bytes;
         while (len-- > 0) {
-            crc = LOOKUP_TABLE[(crc >> 8 ^ *tmp++) & 0xff] ^ (crc << 8);
+            crc = (LOOKUP_TABLE[(crc >> 8 ^ *tmp++) & 0xff] ^ (crc << 8));
         }
         return ~crc;
     }
 private:
-    static vector<int> LOOKUP_TABLE;
+    static vector<unsigned short> LOOKUP_TABLE;
 };
 
 vector<unsigned short>

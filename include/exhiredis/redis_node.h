@@ -7,20 +7,24 @@
 #define EXHIREDIS_REDIS_ENTRY_HPP
 
 #include <memory>
+#include "comman_def.h"
 using namespace std;
 
 namespace exhiredis
 {
 class CConnectionPool;
 class IConnectionManager;
-class CMasterSlaveEntry
+class CRedisNode
 {
 public:
-    CMasterSlaveEntry(shared_ptr<CConnectionPool> &m_pConnectionPool,
-                      shared_ptr<IConnectionManager> &m_pConnectionManager);
+
+    CRedisNode(shared_ptr<CConnectionPool> &m_pConnectionPool,
+               shared_ptr<IConnectionManager> &m_pConnectionManager,
+               eRedisNodeType nodeType);
 private:
     shared_ptr<CConnectionPool> m_pConnectionPool;
     weak_ptr<IConnectionManager> m_pConnectionManager;
+    eRedisNodeType m_nodeType;
 };
 }
 #endif //EXHIREDIS_REDIS_ENTRY_HPP

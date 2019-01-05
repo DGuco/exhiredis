@@ -33,5 +33,11 @@ enum class eCommandModel
     READ_ONLY = 1, //command is readonly 命令只读
     NOT_READ_ONLY = 2, //非只读 写或者读写
 };
+
+enum class eRedisNodeType
+{
+    NODE_MASTER = 1,  //MASTER
+    NODE_SLAVE = 2,   //SLAVE
+};
 }
 #endif //EXHIREDIS_COMMAN_DEF_H

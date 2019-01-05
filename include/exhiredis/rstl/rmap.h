@@ -10,7 +10,7 @@
 #include <utility>
 #include <future>
 #include <linux/futex.h>
-#include <exhiredis/command_param.hpp>
+#include <exhiredis/command_param.h>
 #include "exhiredis/redis_connection.h"
 #include "exhiredis/redis_commands.h"
 #include "exhiredis/connection_manager.h"

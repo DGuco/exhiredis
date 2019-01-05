@@ -7,8 +7,6 @@
 #include "command_executor_service.h"
 namespace exhiredis
 {
-const int CSingleConnectionManager::MAX_SLOT = 16384;
-
 CSingleConnectionManager::CSingleConnectionManager(const shared_ptr<CRedisConfig> &m_pRedisConfig)
     : m_pRedisConfig(m_pRedisConfig)
 {
@@ -43,11 +41,6 @@ shared_ptr<MasterSlaveServersConfig> &CSingleConnectionManager::GetConfig()
     return m_pRedisConfig->GetMasterSlaveConfig();
 }
 
-shared_ptr<CMasterSlaveEntry> &CSingleConnectionManager::GetEntry(int slot)
-{
-
-}
-
 void CSingleConnectionManager::ShutDown()
 {
 
@@ -61,5 +54,10 @@ bool CSingleConnectionManager::IsShutDown()
 shared_ptr<CRedisConfig> CSingleConnectionManager::GetRedisConfig()
 {
     return m_pRedisConfig;
+}
+
+shared_ptr<CRedisConnection> CSingleConnectionManager::GetRedisConnection()
+{
+    return m_pConnectionPool->BorrowOneConnection();
 }
 }

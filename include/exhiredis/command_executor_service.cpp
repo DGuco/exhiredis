@@ -3,7 +3,8 @@
 //
 #include <memory>
 #include "command.h"
-#include "command_param.hpp"
+#include "command_param.h"
+#include "connection_manager.h"
 #include "command_executor_service.h"
 #include "redis_connection.h"
 
@@ -257,6 +258,7 @@ future<shared_ptr<return_type>> CCommandExecutorService::RedisAsyncCommand(const
 
 shared_ptr<CRedisConnection> CCommandExecutorService::GetConn(const string &key, eCommandModel model)
 {
+    int slot = m_pConnectionManager.lock()->CalcSlot(key);
     return nullptr;
 }
 }

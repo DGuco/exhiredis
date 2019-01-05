@@ -2,6 +2,7 @@
 // Created by dguco on 19-1-4.
 //
 
+#include <atomic>
 #include "connection_pool.h"
 #include "redis_connection.h"
 #include "connection_manager.h"
@@ -13,6 +14,8 @@ CConnectionPool::CConnectionPool(const shared_ptr<IConnectionManager> &pConnMana
     : m_pConnManager(pConnManager)
 {
     m_connList.clear();
+    atomic<int> atomic1;
+    atomic1.compare_exchange_strong()
 }
 
 void CConnectionPool::InitPool(int initPoolSize)

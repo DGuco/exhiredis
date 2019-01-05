@@ -3,7 +3,7 @@
 //
 #include "redis_connection.h"
 #include "command.h"
-#include "command_param.hpp"
+#include "command_param.h"
 
 namespace exhiredis
 {
@@ -51,7 +51,7 @@ bool CRedisConnection::Connect(const string &host, int port, bool isReconn)
     StartCheckTimer();
     m_pEventLoopThread = make_shared<thread>([this]
                                              { RunEventLoop(); });
-    return GetConnState() == enConnState::CONNECTED;
+    return true;
 }
 
 bool CRedisConnection::ReConnect()
@@ -60,10 +60,9 @@ bool CRedisConnection::ReConnect()
         lock_guard<mutex> lock_guard(m_lock);
         if (GetConnState() == enConnState::DISCONNECTED) {
             ShutDown();
-            Connect(m_sHost, m_iPort, true);
+            return Connect(m_sHost, m_iPort, true);
         }
     }
-    return GetConnState() == enConnState::CONNECTED;
 }
 
 bool CRedisConnection::ConnectToUnix(const string &address)
