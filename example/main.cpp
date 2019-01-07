@@ -117,6 +117,7 @@ main()
     shared_ptr<CRedisClients> redisClients = CRedisClients::CreateInstance(redisConf);
     shared_ptr<RMap<RInt, RInt>> map = redisClients->GetMap<RInt, RInt>("TestMap");
     map->Exists(RInt(111));
+    auto keys = map->Keys();
     return 0;
 //    RScript *rScript = new RScript(conn);
 //    string cmd = "if (redis.call('exists', KEYS[1]) == 0) then " \

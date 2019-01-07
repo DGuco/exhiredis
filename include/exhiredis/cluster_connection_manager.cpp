@@ -5,7 +5,6 @@
 #include "connection_manager.h"
 #include "cluster_connection_manager.h"
 #include "command_executor_service.h"
-#include "redis_node.h"
 #include "exhiredis/utils/crc16.h"
 
 namespace exhiredis

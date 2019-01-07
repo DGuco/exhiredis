@@ -50,7 +50,6 @@ set(EXHIREDIS
         include/exhiredis/lock/redis_lock.cpp
         include/exhiredis/rstl/rscript.cpp
         include/exhiredis/command.cpp
-        include/exhiredis/command_executor_service.cpp
         include/exhiredis/connection_pool.cpp
         include/exhiredis/redis_node.cpp
         include/exhiredis/redis_clients.cpp
@@ -62,7 +61,7 @@ set(EXHIREDIS
         include/exhiredis/comman_def.h
         include/exhiredis/cluster_connection_manager.h
         include/exhiredis/cluster_connection_manager.cpp
-        include/exhiredis/atomic/atomic_queue.h)
+        include/exhiredis/atomic/atomic_queue.h include/exhiredis/command_executor_service.cpp)
 
 include_directories(
         /usr/include/
