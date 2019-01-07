@@ -7,16 +7,16 @@
 #include <cstring>
 #include <memory>
 #include "rlock.hpp"
+#include "exhiredis/connection_manager.h"
 
 using namespace std;
 namespace exhiredis
 {
 class CRedisConnection;
-class CRedisClients;
 class CRedisLock: public IRlock
 {
 public:
-    CRedisLock(const shared_ptr<CRedisClients> &redisClients,
+    CRedisLock(const shared_ptr<IConnectionManager> &redisClients,
                const string &m_sLockName);
     void Lock() override;
     bool TryLock() override;
@@ -31,7 +31,7 @@ private:
     void TryLockAsync(long leaseTime, long threadId);
     void UnLockAsync(long threadId);
 private:
-    shared_ptr<CRedisClients> m_pRedisClients;
+    shared_ptr<IConnectionManager> m_pConnectionManager;
     string m_sLockName;
 };
 }

@@ -14,12 +14,17 @@ class CRedisNode;
 class MasterSlaveServersConfig;
 class CRedisConfig;
 class CCommandExecutorService;
+class CRedisConnection;
 
 class IConnectionManager: public enable_shared_from_this<IConnectionManager>
 {
 public:
+    //get command executor service
     virtual shared_ptr<CCommandExecutorService> &GetCommandExecutorService() = 0;
-    virtual shared_ptr<CRedisConnection> GetRedisConnection();
+    //get one redis connection
+    virtual shared_ptr<CRedisConnection> GetRedisConnection() = 0;
+    //init connection manager
+    virtual void Init() = 0;
     //calculate the hash slot of the key
     virtual int CalcSlot(string key) = 0;
     //calculate the hash slot of the key

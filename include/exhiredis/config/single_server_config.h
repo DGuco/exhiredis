@@ -12,10 +12,10 @@ namespace exhiredis
 class CSingleServerConfig: public CBaseConfig
 {
 public:
-    CSingleServerConfig(const string &sPassword,
-                        const string &m_sAddress)
-        : CBaseConfig(sPassword),
-          m_sAddress(m_sAddress),
+    CSingleServerConfig(const string &address,
+                        int port,
+                        const string &password)
+        : CBaseConfig(address, port, password),
           m_iSubscriptionConnectionMinimumIdleSize(1),
           m_iSubscriptionConnectionPoolSize(50),
           m_iConnectionMinimumIdleSize(32),
@@ -24,10 +24,6 @@ public:
           m_iDnsMonitoringInterval(5000)
     {}
 
-    const string &getM_sAddress() const
-    {
-        return m_sAddress;
-    }
     int GetSubscriptionConnectionMinimumIdleSize() const
     {
         return m_iSubscriptionConnectionMinimumIdleSize;
@@ -70,7 +66,6 @@ public:
         CSingleServerConfig::m_iConnectionPoolSize = m_iConnectionPoolSize;
     }
 private:
-    string m_sAddress;
     int m_iSubscriptionConnectionMinimumIdleSize;
     int m_iSubscriptionConnectionPoolSize;
     int m_iConnectionMinimumIdleSize;

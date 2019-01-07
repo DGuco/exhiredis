@@ -24,8 +24,8 @@ enum class eSubscriptionMode
 class CBaseMasterSlaveConfig: public CBaseConfig
 {
 public:
-    CBaseMasterSlaveConfig(const string sPassword)
-        : CBaseConfig(sPassword),
+    CBaseMasterSlaveConfig(const string &address, int port, const string &password)
+        : CBaseConfig(address, port, password),
           m_iSlaveConnectionMinimumIdleSize(32),
           m_iSlaveConnectionPoolSize(64),
           m_iFailedSlaveReconnectionInterval(3000),

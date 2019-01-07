@@ -7,17 +7,18 @@
 #define EXHIREDIS_RSCRIPT_HPP
 
 #include <list>
+#include <memory>
+#include <future>
 #include "exhiredis/redis_connection.h"
-#include "rmap.h"
 #include "exhiredis/comman_def.h"
+#include "exhiredis/connection_manager.h"
 
 namespace exhiredis
 {
-class CRedisClients;
 class RScript
 {
 public:
-    RScript(const shared_ptr<CRedisClients> &pRedisConn);
+    RScript(const shared_ptr<IConnectionManager> &pRedisConn);
 public:
     /**
      *
@@ -96,7 +97,7 @@ public:
 private:
     const string BuildScriptCmd(const list<string> &keys, const list<string> &args);
 private:
-    shared_ptr<CRedisClients> m_pRedisClients;
+    shared_ptr<IConnectionManager> m_pConnectionManager;
 };
 }
 #endif //EXHIREDIS_RSCRIPT_HPP

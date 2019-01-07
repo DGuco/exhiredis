@@ -13,7 +13,8 @@ CRedisConnection::CRedisConnection()
       m_pEventBase(nullptr),
       m_sHost(""),
       m_iPort(0),
-      m_connState(enConnState::NOT_YET_CONNECTED)
+      m_connState(enConnState::NOT_YET_CONNECTED),
+      m_cmdId(0)
 {
 
 }

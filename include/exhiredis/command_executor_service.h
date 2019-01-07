@@ -9,11 +9,11 @@
 #include <memory>
 #include <vector>
 #include "comman_def.h"
+#include "connection_manager.h"
 
 using namespace std;
 namespace exhiredis
 {
-class IConnectionManager;
 class CCmdParam;
 class CRedisConnection;
 class CCommandExecutorService
@@ -54,11 +54,19 @@ public:
                                       eCommandModel model = eCommandModel::NOT_READ_ONLY);
     //execute redis command return array pointer or nullptr
     template<class return_type>
-    future<shared_ptr<list<shared_ptr<return_type>>>>
+    future<shared_ptr<list<return_type>>>
     RedisAsyncReturnListCommand(const char *format,
                                 vector<shared_ptr<CCmdParam>> &param,
                                 const string &key = "",
                                 eCommandModel model = eCommandModel::NOT_READ_ONLY);
+    
+    template<class left_type, class right_type>
+    future<shared_ptr<list<pair<left_type, right_type>>>>
+    RedisAsyncReturnPairListCommand(const char *format,
+                                    vector<shared_ptr<CCmdParam>> &param,
+                                    const string &key = "",
+                                    eCommandModel model = eCommandModel::NOT_READ_ONLY);
+
 private:
     shared_ptr<CRedisConnection> GetConn(const string &key, eCommandModel model);
 private:

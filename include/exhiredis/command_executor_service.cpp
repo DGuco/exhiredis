@@ -84,16 +84,13 @@ future<shared_ptr<bool>> CCommandExecutorService::RedisAsyncReturnBoolCommand(co
                          HIREDIS_LOG_ERROR("Redis reply error,error msg: %s.", res->str);
                          return nullptr;
                      }
-
-                     /*
-                        *Lua boolean false -> Redis Nil bulk reply / Lua 的布尔值 false 转换成 Redis 的 Nil bulk 回复
-                        *Lua boolean true -> Redis integer reply with value of 1 / Lua 布尔值 true 转换成 Redis 整数回复中的 1
-                       **/
-                     if (res->type == REDIS_REPLY_NIL) {
-                         return std::move(make_shared<bool>(false));
-                     }
-                     else if (res->type == REDIS_REPLY_INTEGER && res->integer == 1) {
-                         return std::move(make_shared<bool>(true));
+                     else if (res->type == REDIS_REPLY_INTEGER) {
+                         if (res->integer == 1) {
+                             return std::move(make_shared<bool>(true));
+                         }
+                         else {
+                             return std::move(make_shared<bool>(false));
+                         }
                      }
                      else {
                          return nullptr;
@@ -139,6 +136,43 @@ future<shared_ptr<string>> CCommandExecutorService::RedisAsyncReturnStringComman
                  });
 }
 
+template<class return_type>
+future<shared_ptr<return_type>> CCommandExecutorService::RedisAsyncCommand(const char *format,
+                                                                           vector<shared_ptr<CCmdParam>> &param,
+                                                                           const string &key,
+                                                                           eCommandModel model)
+{
+    shared_ptr<CRedisConnection> conn = GetConn(key, model);
+    shared_ptr<CCommand> tmpCommand = conn->RedisvAsyncCommand(format, param);
+    return async([tmpCommand]() -> shared_ptr<return_type>
+                 {
+                     redisReply *res = tmpCommand->GetPromise()->get_future().get();
+                     if (res == nullptr) {
+                         return nullptr;
+                     }
+
+                     if (res->type == REDIS_REPLY_ERROR) {
+                         HIREDIS_LOG_ERROR("Redis reply error,error msg: %s.", res->str);
+                         return nullptr;
+                     }
+
+                     if (res->type == REDIS_REPLY_NIL) {
+                         return nullptr;
+                     }
+
+                     if (res->type == REDIS_REPLY_STRING) {
+                         shared_ptr<return_type> value = make_shared<return_type>();
+                         string resValue;
+                         //binary safe 二进制安全
+                         resValue.assign(res->str, res->len);
+                         //resValue = res->str; error:not binary safe 非二进制安全
+                         static_pointer_cast<IRobject>(value)->FromString(resValue);
+                         return std::move(value);
+                     }
+                     return nullptr;
+                 });
+}
+
 future<shared_ptr<list<string>>>
 CCommandExecutorService::RedisAsyncReturnStringListCommand(const char *format,
                                                            vector<shared_ptr<CCmdParam>> &param,
@@ -178,7 +212,7 @@ CCommandExecutorService::RedisAsyncReturnStringListCommand(const char *format,
 }
 
 template<class return_type>
-future<shared_ptr<list<shared_ptr<return_type>>>>
+future<shared_ptr<list<return_type>>>
 CCommandExecutorService::RedisAsyncReturnListCommand(const char *format,
                                                      vector<shared_ptr<CCmdParam>> &param,
                                                      const string &key,
@@ -203,33 +237,36 @@ CCommandExecutorService::RedisAsyncReturnListCommand(const char *format,
                          HIREDIS_LOG_ERROR("Redis reply is not array type,");
                          return nullptr;
                      }
-                     typedef list<shared_ptr<return_type>> res_type;
+                     typedef list<return_type> res_type;
                      shared_ptr<res_type> res_list = make_shared<res_type>(res->elements);
                      for (size_t i = 0; i < res->elements; i++) {
                          redisReply *reply = res->element[i];
-                         shared_ptr<return_type> value = make_shared<return_type>();
+                         return_type value;
                          string resValue;
                          //binary safe 二进制安全
                          resValue.assign(reply->str, reply->len);
                          //resValue = res->str; error:not binary safe 非二进制安全
-                         static_pointer_cast<IRobject>(value)->FromString(resValue);
+                         (IRobject *) (&value)->FromString(resValue);
                          res_list->push_back(std::move(value));
                      }
                      return std::move(res_list);
                  });
 }
 
-template<class return_type>
-future<shared_ptr<return_type>> CCommandExecutorService::RedisAsyncCommand(const char *format,
-                                                                           vector<shared_ptr<CCmdParam>> &param,
-                                                                           const string &key,
-                                                                           eCommandModel model)
+template<class left_type, class right_type>
+future<shared_ptr<list<pair<left_type, right_type>>>>
+CCommandExecutorService::RedisAsyncReturnPairListCommand(const char *format,
+                                                         vector<shared_ptr<
+                                                             CCmdParam>> &param,
+                                                         const string &key,
+                                                         eCommandModel model)
 {
     shared_ptr<CRedisConnection> conn = GetConn(key, model);
     shared_ptr<CCommand> tmpCommand = conn->RedisvAsyncCommand(format, param);
-    return async([tmpCommand]() -> shared_ptr<return_type>
+    return async([tmpCommand]() -> shared_ptr<list<pair<left_type, right_type>>>
                  {
-                     redisReply *res = tmpCommand->GetPromise()->get_future().get();
+                     future<redisReply *> future = tmpCommand->GetPromise()->get_future();
+                     redisReply *res = future.get();
                      if (res == nullptr) {
                          return nullptr;
                      }
@@ -239,26 +276,37 @@ future<shared_ptr<return_type>> CCommandExecutorService::RedisAsyncCommand(const
                          return nullptr;
                      }
 
-                     if (res->type == REDIS_REPLY_NIL) {
+                     if (res->type != REDIS_REPLY_ARRAY) {
+                         HIREDIS_LOG_ERROR("Redis reply is not array type,");
                          return nullptr;
                      }
-
-                     if (res->type == REDIS_REPLY_STRING) {
-                         shared_ptr<return_type> value = make_shared<return_type>();
-                         string resValue;
-                         //binary safe 二进制安全
-                         resValue.assign(res->str, res->len);
-                         //resValue = res->str; error:not binary safe 非二进制安全
-                         static_pointer_cast<IRobject>(value)->FromString(resValue);
-                         return std::move(value);
+                     if (res->elements % 2 != 0) {
+                         HIREDIS_LOG_ERROR("Redis reply elements is illegal");
+                         return nullptr;
                      }
-                     return nullptr;
+                     typedef list<pair<left_type, right_type>> res_type;
+                     shared_ptr<res_type> res_list = make_shared<res_type>(res->elements);
+                     for (size_t i = 0; i < res->elements; i += 2) {
+                         redisReply *reply_left = res->element[i];
+                         redisReply *reply_right = res->element[i + 1];
+                         left_type left_value;
+                         left_type right_value;
+                         string left_str;
+                         string right_str;
+                         //binary safe 二进制安全
+                         left_str.assign(reply_left->str, reply_left->len);
+                         right_str.assign(reply_right->str, reply_right->len);
+                         (IRobject *) (&left_value)->FromString(left_str);
+                         (IRobject *) (&right_value)->FromString(right_str);
+                         res_list->push_back(move(make_pair<left_type, right_type>(move(left_value),
+                                                                                   move(right_value))));
+                     }
+                     return std::move(res_list);
                  });
 }
-
 shared_ptr<CRedisConnection> CCommandExecutorService::GetConn(const string &key, eCommandModel model)
 {
     int slot = m_pConnectionManager.lock()->CalcSlot(key);
-    return nullptr;
+    return m_pConnectionManager.lock()->GetRedisConnection();
 }
 }

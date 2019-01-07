@@ -16,9 +16,10 @@ namespace exhiredis
 class CBaseConfig
 {
 public:
-    CBaseConfig(string sPassword)
-        : m_sPassword(sPassword),
-          m_sAddress(""),
+    CBaseConfig(string address, int port, string password)
+        : m_sHost(address),
+          m_iPort(port),
+          m_sPassword(password),
           m_iPingConnectionInterval(0),
           m_bKeepAlive(false),
           m_bTcpNoDelay(false),
@@ -35,9 +36,15 @@ public:
     {
         return m_sPassword;
     }
+
+    int GetPort() const
+    {
+        return m_iPort;
+    }
+
     const string &GetAddress() const
     {
-        return m_sAddress;
+        return m_sHost;
     }
     int GetPingConnectionInterval() const
     {
@@ -87,7 +94,7 @@ public:
 
     void SetClientName(const string &sClientName)
     {
-        m_sAddress = sClientName;
+        m_sHost = sClientName;
     }
     void SetPingConnectionInterval(int iPingConnectionInterval)
     {
@@ -130,8 +137,9 @@ public:
         m_iSubscriptionsPerConnection = iSubscriptionsPerConnection;
     }
 private:
+    string m_sHost;
+    int m_iPort;
     string m_sPassword;
-    string m_sAddress;
     int m_iPingConnectionInterval;
     bool m_bKeepAlive;
     bool m_bTcpNoDelay;

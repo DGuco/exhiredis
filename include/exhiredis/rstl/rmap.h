@@ -15,13 +15,11 @@
 #include "exhiredis/redis_commands.h"
 #include "exhiredis/connection_manager.h"
 #include "exhiredis/command_executor_service.h"
-#include "exhiredis/redis_clients.h"
 #include "exhiredis/redis_commands.h"
+#include "exhiredis/connection_manager.h"
 
 namespace exhiredis
 {
-#define KEY_SIZE 1024
-#define VALUE_SIZE 2048
 /**
  * redis hashes  key_type value_type (必须实现IRobject接口)
  * @tparam key_type key_typ e must be the subclass of the IRobject ,ex:RBool,RInt,RFloat......
@@ -37,52 +35,74 @@ public:
      * @param name
      * @param conn
      */
-    RMap(const string &name, shared_ptr<CRedisClients> &conn);
+    RMap(const string &name, shared_ptr<IConnectionManager> &conn);
     /**
-     * put
+     * HSET
      * @param key
      * @param value
      * @return true success false failed
      */
     bool Put(const key_type &key, const value_type &value);
     /**
-     * async put
+     * async HSET
      * @param key
      * @param value
      * @return true success false failed
      */
     future<bool> PutAsync(const key_type &key, const value_type &value);
     /**
-     * get
+     * HGET
      * @param key
      * @return
      */
     shared_ptr<value_type> Get(const key_type &key);
     /**
-     * async get
+     * async HGET
      * @param key
      * @return
      */
     future<shared_ptr<value_type>> GetAsync(const key_type &key);
     /**
-    * Keys
+    * HKEYS
     * @return all map keys
     */
-    shared_ptr<list<string>> Keys();
+    shared_ptr<list<key_type>> Keys();
     /**
-     * async Keys
+     * async HKEYS
      * @return
      */
-    future<shared_ptr<list<string>>> KeysAsync();
+    future<shared_ptr<list<key_type>>> KeysAsync();
+    /**
+     * HGETALL
+     * @return shared_ptr<list<pair<key_type, value_type>>>
+     */
+    shared_ptr<list<pair<key_type, value_type>>> GetAll();
+    /**
+     * async HGETALL
+     * @return shared_ptr<list<pair<key_type, value_type>>>
+     */
+    future<shared_ptr<list<pair<key_type, value_type>>>> GetAllAsync();
+    /**
+     * HEXISTS
+     * @param key
+     * @return true or false
+     */
+    shared_ptr<bool> Exists(const key_type &key);
+    /**
+     * async HEXISTS
+     * @param key
+     * @return true or false
+     */
+    future<shared_ptr<bool>> ExistsAsync(const key_type &key);
 private:
     string m_sName;
-    shared_ptr<CRedisClients> m_pRedisClients;
+    shared_ptr<IConnectionManager> m_pConnectionManager;
 };
 
 template<class key_type, class value_type>
-RMap<key_type, value_type>::RMap(const string &name, shared_ptr<CRedisClients> &conn)
+RMap<key_type, value_type>::RMap(const string &name, shared_ptr<IConnectionManager> &conn)
     : m_sName(name),
-      m_pRedisClients(conn)
+      m_pConnectionManager(conn)
 {
 }
 
@@ -102,7 +122,7 @@ future<bool> RMap<key_type, value_type>::PutAsync(const key_type &key, const val
                                           make_shared<CCmdParam>(key_str.length()),
                                           make_shared<CCmdParam>(value_str),
                                           make_shared<CCmdParam>(value_str.length())};
-    return m_pRedisClients->GetConnectionManager()->GetCommandExecutorService()
+    return m_pConnectionManager->GetCommandExecutorService()
         ->RedisAsyncIsSucceedCommand(CRedisCommands::HSET, list, m_sName, eCommandModel::NOT_READ_ONLY);
 }
 
@@ -119,22 +139,56 @@ future<shared_ptr<value_type>> RMap<key_type, value_type>::GetAsync(const key_ty
     vector<shared_ptr<CCmdParam>> list = {make_shared<CCmdParam>(m_sName),
                                           make_shared<CCmdParam>(key_str),
                                           make_shared<CCmdParam>(key_str.length())};
-    return m_pRedisClients->GetConnectionManager()->GetCommandExecutorService()
+    return m_pConnectionManager->GetCommandExecutorService()
         ->RedisAsyncCommand<value_type>(CRedisCommands::HGET, list, m_sName, eCommandModel::READ_ONLY);
 }
 
 template<class key_type, class value_type>
-shared_ptr<list<string>> RMap<key_type, value_type>::Keys()
+shared_ptr<list<key_type>> RMap<key_type, value_type>::Keys()
 {
     return KeysAsync().get();
 }
 
 template<class key_type, class value_type>
-future<shared_ptr<list<string>>> RMap<key_type, value_type>::KeysAsync()
+future<shared_ptr<list<key_type>>> RMap<key_type, value_type>::KeysAsync()
 {
     vector<shared_ptr<CCmdParam>> list = {make_shared<CCmdParam>(m_sName)};
-    return m_pRedisClients->GetConnectionManager()->GetCommandExecutorService()
-        ->RedisAsyncReturnStringListCommand(CRedisCommands::HGETALL, list, m_sName, eCommandModel::READ_ONLY);
+    return m_pConnectionManager->GetCommandExecutorService()
+        ->RedisAsyncReturnListCommand<key_type>(CRedisCommands::HKEYS, list, m_sName, eCommandModel::READ_ONLY);
+}
+
+template<class key_type, class value_type>
+shared_ptr<list<pair<key_type, value_type>>> RMap<key_type, value_type>::GetAll()
+{
+    return GetAllAsync().get();
+}
+
+template<class key_type, class value_type>
+future<shared_ptr<list<pair<key_type, value_type>>>> RMap<key_type, value_type>::GetAllAsync()
+{
+    vector<shared_ptr<CCmdParam>> list = {make_shared<CCmdParam>(m_sName)};
+    return m_pConnectionManager->GetCommandExecutorService()
+        ->RedisAsyncReturnPairListCommand<key_type, value_type>(CRedisCommands::HGETALL,
+                                                                list,
+                                                                m_sName,
+                                                                eCommandModel::READ_ONLY);
+}
+
+template<class key_type, class value_type>
+shared_ptr<bool> RMap<key_type, value_type>::Exists(const key_type &key)
+{
+    return ExistsAsync(key).get();
+}
+
+template<class key_type, class value_type>
+future<shared_ptr<bool>> RMap<key_type, value_type>::ExistsAsync(const key_type &key)
+{
+    const string &key_str = ((IRobject *) (&key))->ToString();
+    vector<shared_ptr<CCmdParam>> list = {make_shared<CCmdParam>(m_sName),
+                                          make_shared<CCmdParam>(key_str),
+                                          make_shared<CCmdParam>(key_str.length())};
+    return m_pConnectionManager->GetCommandExecutorService()
+        ->RedisAsyncReturnBoolCommand(CRedisCommands::HEXISTS, list, m_sName, eCommandModel::READ_ONLY);
 }
 }
 #endif //EXHIREDIS_RMAP_H

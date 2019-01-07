@@ -15,12 +15,14 @@ namespace exhiredis
 class CSentinelServersConfig: public CBaseMasterSlaveConfig
 {
 public:
-    CSentinelServersConfig(const string &sPassword,
+    CSentinelServersConfig(const string &address,
+                           int port,
+                           const string &password,
                            const list<string> &m_sentinelAddresses,
                            const string &m_sMasterName,
                            int m_iDatabase,
                            int m_iScanInterval)
-        : CBaseMasterSlaveConfig(sPassword),
+        : CBaseMasterSlaveConfig(address, port, password),
           m_sentinelAddresses(m_sentinelAddresses),
           m_sMasterName(m_sMasterName),
           m_iDatabase(m_iDatabase),

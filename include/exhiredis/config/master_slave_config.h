@@ -15,10 +15,12 @@ namespace exhiredis
 class MasterSlaveServersConfig: public CBaseMasterSlaveConfig
 {
 public:
-    MasterSlaveServersConfig(const string &sPassword,
+    MasterSlaveServersConfig(const string &address,
+                             int port,
+                             const string &password,
                              const list<string> &m_slaveAddresses,
                              const string &m_sMasterAddress)
-        : CBaseMasterSlaveConfig(sPassword),
+        : CBaseMasterSlaveConfig(address,port, password),
           m_slaveAddresses(m_slaveAddresses),
           m_sMasterAddress(m_sMasterAddress),
           database(0)

@@ -3,12 +3,14 @@
 //
 
 #include "rscript.h"
-#include "exhiredis/redis_clients.h"
+#include "exhiredis/command_executor_service.h"
+#include "exhiredis/redis_commands.h"
+#include "exhiredis/command_param.h"
 
 namespace exhiredis
 {
-RScript::RScript(const shared_ptr<CRedisClients> &pRedisConn)
-    : m_pRedisClients(pRedisConn)
+RScript::RScript(const shared_ptr<IConnectionManager> &pRedisConn)
+    : m_pConnectionManager(pRedisConn)
 {
 
 }
@@ -27,7 +29,7 @@ future<shared_ptr<long long>> RScript::EvalReturnIntAsync(const string &script,
                                                           eCommandModel model)
 {
     vector<shared_ptr<CCmdParam>> list = {make_shared<CCmdParam>(script)};
-    return m_pRedisClients->GetConnectionManager()->GetCommandExecutorService()
+    return m_pConnectionManager->GetCommandExecutorService()
         ->RedisAsyncReturnIntCommand(BuildScriptCmd(keys, args).c_str(), list, "", model);
 }
 
@@ -45,7 +47,7 @@ future<shared_ptr<bool>> RScript::EvalReturnBoolAsync(const string &script,
                                                       eCommandModel model)
 {
     vector<shared_ptr<CCmdParam>> list = {make_shared<CCmdParam>(script)};
-    return m_pRedisClients->GetConnectionManager()->GetCommandExecutorService()
+    return m_pConnectionManager->GetCommandExecutorService()
         ->RedisAsyncReturnBoolCommand(BuildScriptCmd(keys, args).c_str(), list, "", model);
 }
 
@@ -66,7 +68,7 @@ future<shared_ptr<return_type>> RScript::EvalAsync(const string &script,
                                                    eCommandModel model)
 {
     vector<shared_ptr<CCmdParam>> list = {make_shared<CCmdParam>(script)};
-    return m_pRedisClients->GetConnectionManager()->GetCommandExecutorService()
+    return m_pConnectionManager->GetCommandExecutorService()
         ->RedisAsyncCommand<return_type>(BuildScriptCmd(keys, args).c_str(), list, "", model);
 }
 

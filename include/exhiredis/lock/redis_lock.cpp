@@ -8,9 +8,9 @@
 
 namespace exhiredis
 {
-CRedisLock::CRedisLock(const shared_ptr<CRedisClients> &redisClients,
+CRedisLock::CRedisLock(const shared_ptr<IConnectionManager> &redisClients,
                        const string &m_sLockName)
-    : m_pRedisClients(redisClients),
+    : m_pConnectionManager(redisClients),
       m_sLockName(m_sLockName)
 {
 
@@ -38,7 +38,7 @@ void CRedisLock::Unlock()
 
 void CRedisLock::TryLockAsync(long leaseTime, long threadId)
 {
-    shared_ptr<RScript> tmpScript = make_shared<RScript>(m_pRedisClients);
+    shared_ptr<RScript> tmpScript = make_shared<RScript>(m_pConnectionManager);
     string cmd = "if (redis.call('exists', KEYS[1]) == 0) then " \
         "redis.call('hset', KEYS[1], ARGV[2], 1); " \
         "redis.call('pexpire', KEYS[1], ARGV[1]); " \
@@ -75,7 +75,7 @@ void CRedisLock::UnLockAsync(long threadId)
         "return 1; "\
         "end; " \
         "return nil;";
-    shared_ptr<RScript> tmpScript = make_shared<RScript>(m_pRedisClients);
+    shared_ptr<RScript> tmpScript = make_shared<RScript>(m_pConnectionManager);
 //    tmpScript->EvalReturnInt(cmd, {m_sLockName}, {to_string(leaseTime), to_string(threadId)});
 }
 }

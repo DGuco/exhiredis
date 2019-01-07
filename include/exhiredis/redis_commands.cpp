@@ -18,5 +18,7 @@ char *CRedisCommands::HKEYS = "HKEYS %s";
 
 char *CRedisCommands::HGETALL = "HGETALL %s";
 
+char *CRedisCommands::HEXISTS = "HEXISTS %s %b";
+
 char *CRedisCommands::EVAL = "EVAL %s ";
 }

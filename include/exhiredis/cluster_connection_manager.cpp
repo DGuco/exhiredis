@@ -2,6 +2,7 @@
 // Created by dguco on 19-1-4.
 //
 
+#include "connection_manager.h"
 #include "cluster_connection_manager.h"
 #include "command_executor_service.h"
 #include "redis_node.h"

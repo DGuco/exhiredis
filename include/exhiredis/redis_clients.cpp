@@ -3,7 +3,6 @@
 //
 
 #include "redis_clients.h"
-#include "exhiredis/exhiredis_include.h"
 
 namespace exhiredis
 {
@@ -15,8 +14,9 @@ CRedisClients::CRedisClients(shared_ptr<IConnectionManager> &m_pConnectionManage
 shared_ptr<exhiredis::CRedisClients> CRedisClients::CreateInstance(shared_ptr<CRedisConfig> config)
 {
     if (config->GetSingleServerConfig() != nullptr) {
-        shared_ptr<IConnectionManager> tmpManager
-            = static_pointer_cast<IConnectionManager>(make_shared<CSingleConnectionManager>(config));
+        shared_ptr<IConnectionManager> tmpManager =
+            static_pointer_cast<IConnectionManager>(make_shared<CSingleConnectionManager>(config));
+        tmpManager->Init();
         return make_shared<CRedisClients>(tmpManager);
     }
     else if (config->GetMasterSlaveConfig()) {
@@ -26,18 +26,18 @@ shared_ptr<exhiredis::CRedisClients> CRedisClients::CreateInstance(shared_ptr<CR
     return nullptr;
 }
 
-template<class key_type, class value_type>
-shared_ptr<RMap<key_type, value_type>> CRedisClients::GetMap(const string &name)
-{
-    if (!is_base_of<IRobject, key_type>::value || !is_base_of<IRobject, value_type>::value) {
-        HIREDIS_LOG_ERROR("The key_type and value_type must be subclass of the IRobject");
-        return nullptr;
-    }
-    return make_shared<RMap<key_type, value_type>>(name, m_pConnectionManager);
-}
-
 shared_ptr<IConnectionManager> &CRedisClients::GetConnectionManager()
 {
     return m_pConnectionManager;
 }
+
+//template<class key_type, class value_type>
+//shared_ptr<RMap<key_type, value_type>> CRedisClients::GetMap(const string &name)
+//{
+//    if (!is_base_of<IRobject, key_type>::value || !is_base_of<IRobject, value_type>::value) {
+//        HIREDIS_LOG_ERROR("The key_type and value_type must be subclass of the IRobject");
+//        return nullptr;
+//    }
+//    return make_shared<RMap<key_type, value_type>>(name, m_pConnectionManager);
+//}
 }

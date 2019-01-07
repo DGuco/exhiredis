@@ -9,12 +9,12 @@
 #include <memory>
 #include <string>
 #include <list>
+#include "connection_manager.h"
 
 using namespace std;
 
 namespace exhiredis
 {
-class IConnectionManager;
 class CRedisConnection;
 class CConnectionPool
 {

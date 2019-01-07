@@ -8,12 +8,13 @@
 
 #include <memory>
 #include "comman_def.h"
+#include "connection_manager.h"
+
 using namespace std;
 
 namespace exhiredis
 {
 class CConnectionPool;
-class IConnectionManager;
 class CRedisNode
 {
 public:
