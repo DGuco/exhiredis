@@ -111,6 +111,7 @@ Test1 aaa(const Test1 &test)
 int
 main()
 {
+    list<int> list1(5);
     shared_ptr<CSingleServerConfig> config = make_shared<CSingleServerConfig>("127.0.0.1", 6379, "");
     config->SetConnectionPoolSize(5);
     shared_ptr<CRedisConfig> redisConf = make_shared<CRedisConfig>(nullptr, config, nullptr);
