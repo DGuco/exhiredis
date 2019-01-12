@@ -61,8 +61,11 @@ set(EXHIREDIS
         include/exhiredis/comman_def.h
         include/exhiredis/cluster_connection_manager.h
         include/exhiredis/cluster_connection_manager.cpp
+        include/exhiredis/command_executor_service.cpp
         include/exhiredis/lock_free/concurrent_queue.h
-        include/exhiredis/command_executor_service.cpp include/exhiredis/lock_free/concurrent_hashmap.h include/exhiredis/lock_free/detail/atomic_shared_ptr_detail.h)
+        include/exhiredis/lock_free/concurrent_hashmap.h
+        include/exhiredis/lock_free/hazptr_utils.h
+        include/exhiredis/utils/check.h)
 
 include_directories(
         /usr/include/
