@@ -84,12 +84,11 @@ public:
  *  Maintains head and tail pointers. Supports push and pop all
  *  operations. Pop all operation is wait-free.
  */
-template<typename Node, template<typename> class Atom = std::atomic>
+template<typename Node>
 class shared_head_tail_list
 {
-    Atom<Node *> head_;
-    Atom<Node *> tail_;
-
+    atomic<Node *> head_;
+    atomic<Node *> tail_;
 public:
     shared_head_tail_list() noexcept
         : head_(nullptr), tail_(nullptr)
@@ -220,11 +219,11 @@ private:
  *
  *  Locking is reentrant to prevent self deadlock.
  */
-template<typename Node, template<typename> class Atom = std::atomic>
+template<typename Node>
 class shared_head_only_list
 {
-    Atom<uintptr_t> head_{0}; // lowest bit is a lock for pop all
-    Atom<std::thread::id> owner_{std::thread::id()};
+    atomic<uintptr_t> head_{0}; // lowest bit is a lock for pop all
+    atomic<std::thread::id> owner_{std::thread::id()};
     int reentrance_{0};
 
     static constexpr uintptr_t kLockBit = 1u;
