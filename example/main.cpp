@@ -5,11 +5,11 @@
 #include <iostream>
 #include <tuple>
 #include <vector>
+#include <ucontext.h>
 #include "exhiredis/rstl/rmap.h"
 #include "exhiredis/rstl/rscript.h"
 #include "exhiredis/redis_clients.h"
 #include "exhiredis/utils/check.h"
-#include "exhiredis/lock_free/hazptr_utils.h"
 
 using namespace std;
 using namespace exhiredis;
