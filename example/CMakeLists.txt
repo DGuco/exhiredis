@@ -3,7 +3,7 @@ project(example)
 set(CMAKE_C_COMPILER gcc)
 set(CMAKE_CXX_COMPILER g++)
 add_compile_options(-Wall -g -pipe -std=c++14)
-add_definitions()
+add_definitions(-D_BOOST_COMP_GNUC)
 
 set(SOURCES
         main.cpp)

@@ -62,7 +62,8 @@ set(EXHIREDIS
         include/exhiredis/cluster_connection_manager.h
         include/exhiredis/cluster_connection_manager.cpp
         include/exhiredis/command_executor_service.cpp
-        include/exhiredis/utils/check.h)
+        include/exhiredis/utils/check.h
+        include/exhiredis/concurrency/concurrent_queue.h)
 
 include_directories(
         /usr/include/
