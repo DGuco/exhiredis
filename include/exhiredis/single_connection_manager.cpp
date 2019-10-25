@@ -56,7 +56,7 @@ shared_ptr<CRedisConfig> CSingleConnectionManager::GetRedisConfig()
     return m_pRedisConfig;
 }
 
-shared_ptr<CRedisConnection> CSingleConnectionManager::GetRedisConnection()
+shared_ptr<CRedisAsyncConnection> CSingleConnectionManager::GetRedisConnection()
 {
     return m_pConnectionPool->BorrowOneConnection();
 }

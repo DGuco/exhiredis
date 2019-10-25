@@ -8,7 +8,6 @@ add_compile_options(-Wall -g -pipe -std=c++14)
 add_definitions()
 
 set(EXHIREDIS
-        include/exhiredis/utils/uuid.h
         include/exhiredis/utils/log.h
         include/exhiredis/utils/signal.h
         include/exhiredis/utils/crc16.h
@@ -16,13 +15,7 @@ set(EXHIREDIS
         include/exhiredis/utils/exception.h
         include/exhiredis/command.h
         include/exhiredis/connection_manager.h
-        include/exhiredis/redis_connection.h
         include/exhiredis/lock/rlock.hpp
-        include/exhiredis/config/base_config.h
-        include/exhiredis/config/base_master_slave_config.h
-        include/exhiredis/config/master_slave_config.h
-        include/exhiredis/config/single_server_config.h
-        include/exhiredis/config/sentinel_servers_config.h
         include/exhiredis/robject/robject.h
         include/exhiredis/robject/rint.h
         include/exhiredis/robject/rlong.h
@@ -37,7 +30,6 @@ set(EXHIREDIS
         include/exhiredis/rstl/rmap.h
         include/exhiredis/redis_commands.h
         include/exhiredis/connection_pool.h
-        include/exhiredis/config/redis_config.h
         include/exhiredis/redis_clients.h
         include/exhiredis/single_connection_manager.h
         include/exhiredis/redis_node.h
@@ -53,7 +45,6 @@ set(EXHIREDIS
         include/exhiredis/connection_pool.cpp
         include/exhiredis/redis_node.cpp
         include/exhiredis/redis_clients.cpp
-        include/exhiredis/redis_connection.cpp
         include/exhiredis/single_connection_manager.cpp
         include/exhiredis/utils/signal.cpp
         include/exhiredis/redis_commands.cpp
@@ -63,7 +54,10 @@ set(EXHIREDIS
         include/exhiredis/cluster_connection_manager.cpp
         include/exhiredis/command_executor_service.cpp
         include/exhiredis/utils/check.h
-        include/exhiredis/concurrency/concurrent_queue.h)
+        include/exhiredis/concurrency/concurrent_queue.h
+        include/exhiredis/redis_connection.h
+        include/exhiredis/redis_connection.cpp
+        include/exhiredis/redis_reply.h include/exhiredis/redis_reply.cpp)
 
 include_directories(
         /usr/include/

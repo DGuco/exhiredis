@@ -1,0 +1,74 @@
+//
+// Created by dguco on 19-10-25.
+//
+
+#ifndef EXHIREDIS_REDIS_REPLY_H
+#define EXHIREDIS_REDIS_REPLY_H
+
+#include <string>
+#include <vector>
+#include "hiredis/hiredis.h"
+
+using namespace std;
+
+namespace exhiredis
+{
+    class CRedisConnection;
+    class CRedisReply
+    {
+    public:
+        enum class eReplyType
+        {
+            STRING = 1,
+            ARRAY = 2,
+            INTEGER = 3,
+            NIL = 4,
+            STATUS = 5,
+            ERROR = 6
+        };
+
+
+        inline eReplyType ReplyType() const { return m_type; }
+
+        inline const std::string &StrValue() const { return m_str; }
+
+        inline long long IntegerValue() const { return m_integer; }
+
+        inline const std::vector<CRedisReply> &ArrayElements() const { return m_elements; }
+
+        inline operator const std::string &() const { return m_str; }
+
+        inline operator long long() const { return m_integer; }
+
+        inline bool operator==(const std::string &rvalue) const
+        {
+            if (m_type == eReplyType::STRING || m_type == eReplyType::ERROR || m_type == eReplyType::STATUS) {
+                return m_str == rvalue;
+            } else {
+                return false;
+            }
+        }
+
+        inline bool operator==(const long long rvalue) const
+        {
+            if (m_type == eReplyType::INTEGER)
+            {
+                return m_integer == rvalue;
+            } else {
+                return false;
+            }
+        }
+
+    private:
+        CRedisReply(redisReply *reply);
+
+        CRedisReply();
+
+        eReplyType m_type;
+        std::string m_str;
+        long long m_integer;
+        std::vector <CRedisReply> m_elements;
+        friend class CRedisConnection;
+    };
+}
+#endif //EXHIREDIS_REDIS_REPLY_H

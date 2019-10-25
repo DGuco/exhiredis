@@ -5,7 +5,6 @@
 #ifndef EXHIREDIS_CLUSTER_CONNECTION_MANAGER_H
 #define EXHIREDIS_CLUSTER_CONNECTION_MANAGER_H
 #include <memory>
-#include "exhiredis/config/redis_config.h"
 #include "connection_manager.h"
 
 using namespace std;

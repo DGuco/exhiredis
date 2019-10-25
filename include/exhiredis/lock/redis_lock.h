@@ -12,7 +12,7 @@
 using namespace std;
 namespace exhiredis
 {
-class CRedisConnection;
+class CRedisAsyncConnection;
 class CRedisLock: public IRlock
 {
 public:

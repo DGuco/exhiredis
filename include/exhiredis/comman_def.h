@@ -19,7 +19,7 @@ enum class eCommandState
 
 enum class enConnState
 {
-    DESTROYING = -1,       //call the ~CRedisConnection 析构函数
+    DESTROYING = -1,       //call the CRedisAsyncConnectionction 析构函数
     NOT_YET_CONNECTED = 0, // Starting state
     CONNECTING = 1,        // connecting
     CONNECTED = 2,        // Successfully connected

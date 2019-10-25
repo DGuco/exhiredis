@@ -9,7 +9,7 @@
 #include <list>
 #include <memory>
 #include <future>
-#include "exhiredis/redis_connection.h"
+#include "exhiredis/redis_async_connection.h"
 #include "exhiredis/comman_def.h"
 #include "exhiredis/connection_manager.h"
 

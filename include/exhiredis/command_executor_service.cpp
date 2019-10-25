@@ -15,7 +15,7 @@ future<bool> CCommandExecutorService::RedisAsyncIsSucceedCommand(const char *for
                                                                  const string &key,
                                                                  eCommandModel model)
 {
-    shared_ptr<CRedisConnection> conn = GetConn(key, model);
+    shared_ptr<CRedisAsyncConnection> conn = GetConn(key, model);
     shared_ptr<CCommand> command = conn->RedisvAsyncCommand(format, param);
     return async([command]() -> bool
                  {
@@ -41,7 +41,7 @@ future<shared_ptr<long long>> CCommandExecutorService::RedisAsyncReturnIntComman
                                                                                   const string &key,
                                                                                   eCommandModel model)
 {
-    shared_ptr<CRedisConnection> conn = GetConn(key, model);
+    shared_ptr<CRedisAsyncConnection> conn = GetConn(key, model);
     shared_ptr<CCommand> command = conn->RedisvAsyncCommand(format, param);
     return async([command]() -> shared_ptr<long long>
                  {
@@ -67,7 +67,7 @@ future<shared_ptr<bool>> CCommandExecutorService::RedisAsyncReturnBoolCommand(co
                                                                               const string &key,
                                                                               eCommandModel model)
 {
-    shared_ptr<CRedisConnection> conn = GetConn(key, model);
+    shared_ptr<CRedisAsyncConnection> conn = GetConn(key, model);
     shared_ptr<CCommand> command = conn->RedisvAsyncCommand(format, param);
     return async([command]() -> shared_ptr<bool>
                  {
@@ -98,7 +98,7 @@ future<shared_ptr<string>> CCommandExecutorService::RedisAsyncReturnStringComman
                                                                                   const string &key,
                                                                                   eCommandModel model)
 {
-    shared_ptr<CRedisConnection> conn = GetConn(key, model);
+    shared_ptr<CRedisAsyncConnection> conn = GetConn(key, model);
     shared_ptr<CCommand> tmpCommand = conn->RedisvAsyncCommand(format, param);
     return async([tmpCommand]() -> shared_ptr<string>
                  {
@@ -131,7 +131,7 @@ future<shared_ptr<string>> CCommandExecutorService::RedisAsyncReturnStringComman
                  });
 }
 
-shared_ptr<CRedisConnection> CCommandExecutorService::GetConn(const string &key, eCommandModel model)
+shared_ptr<CRedisAsyncConnection> CCommandExecutorService::GetConn(const string &key, eCommandModel model)
 {
     int slot = m_pConnectionManager.lock()->CalcSlot(key);
     return m_pConnectionManager.lock()->GetRedisConnection();

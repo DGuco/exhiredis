@@ -30,7 +30,7 @@ public:
     bool IsShutDown() override;
     shared_ptr<CRedisConfig> GetRedisConfig() override;
     shared_ptr<CCommandExecutorService> &GetCommandExecutorService() override;
-    shared_ptr<CRedisConnection> GetRedisConnection() override;
+    shared_ptr<CRedisAsyncConnection> GetRedisConnection() override;
 private:
     shared_ptr<CRedisConfig> m_pRedisConfig;
     shared_ptr<CConnectionPool> m_pConnectionPool;

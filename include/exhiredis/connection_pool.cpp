@@ -4,9 +4,7 @@
 
 #include <atomic>
 #include "connection_pool.h"
-#include "redis_connection.h"
-#include "connection_manager.h"
-#include "exhiredis/config/redis_config.h"
+#include "redis_async_connection.h"
 
 namespace exhiredis
 {

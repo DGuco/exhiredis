@@ -9,13 +9,14 @@
 #include <memory>
 #include <string>
 #include <list>
+#include "redis_connection.h"
 #include "connection_manager.h"
 
 using namespace std;
 
 namespace exhiredis
 {
-class CRedisConnection;
+class CRedisC;
 class CConnectionPool
 {
 public:

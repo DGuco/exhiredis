@@ -13,7 +13,7 @@
 #include "connection_manager.h"
 #include "command_param.h"
 #include "command.h"
-#include "redis_connection.h"
+#include "redis_async_connection.h"
 
 using namespace std;
 namespace exhiredis
@@ -49,7 +49,7 @@ public:
                                                       const string &key = "",
                                                       eCommandModel model = eCommandModel::NOT_READ_ONLY)
     {
-        shared_ptr<CRedisConnection> conn = GetConn(key, model);
+        shared_ptr<CRedisAsyncConnection> conn = GetConn(key, model);
         shared_ptr<CCommand> tmpCommand = conn->RedisvAsyncCommand(format, param);
         return async([tmpCommand]() -> shared_ptr<return_type>
                      {
@@ -86,7 +86,7 @@ public:
                                       const string &key = "",
                                       eCommandModel model = eCommandModel::NOT_READ_ONLY)
     {
-        shared_ptr<CRedisConnection> conn = GetConn(key, model);
+        shared_ptr<CRedisAsyncConnection> conn = GetConn(key, model);
         shared_ptr<CCommand> tmpCommand = conn->RedisvAsyncCommand(format, param);
         return async([tmpCommand]() -> shared_ptr<list<string>>
                      {
@@ -126,7 +126,7 @@ public:
                                 const string &key = "",
                                 eCommandModel model = eCommandModel::NOT_READ_ONLY)
     {
-        shared_ptr<CRedisConnection> conn = GetConn(key, model);
+        shared_ptr<CRedisAsyncConnection> conn = GetConn(key, model);
         shared_ptr<CCommand> tmpCommand = conn->RedisvAsyncCommand(format, param);
         return async([tmpCommand]() -> shared_ptr<list<return_type>>
                      {
@@ -168,7 +168,7 @@ public:
                                     const string &key = "",
                                     eCommandModel model = eCommandModel::NOT_READ_ONLY)
     {
-        shared_ptr<CRedisConnection> conn = GetConn(key, model);
+        shared_ptr<CRedisAsyncConnection> conn = GetConn(key, model);
         shared_ptr<CCommand> tmpCommand = conn->RedisvAsyncCommand(format, param);
         return async([tmpCommand]() -> shared_ptr<list<pair<left_type, right_type>>>
                      {
@@ -213,7 +213,7 @@ public:
     };
 
 private:
-    shared_ptr<CRedisConnection> GetConn(const string &key, eCommandModel model);
+    shared_ptr<CRedisAsyncConnection> GetConn(const string &key, eCommandModel model);
 private:
     weak_ptr<IConnectionManager> m_pConnectionManager;
 };
