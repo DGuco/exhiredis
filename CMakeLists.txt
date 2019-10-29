@@ -57,7 +57,7 @@ set(EXHIREDIS
         include/exhiredis/concurrency/concurrent_queue.h
         include/exhiredis/redis_connection.h
         include/exhiredis/redis_connection.cpp
-        include/exhiredis/redis_reply.h include/exhiredis/redis_reply.cpp)
+        include/exhiredis/redis_reply.h include/exhiredis/redis_reply.cpp include/exhiredis/redis_exception.h)
 
 include_directories(
         /usr/include/

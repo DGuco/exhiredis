@@ -31,7 +31,7 @@ public:
     const unsigned long GetCommandId() const;
     //set promise value
     void SetPromiseValue(redisReply *reply);
-    //set promise exception
+    //set promise CRedisException
     void SetPromiseException(exception_ptr exception);
     //get cmd reply promise
     shared_ptr<promise<redisReply *>> &GetPromise();

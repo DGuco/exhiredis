@@ -4,6 +4,7 @@
 
 #include <mutex>
 #include "redis_connection.h"
+#include "redis_exception.h"
 
 namespace  exhiredis
 {
@@ -59,5 +60,90 @@ namespace  exhiredis
     {
         m_context = redisConnectUnix(addressName.c_str());
         return m_context != nullptr && m_context->err == REDIS_OK;
+
+    }
+
+    shared_ptr<CRedisReply> CRedisConnection::SendCommand(const vector<std::string> &commands)
+    {
+        if (nullptr == m_context)
+        {
+            throw CRedisException("Redis connection not init");
+        }
+
+        vector<const char*> argv;
+        argv.reserve(commands.size());
+        std::vector<size_t> argvlen;
+        argvlen.reserve(commands.size());
+
+        for (auto it = commands.begin(); it != commands.end(); ++it) {
+            argv.push_back(it->c_str());
+            argvlen.push_back(it->size());
+        }
+
+        redisReply* reply = static_cast<redisReply *>(redisCommandArgv(m_context, static_cast<int>(commands.size()),
+                                                                       argv.data(), argvlen.data()));
+        if (nullptr == reply)
+        {
+            throw CRedisException("Redis redisCommandArgv failed,error: " + m_context->err);
+        }
+        return  make_shared<CRedisReply>(reply);
+    }
+
+    void CRedisConnection::AppendCommand(const vector<std::string> &commands)
+    {
+        if (nullptr == m_context)
+        {
+            throw CRedisException("Redis connection not init");
+        }
+
+        vector<const char*> argv;
+        argv.reserve(commands.size());
+        std::vector<size_t> argvlen;
+        argvlen.reserve(commands.size());
+
+        for (auto it = commands.begin(); it != commands.end(); ++it) {
+            argv.push_back(it->c_str());
+            argvlen.push_back(it->size());
+        }
+
+        int ret = redisAppendCommandArgv(m_context, static_cast<int>(commands.size()), argv.data(), argvlen.data());
+        if (REDIS_OK != ret)
+        {
+            throw CRedisException("Redis redisAppendCommandArgv failed,error:" + m_context->err);
+        }
+        return;
+    }
+
+    shared_ptr<CRedisReply> CRedisConnection::GetReply()
+    {
+        if (nullptr == m_context)
+        {
+            throw CRedisException("Redis connection not init");
+        }
+        redisReply* reply;
+        int error = redisGetReply(m_context, reinterpret_cast<void**>(&reply));
+        if (error != REDIS_OK || nullptr == reply)
+        {
+            throw CRedisException("Redis redisGetReply failed,error:" + m_context->err);
+        }
+        shared_ptr<CRedisReply> shareReply = make_shared<CRedisReply>(reply);
+        freeReplyObject(reply);
+
+        if (shareReply->ReplyType() == CRedisReply::eReplyType::ERROR &&
+            (shareReply->StrValue().find("READONLY") == 0) )
+        {
+            throw CRedisException("Redis redisGetReply failed,error: slave_read_only");
+        }
+        return shareReply;
+    }
+
+    vector<shared_ptr<CRedisReply>> CRedisConnection::GetReplies(int count)
+    {
+        std::vector<shared_ptr<CRedisReply>> ret;
+        for (int i = 0;i < count; i++)
+        {
+            ret.push_back(GetReply());
+        }
+        return ret;
     }
 }

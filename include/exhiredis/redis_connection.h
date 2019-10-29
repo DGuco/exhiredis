@@ -8,7 +8,10 @@
 #endif //EXHIREDIS_REDIS_CONNECTION_H
 
 #include <string>
+#include <vector>
+#include <memory>
 #include "hiredis/hiredis.h"
+#include "redis_reply.h"
 
 using namespace std;
 
@@ -59,6 +62,28 @@ namespace  exhiredis
          * @return
          */
         bool ConnectUnix(const string &addressName);
+        /**
+         *
+         * @param commands
+         * @return
+         */
+        shared_ptr<CRedisReply> SendCommand(const vector<std::string> &commands);
+        /**
+         *
+         * @param commands
+         */
+        void AppendCommand(const vector<std::string> &commands);
+        /**
+         *
+         * @return
+         */
+        shared_ptr<CRedisReply> GetReply();
+        /**
+         *
+         * @param count
+         * @return
+         */
+        vector<shared_ptr<CRedisReply>> GetReplies(int count);
     private:
         redisContext* m_context;
         string m_sAddressName;

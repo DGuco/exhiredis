@@ -2275,7 +2275,7 @@ private:
                     MOODYCAMEL_TRY {
                         while (currentTailIndex != stopIndex) {
                             // Must use copy constructor even if move constructor is available
-                            // because we may have to revert if there's an exception.
+                            // because we may have to revert if there's an CRedisException.
                             // Sorry about the horrible templated next line, but it was the only way
                             // to disable moving *at compile time*, which is important because a type
                             // may only define a (noexcept) move constructor, and so calls to the
@@ -2293,7 +2293,7 @@ private:
                         }
                     }
                     MOODYCAMEL_CATCH (...) {
-                        // Oh dear, an exception's been thrown -- destroy the elements that
+                        // Oh dear, an CRedisException's been thrown -- destroy the elements that
                         // were enqueued so far and revert the entire bulk operation (we'll keep
                         // any allocated blocks in our linked list for later, though).
                         auto constructedStopIndex = currentTailIndex;
@@ -2415,7 +2415,7 @@ private:
                             MOODYCAMEL_CATCH (...) {
                                 // It's too late to revert the dequeue, but we can make sure that all
                                 // the dequeued objects are properly destroyed and the block index
-                                // (and empty count) are properly updated before we propagate the exception
+                                // (and empty count) are properly updated before we propagate the CRedisException
                                 do {
                                     block = localBlockIndex->entries[indexIndex].block;
                                     while (index != endIndex) {

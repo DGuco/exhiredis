@@ -8,7 +8,6 @@
 #include <cstring>
 #include <memory>
 #include <hiredis/sds.h>
-#include "exhiredis/config/redis_config.h"
 #include "exhiredis/utils/exception.h"
 
 using namespace std;
