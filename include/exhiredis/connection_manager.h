@@ -78,6 +78,56 @@ public:
         });
     }
 
+
+    /**
+     * Execute redis command
+     * @tparam Ret return type
+     * @param func
+     * @return
+     */
+    template<typename Ret>
+    Ret ExecuteCommand(const vector<std::string> &commands)
+    {
+        shared_ptr<CRedisConnection> tmpConn = GetOneCon();
+        try
+        {
+            shared_ptr<CRedisReply> reply =   tmpConn->SendCommand(commands);
+            CParam<Ret> param(reply->StrValue());
+            PutOneCon(tmpConn);
+            return param.value;
+        }
+        catch (CRedisException msg)
+        {
+            PutOneCon(tmpConn);
+            throw CRedisException(msg.what());
+        }
+    }
+
+    /**
+     * AsyncExecute redis command
+     * @tparam Ret return type
+     * @param func
+     * @return
+     */
+    template<typename Ret>
+    std::future<Ret> AsyncExecuteCommand(const vector<std::string> &commands)
+    {
+        return std::async([commands] () -> Ret {
+            shared_ptr<CRedisConnection> tmpConn = GetOneCon();
+            try
+            {
+                shared_ptr<CRedisReply> reply =   tmpConn->SendCommand(commands);
+                CParam<Ret> param(reply->StrValue());
+                PutOneCon(tmpConn);
+            }
+            catch (CRedisException msg)
+            {
+                PutOneCon(tmpConn);
+                throw CRedisException(msg.what());
+            }
+        });
+    }
+
 private:
     shared_ptr<CConnectionPool> m_pConnectionPool;
 };
