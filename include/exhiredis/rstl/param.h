@@ -15,19 +15,29 @@ namespace exhiredis
     template <class T>
     struct CParam
     {
+        CParam() {}
+
         CParam(T t) {}
         /**
          *
          * @param str
          * @param len  char* len
          */
-        virtual void FromString(const string &str)  = 0;
+        void FromString(const string &str)
+        {
+
+        }
+
         /**
          *
          * @param str
          * @return  char* len
          */
-        virtual const string ToString()  = 0;
+        const string ToString()
+        {
+
+        }
+
         T value;
     };
 

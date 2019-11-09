@@ -92,7 +92,8 @@ public:
         try
         {
             shared_ptr<CRedisReply> reply =   tmpConn->SendCommand(commands);
-            CParam<Ret> param(reply->StrValue());
+            CParam<Ret> param;
+            param.FromString(reply->StrValue());
             PutOneCon(tmpConn);
             return param.value;
         }
@@ -117,8 +118,10 @@ public:
             try
             {
                 shared_ptr<CRedisReply> reply =   tmpConn->SendCommand(commands);
-                CParam<Ret> param(reply->StrValue());
+                CParam<Ret> param;
+                param.FromString(reply->StrValue());
                 PutOneCon(tmpConn);
+                return param.value;
             }
             catch (CRedisException msg)
             {
