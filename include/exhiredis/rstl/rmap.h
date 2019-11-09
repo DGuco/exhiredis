@@ -116,8 +116,8 @@ namespace exhiredis {
     {
         const string &key_str = CParam<key_type>(key).ToString();
         const string &value_str = CParam<value_type>(value).ToString();
-        return m_pConnectionManager->ExecuteCommand(
-                [key_str,value_str](shared_ptr<CRedisConnection> conn) -> bool {
+        return m_pConnectionManager->ExecuteCommand<value_type>(
+                [&key_str,&value_str](shared_ptr<CRedisConnection> conn) -> bool {
                     shared_ptr<CRedisReply> reply = conn->SendCommand({(CRedisCommands::HSET, key_str, value_str)});
                     return reply->IntegerValue() == 1;
                 });
@@ -125,9 +125,9 @@ namespace exhiredis {
 
     template<class key_type, class value_type>
     future<bool> RMap<key_type, value_type>::PutAsync(const key_type &key, const value_type &value) {
-        const string key_str = CParam<key_type>(key).ToString();
-        const string value_str = CParam<value_type>(value).ToString();
-        return m_pConnectionManager->AsyncExecuteCommand(
+        const string &key_str = CParam<key_type>(key).ToString();
+        const string &value_str = CParam<value_type>(value).ToString();
+        return m_pConnectionManager->AsyncExecuteCommand<value_type>(
                 [key_str,value_str](shared_ptr<CRedisConnection> conn) -> bool {
                     shared_ptr<CRedisReply> reply = conn->SendCommand({CRedisCommands::HSET, key_str, value_str});
                     return reply->IntegerValue() == 1;
@@ -136,9 +136,9 @@ namespace exhiredis {
 
     template<class key_type, class value_type>
     shared_ptr<value_type> RMap<key_type, value_type>::Get(const key_type &key) {
-        const string key_str = CParam<key_type>(key).ToString();
-        return m_pConnectionManager->ExecuteCommand(
-                [key_str](shared_ptr<CRedisConnection> conn) -> value_type {
+        const string& key_str = CParam<key_type>(key).ToString();
+        return m_pConnectionManager->ExecuteCommand<value_type>(
+                [&key_str](shared_ptr<CRedisConnection> conn) -> value_type {
                     shared_ptr<CRedisReply> reply = conn->SendCommand({CRedisCommands::HGET, key_str});
                     return CParam<value_type>(reply->StrValue()).value;
                 });
@@ -146,8 +146,8 @@ namespace exhiredis {
 
     template<class key_type, class value_type>
     future<shared_ptr<value_type>> RMap<key_type, value_type>::GetAsync(const key_type &key) {
-        const string key_str = CParam<key_type>(key).ToString();
-        return m_pConnectionManager->AsyncExecuteCommand(
+        const string& key_str = CParam<key_type>(key).ToString();
+        return m_pConnectionManager->AsyncExecuteCommand<value_type>(
                 [key_str](shared_ptr<CRedisConnection> conn) -> value_type {
                     shared_ptr<CRedisReply> reply = conn->SendCommand({CRedisCommands::HGET, key_str});
                     return CParam<value_type>(reply->StrValue()).value;
