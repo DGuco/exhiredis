@@ -14,16 +14,6 @@ set(EXHIREDIS
         include/exhiredis/utils/rwlock.hpp
         include/exhiredis/utils/exception.h
         include/exhiredis/lock/rlock.hpp
-        include/exhiredis/robject/robject.h
-        include/exhiredis/robject/rint.h
-        include/exhiredis/robject/rlong.h
-        include/exhiredis/robject/rstring.h
-        include/exhiredis/robject/rbool.h
-        include/exhiredis/robject/rfloat.h
-        include/exhiredis/robject/rdouble.h
-        include/exhiredis/robject/rlonglong.h
-        include/exhiredis/robject/rulong.h
-        include/exhiredis/robject/rulonglong.h
         include/exhiredis/rstl/rscript.h
         include/exhiredis/rstl/rmap.h
         include/exhiredis/redis_commands.h
