@@ -5,6 +5,7 @@
 #include <mutex>
 #include "connection_pool.h"
 #include "redis_async_connection.h"
+#include "redis_exception.h"
 
 namespace exhiredis {
 
@@ -36,7 +37,7 @@ namespace exhiredis {
     {
         std::lock_guard<std::mutex> lock(m_poolLock);
         if (m_connList.size() <= 0) {
-            return nullptr;
+                throw CRedisException("Can't not get free connection from pool");
         }
         auto it = m_connList.begin();
         m_connList.erase(it);

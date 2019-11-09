@@ -13,7 +13,6 @@ set(EXHIREDIS
         include/exhiredis/utils/crc16.h
         include/exhiredis/utils/rwlock.hpp
         include/exhiredis/utils/exception.h
-        include/exhiredis/command.h
         include/exhiredis/lock/rlock.hpp
         include/exhiredis/robject/robject.h
         include/exhiredis/robject/rint.h
@@ -32,13 +31,11 @@ set(EXHIREDIS
         include/exhiredis/redis_clients.h
         include/exhiredis/connection_manager.h
         include/exhiredis/lock/redis_lock.h
-        include/exhiredis/command_param.h
         include/exhiredis/utils/sds.cpp
         include/exhiredis/utils/sds.h
         include/exhiredis/utils/sdsalloc.h
         include/exhiredis/lock/redis_lock.cpp
         include/exhiredis/rstl/rscript.cpp
-        include/exhiredis/command.cpp
         include/exhiredis/connection_pool.cpp
         include/exhiredis/redis_clients.cpp
         include/exhiredis/connection_manager.cpp
@@ -53,7 +50,7 @@ set(EXHIREDIS
         include/exhiredis/redis_reply.h
         include/exhiredis/redis_reply.cpp
         include/exhiredis/redis_exception.h
-        )
+        include/exhiredis/rstl/param.h)
 
 include_directories(
         /usr/include/

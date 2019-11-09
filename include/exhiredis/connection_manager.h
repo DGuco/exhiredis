@@ -8,6 +8,7 @@
 
 #include <memory>
 #include "connection_pool.h"
+#include "redis_exception.h"
 
 using namespace std;
 
@@ -32,6 +33,51 @@ public:
      * @return
      */
     shared_ptr<CRedisConnection> GetOneCon();
+
+    /**
+     * Execute redis command
+     * @tparam Ret return type
+     * @param func
+     * @return
+     */
+    template<typename Ret>
+    Ret ExecuteCommand(std::function<Ret(shared_ptr<CRedisConnection>)> func)
+    {
+        shared_ptr<CRedisConnection> tmpConn = GetOneCon();
+        try
+        {
+            return func(tmpConn);
+        }
+        catch (CRedisException msg)
+        {
+            PutOneCon(tmpConn);
+            throw CRedisException(msg.what());
+        }
+    }
+
+    /**
+     * AsyncExecute redis command
+     * @tparam Ret return type
+     * @param func
+     * @return
+     */
+    template<typename Ret>
+    std::future<Ret> AsyncExecuteCommand(std::function<Ret(shared_ptr<CRedisConnection>)> func)
+    {
+        return std::async([func] () -> Ret {
+            shared_ptr<CRedisConnection> tmpConn = GetOneCon();
+            try
+            {
+                return func(tmpConn);
+            }
+            catch (CRedisException msg)
+            {
+                PutOneCon(tmpConn);
+                throw CRedisException(msg.what());
+            }
+        });
+    }
+
 private:
     shared_ptr<CConnectionPool> m_pConnectionPool;
 };
