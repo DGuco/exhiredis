@@ -8,7 +8,7 @@
 
 #include <memory>
 #include <string>
-#include <list>
+#include <set>
 #include <mutex>
 #include "redis_connection.h"
 #include "connection_manager.h"
@@ -22,21 +22,19 @@ class CConnectionPool
 {
 public:
     //construct
-    CConnectionPool();
+    CConnectionPool(const string &host, const string &passwd);
     //init connection pool
     void InitPool(int initPoolSize);
     //add one connection
-    void AddConnection(shared_ptr<CRedisConnection> conn);
+    void PutOneCon(shared_ptr<CRedisConnection> conn);
     //borrow one connection
-    shared_ptr<CRedisConnection> BorrowOneConnection();
-    //back one connection
-    shared_ptr<CRedisConnection> BackOneConnection(shared_ptr<CRedisConnection> conn);
+    shared_ptr<CRedisConnection> GetOneCon();
 private:
-    list<shared_ptr<CRedisConnection>> m_connList;
+    set<shared_ptr<CRedisConnection>> m_connList;
     mutex m_poolLock;
-    list<string> m_sentinelHosts;
-    string m_masterName;
+    string m_hostName;
     string m_password;
+    int m_poolSize;
     unsigned int m_database;
 };
 }

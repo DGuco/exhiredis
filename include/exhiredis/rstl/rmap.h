@@ -9,12 +9,8 @@
 #include <memory>
 #include <utility>
 #include <future>
-#include <linux/futex.h>
 #include <exhiredis/command_param.h>
-#include "exhiredis/redis_async_connection.h"
-#include "exhiredis/redis_commands.h"
-#include "exhiredis/connection_manager.h"
-#include "exhiredis/command_executor_service.h"
+#include <exhiredis/comman_def.h>
 #include "exhiredis/redis_commands.h"
 #include "exhiredis/connection_manager.h"
 
@@ -35,7 +31,7 @@ public:
      * @param name
      * @param conn
      */
-    RMap(const string &name, shared_ptr<IConnectionManager> &conn);
+    RMap(const string &name, shared_ptr<CConnectionManager> &conn);
     /**
      * HSET
      * @param key
@@ -96,11 +92,11 @@ public:
     future<shared_ptr<bool>> ExistsAsync(const key_type &key);
 private:
     string m_sName;
-    shared_ptr<IConnectionManager> m_pConnectionManager;
+    shared_ptr<CConnectionManager> m_pConnectionManager;
 };
 
 template<class key_type, class value_type>
-RMap<key_type, value_type>::RMap(const string &name, shared_ptr<IConnectionManager> &conn)
+RMap<key_type, value_type>::RMap(const string &name, shared_ptr<CConnectionManager> &conn)
     : m_sName(name),
       m_pConnectionManager(conn)
 {

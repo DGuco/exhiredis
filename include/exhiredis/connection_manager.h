@@ -1,42 +1,39 @@
 //
-// Created by dguco on 18-10-17.
+// Created by dguco on 18-11-7.
+// redis master slave manager
 //
 
-#ifndef EXHIREDIS_CONNECT_MANAGER_H
-#define EXHIREDIS_CONNECT_MANAGER_H
+#ifndef EXHIREDIS_MASTERSLAVEMANAGER_HPP
+#define EXHIREDIS_MASTERSLAVEMANAGER_HPP
 
 #include <memory>
-#include <string>
+#include "connection_pool.h"
+
 using namespace std;
+
 namespace exhiredis
 {
-class CRedisNode;
-class MasterSlaveServersConfig;
-class CRedisConfig;
-class CCommandExecutorService;
-class CRedisConnection;
-
-class IConnectionManager: public enable_shared_from_this<IConnectionManager>
+class CConnectionManager
 {
 public:
-    //get command executor service
-    virtual shared_ptr<CCommandExecutorService> &GetCommandExecutorService() = 0;
-    //get one redis connection
-    virtual shared_ptr<CRedisConnection> GetRedisConnection() = 0;
-    //init connection manager
-    virtual void Init() = 0;
-    //calculate the hash slot of the key
-    virtual int CalcSlot(string key) = 0;
-    //calculate the hash slot of the key
-    virtual int CalcSlot(char *key, int len) = 0;
-    //get config
-    virtual shared_ptr<MasterSlaveServersConfig> &GetConfig() = 0;
-    //shutdown
-    virtual void ShutDown() = 0;
-    //is shutdown
-    virtual bool IsShutDown() = 0;
-    //get config
-    virtual shared_ptr<CRedisConfig> GetRedisConfig() = 0;
+    //构造函数
+    CConnectionManager();
+    /**
+     * init connect manager
+     */
+    void Init(const string &host, const string &passwd,int poolSize);
+    /**
+     * add one connection
+     * @param
+     */
+    void PutOneCon(shared_ptr<CRedisConnection> conn);
+    /**
+     * borrow one connection
+     * @return
+     */
+    shared_ptr<CRedisConnection> GetOneCon();
+private:
+    shared_ptr<CConnectionPool> m_pConnectionPool;
 };
 }
-#endif //EXHIREDIS_CONNECT_MANAGER_H
+#endif //EXHIREDIS_MASTERSLAVEMANAGER_HPP

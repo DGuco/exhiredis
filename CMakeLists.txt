@@ -14,7 +14,6 @@ set(EXHIREDIS
         include/exhiredis/utils/rwlock.hpp
         include/exhiredis/utils/exception.h
         include/exhiredis/command.h
-        include/exhiredis/connection_manager.h
         include/exhiredis/lock/rlock.hpp
         include/exhiredis/robject/robject.h
         include/exhiredis/robject/rint.h
@@ -31,33 +30,30 @@ set(EXHIREDIS
         include/exhiredis/redis_commands.h
         include/exhiredis/connection_pool.h
         include/exhiredis/redis_clients.h
-        include/exhiredis/single_connection_manager.h
-        include/exhiredis/redis_node.h
+        include/exhiredis/connection_manager.h
         include/exhiredis/lock/redis_lock.h
         include/exhiredis/command_param.h
         include/exhiredis/utils/sds.cpp
         include/exhiredis/utils/sds.h
         include/exhiredis/utils/sdsalloc.h
-        include/exhiredis/command_executor_service.h
         include/exhiredis/lock/redis_lock.cpp
         include/exhiredis/rstl/rscript.cpp
         include/exhiredis/command.cpp
         include/exhiredis/connection_pool.cpp
-        include/exhiredis/redis_node.cpp
         include/exhiredis/redis_clients.cpp
-        include/exhiredis/single_connection_manager.cpp
+        include/exhiredis/connection_manager.cpp
         include/exhiredis/utils/signal.cpp
         include/exhiredis/redis_commands.cpp
         include/exhiredis/utils/log.cpp
         include/exhiredis/comman_def.h
-        include/exhiredis/cluster_connection_manager.h
-        include/exhiredis/cluster_connection_manager.cpp
-        include/exhiredis/command_executor_service.cpp
         include/exhiredis/utils/check.h
         include/exhiredis/concurrency/concurrent_queue.h
         include/exhiredis/redis_connection.h
         include/exhiredis/redis_connection.cpp
-        include/exhiredis/redis_reply.h include/exhiredis/redis_reply.cpp include/exhiredis/redis_exception.h)
+        include/exhiredis/redis_reply.h
+        include/exhiredis/redis_reply.cpp
+        include/exhiredis/redis_exception.h
+        )
 
 include_directories(
         /usr/include/
