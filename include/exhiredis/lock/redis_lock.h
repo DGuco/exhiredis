@@ -12,12 +12,10 @@
 using namespace std;
 namespace exhiredis
 {
-class CRedisAsyncConnection;
 class CRedisLock: public IRlock
 {
 public:
-    CRedisLock(const shared_ptr<IConnectionManager> &redisClients,
-               const string &m_sLockName);
+    CRedisLock(shared_ptr<CConnectionManager> &redisClients, string &m_sLockName);
     void Lock() override;
     bool TryLock() override;
     /**
@@ -31,7 +29,7 @@ private:
     void TryLockAsync(long leaseTime, long threadId);
     void UnLockAsync(long threadId);
 private:
-    shared_ptr<IConnectionManager> m_pConnectionManager;
+    shared_ptr<CConnectionManager> m_pConnectionManager;
     string m_sLockName;
 };
 }

@@ -2,8 +2,6 @@
 // Created by dguco on 19-1-4.
 //
 #include "connection_manager.h"
-#include "redis_exception.h"
-#include <connection_pool.h>
 
 namespace exhiredis
 {

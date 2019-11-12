@@ -11,13 +11,11 @@
 #include <set>
 #include <mutex>
 #include "redis_connection.h"
-#include "connection_manager.h"
 
 using namespace std;
 
 namespace exhiredis
 {
-class CRedisC;
 class CConnectionPool
 {
 public:

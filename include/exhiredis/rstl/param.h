@@ -25,7 +25,7 @@ namespace exhiredis
          */
         void FromString(const string &str)
         {
-
+            (T*)(&(value))->FromString(str);
         }
 
         /**
@@ -35,10 +35,44 @@ namespace exhiredis
          */
         const string ToString()
         {
-
+            return (T*)(&(value))->ToString();
         }
 
         T value;
+    };
+
+    /**
+     * template param<bool>
+     */
+    template <>
+    struct CParam<bool>
+    {
+        CParam()
+        {
+            this->value = false;
+        }
+
+        CParam(bool value)
+        {
+            this->value = value;
+        }
+
+        void FromString(const string &str)
+        {
+            if (str == "true")
+            {
+                value = true;
+            } else
+            {
+                value = "false";
+            }
+        }
+
+        const string ToString()
+        {
+            return this->value ? "true" : "false";
+        }
+        bool value;
     };
 
     /**
@@ -49,10 +83,10 @@ namespace exhiredis
     {
         CParam()
         {
-            this->value = 0;
+            this->value = "";
         }
 
-        CParam(int value)
+        CParam(string value)
         {
             this->value = value;
         }

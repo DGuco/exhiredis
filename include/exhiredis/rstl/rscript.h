@@ -9,16 +9,19 @@
 #include <list>
 #include <memory>
 #include <future>
-#include "exhiredis/redis_async_connection.h"
 #include "exhiredis/comman_def.h"
 #include "exhiredis/connection_manager.h"
 
 namespace exhiredis
 {
+
+    // Rotate an integer value to left.
+    inline unsigned int Rol(const unsigned int value,
+                              const unsigned int steps);
 class RScript
 {
 public:
-    RScript(const shared_ptr<IConnectionManager> &pRedisConn);
+    RScript(shared_ptr<CConnectionManager> &pRedisConn);
 public:
     /**
      *
@@ -27,10 +30,9 @@ public:
      * @param args
      * @return lua script return int value or null for failed
      */
-    shared_ptr<long long> EvalReturnInt(const string &script,
-                                        const list<string> &keys,
-                                        const list<string> &args,
-                                        eCommandModel model);
+    int EvalReturnInt(const string &script,
+                        const list<string> &keys,
+                        const list<string> &args);
 
     /**
      *
@@ -39,10 +41,9 @@ public:
      * @param args
      * @return lua script async return int value or null for failed
      */
-    future<shared_ptr<long long>> EvalReturnIntAsync(const string &script,
-                                                     const list<string> &keys,
-                                                     const list<string> &args,
-                                                     eCommandModel model);
+    future<int> EvalReturnIntAsync(const string &script,
+                                          const list<string> &keys,
+                                          const list<string> &args);
     /**
      *
      * @param script
@@ -50,10 +51,9 @@ public:
      * @param args
      * @return lua script return bool value or null for failed
      */
-    shared_ptr<bool> EvalReturnBool(const string &script,
-                                    const list<string> &keys,
-                                    const list<string> &args,
-                                    eCommandModel model);
+    bool EvalReturnBool(const string &script,
+                        const list<string> &keys,
+                        const list<string> &args);
 
     /**
      *
@@ -62,24 +62,35 @@ public:
      * @param args
      * @return lua script async return bool value or null for failed
      */
-    future<shared_ptr<bool>> EvalReturnBoolAsync(const string &script,
-                                                 const list<string> &keys,
-                                                 const list<string> &args,
-                                                 eCommandModel model);
+    future<bool> EvalReturnBoolAsync(const string &script,
+                                     const list<string> &keys,
+                                     const list<string> &args);
 
     /**
      *
      * @tparam return_type
-     * @param script
+     * @param scriptCmd
      * @param keys
      * @param args
      * @return lua script return return_type value or null for failed 必须实现IRobject接口
      */
-    template<class return_type>
-    shared_ptr<return_type> Eval(const string &script,
-                                 const list<string> &keys,
-                                 const list<string> &args,
-                                 eCommandModel model);
+    template<typename return_type>
+    return_type ExecuteScript(const string &scriptCmd,
+                              const list<string> &keys,
+                              const list<string> &args);
+
+    /**
+     *
+     * @tparam return_type
+     * @param scriptCmd
+     * @param keys
+     * @param args
+     * @return lua script async return return_type value or null for failed 必须实现IRobject接口
+     */
+    template<typename return_type>
+    future<return_type> AsyncExecuteScript(const string &scriptCmd,
+                                           const list<string> &keys,
+                                           const list<string> &args);
 
     /**
      *
@@ -87,17 +98,49 @@ public:
      * @param script
      * @param keys
      * @param args
-     * @return lua script async return return_type value or null for failed 必须实现IRobject接口
+     * @return lua script file return return_type value or null for failed 必须实现IRobject接口
      */
-    template<class return_type>
-    future<shared_ptr<return_type>> EvalAsync(const string &script,
-                                              const list<string> &keys,
-                                              const list<string> &args,
-                                              eCommandModel model);
+    template<typename return_type>
+    return_type ExecuteScriptFile(const string &path,
+                                  const list<string> &keys,
+                                  const list<string> &args);
+
+    /**
+     *
+     * @tparam return_type
+     * @param script
+     * @param keys
+     * @param args
+     * @return lua script file async return return_type value or null for failed 必须实现IRobject接口
+     */
+    template<typename return_type>
+    future<return_type> AsyncExecuteScriptFile(const string &path,
+                                               const list<string> &keys,
+                                               const list<string> &args);
 private:
-    const string BuildScriptCmd(const list<string> &keys, const list<string> &args);
+    /**
+     * build script commands
+     * @param keys
+     * @param args
+     * @return
+     */
+    vector<string> BuildScriptCmd(const string scriptArg,const list<string> &keys, const list<string> &args);
+    /**
+     * read file
+     * @param path
+     * @return
+     */
+    string ReadFile(const string&path);
+
+    void ToHexString(const unsigned char *hash, char *hexstring);
+
+    void Calc(const void *src, const int bytelength, unsigned char *hash);
+
+    void InnerHash(unsigned int *result, unsigned int *w);
+
+    void ClearWBuffert(unsigned int *buffert);
 private:
-    shared_ptr<IConnectionManager> m_pConnectionManager;
+    shared_ptr<CConnectionManager> m_pConnectionManager;
 };
 }
 #endif //EXHIREDIS_RSCRIPT_HPP

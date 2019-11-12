@@ -4,13 +4,12 @@
 
 #include "redis_lock.h"
 #include "exhiredis/rstl/rscript.h"
-#include "exhiredis/comman_def.h"
 
 namespace exhiredis
 {
-CRedisLock::CRedisLock(const shared_ptr<IConnectionManager> &redisClients,
-                       const string &m_sLockName)
-    : m_pConnectionManager(redisClients),
+CRedisLock::CRedisLock(shared_ptr<CConnectionManager> &connManager,
+                       string &m_sLockName)
+    : m_pConnectionManager(connManager),
       m_sLockName(m_sLockName)
 {
 
@@ -50,10 +49,10 @@ void CRedisLock::TryLockAsync(long leaseTime, long threadId)
         "return nil; " \
         "end; " \
         "return redis.call('pttl', KEYS[1]);";
-    tmpScript->EvalReturnInt(cmd,
-                             {m_sLockName},
-                             {to_string(leaseTime), to_string(threadId)},
-                             eCommandModel::NOT_READ_ONLY);
+//    tmpScript->EvalReturnInt(cmd,
+//                             {m_sLockName},
+//                             {to_string(leaseTime), to_string(threadId)},
+//                             eCommandModel::NOT_READ_ONLY);
 }
 
 void CRedisLock::UnLockAsync(long threadId)
@@ -75,7 +74,7 @@ void CRedisLock::UnLockAsync(long threadId)
         "return 1; "\
         "end; " \
         "return nil;";
-    shared_ptr<RScript> tmpScript = make_shared<RScript>(m_pConnectionManager);
+//    shared_ptr<RScript> tmpScript = make_shared<RScript>(m_pConnectionManager);
 //    tmpScript->EvalReturnInt(cmd, {m_sLockName}, {to_string(leaseTime), to_string(threadId)});
 }
 }

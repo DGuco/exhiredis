@@ -6,19 +6,19 @@
 
 namespace exhiredis
 {
-char *CRedisCommands::GET = "GET %b";
+char *CRedisCommands::GET = "GET";
 
-char *CRedisCommands::SET = "SET %b %b";
+char *CRedisCommands::SET = "SET";
 
-char *CRedisCommands::HGET = "HGET %s %b";
+char *CRedisCommands::HGET = "HGET";
 
-char *CRedisCommands::HSET = "HSET %s %b %b";
+char *CRedisCommands::HSET = "HSET";
 
-char *CRedisCommands::HKEYS = "HKEYS %s";
+char *CRedisCommands::HKEYS = "HKEYS";
 
-char *CRedisCommands::HGETALL = "HGETALL %s";
+char *CRedisCommands::HGETALL = "HGETALL";
 
-char *CRedisCommands::HEXISTS = "HEXISTS %s %b";
+char *CRedisCommands::HEXISTS = "HEXISTS";
 
-char *CRedisCommands::EVAL = "EVAL %s ";
+char *CRedisCommands::EVAL = "EVAL";
 }

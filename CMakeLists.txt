@@ -55,5 +55,5 @@ link_directories(
 
 add_library(exhiredis SHARED ${EXHIREDIS})
 set_target_properties(exhiredis PROPERTIES LINKER_LANGUAGE CXX)
-target_link_libraries(exhiredis pthread hiredis uuid event)
+target_link_libraries(exhiredis pthread hiredis)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/lib/)

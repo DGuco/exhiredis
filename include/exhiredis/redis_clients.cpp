@@ -3,7 +3,6 @@
 //
 
 #include "redis_clients.h"
-#include "exhiredis/connection_manager.h"
 
 namespace exhiredis
 {

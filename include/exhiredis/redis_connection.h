@@ -17,13 +17,6 @@ using namespace std;
 
 namespace  exhiredis
 {
-    enum class eConnRole
-    {
-        ANY = 0,
-        MASTER = 1,
-        SLAVE = 2,
-    };
-
     class CRedisConnection
     {
     public:

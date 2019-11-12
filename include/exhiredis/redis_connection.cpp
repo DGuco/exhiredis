@@ -8,18 +8,20 @@
 
 namespace  exhiredis
 {
-    CRedisConnection::CRedisConnection() :
-            m_context(nullptr),
-            m_sAddressName(""),
-            m_sHost(""),
-            m_iPort(0),
-            m_iTimeOut(0) {
+    CRedisConnection::CRedisConnection()
+            :   m_context(nullptr),
+                m_sAddressName(""),
+                m_sHost(""),
+                m_iPort(0),
+                m_iTimeOut(0)
+    {
 
     }
 
     CRedisConnection::~CRedisConnection()
     {
-        if (nullptr != m_context) {
+        if (nullptr != m_context)
+        {
             redisFree(m_context);
             m_context = nullptr;
         }
@@ -86,7 +88,9 @@ namespace  exhiredis
         {
             throw CRedisException("Redis redisCommandArgv failed,error: " + m_context->err);
         }
-        return  make_shared<CRedisReply>(reply);
+        shared_ptr<CRedisReply> sharedPtr = make_shared<CRedisReply>(reply);
+        freeReplyObject(reply);
+        return std::move(sharedPtr);
     }
 
     void CRedisConnection::AppendCommand(const vector<std::string> &commands)

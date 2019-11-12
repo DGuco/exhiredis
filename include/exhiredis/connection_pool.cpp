@@ -3,9 +3,8 @@
 //
 
 #include <mutex>
+#include "exhiredis/redis_exception.h"
 #include "connection_pool.h"
-#include "redis_async_connection.h"
-#include "redis_exception.h"
 
 namespace exhiredis {
 

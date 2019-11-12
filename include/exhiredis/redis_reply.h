@@ -13,7 +13,6 @@ using namespace std;
 
 namespace exhiredis
 {
-    class CRedisConnection;
     class CRedisReply
     {
     public:
@@ -59,16 +58,16 @@ namespace exhiredis
             }
         }
 
-    private:
+
         CRedisReply(redisReply *reply);
 
         CRedisReply();
 
+    private:
         eReplyType m_type;
         std::string m_str;
         long long m_integer;
         std::vector <CRedisReply> m_elements;
-        friend class CRedisConnection;
     };
 }
 #endif //EXHIREDIS_REDIS_REPLY_H

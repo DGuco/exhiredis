@@ -7,6 +7,9 @@
 #define EXHIREDIS_MASTERSLAVEMANAGER_HPP
 
 #include <memory>
+#include <future>
+#include <list>
+#include "exhiredis/rstl/param.h"
 #include "connection_pool.h"
 #include "redis_exception.h"
 
@@ -41,12 +44,16 @@ public:
      * @return
      */
     template<typename Ret>
-    Ret ExecuteCommand(std::function<Ret(shared_ptr<CRedisConnection>)> func)
+    Ret ExecuteCommand(const vector<std::string> &commands,
+                       std::function<Ret(shared_ptr<CRedisReply>)> func)
     {
         shared_ptr<CRedisConnection> tmpConn = GetOneCon();
         try
         {
-            return func(tmpConn);
+            shared_ptr<CRedisReply> reply = tmpConn->SendCommand(commands);
+            auto res =  func(reply);
+            PutOneCon(tmpConn);
+            return std::move(res);
         }
         catch (CRedisException msg)
         {
@@ -62,17 +69,21 @@ public:
      * @return
      */
     template<typename Ret>
-    std::future<Ret> AsyncExecuteCommand(std::function<Ret(shared_ptr<CRedisConnection>)> func)
+    future<Ret> AsyncExecuteCommand(const vector<std::string> &commands,
+                                         std::function<Ret(shared_ptr<CRedisReply>)> func)
     {
-        return std::async([func] () -> Ret {
-            shared_ptr<CRedisConnection> tmpConn = GetOneCon();
+        return std::async([this,commands,func] () -> Ret {
+            shared_ptr<CRedisConnection> tmpConn = this->GetOneCon();
             try
             {
-                return func(tmpConn);
+                shared_ptr<CRedisReply> reply = tmpConn->SendCommand(commands);
+                auto res = func(reply);
+                this->PutOneCon(tmpConn);
+                return  std::move(res);
             }
             catch (CRedisException msg)
             {
-                PutOneCon(tmpConn);
+                this->PutOneCon(tmpConn);
                 throw CRedisException(msg.what());
             }
         });
@@ -113,19 +124,149 @@ public:
     template<typename Ret>
     std::future<Ret> AsyncExecuteCommand(const vector<std::string> &commands)
     {
-        return std::async([commands] () -> Ret {
-            shared_ptr<CRedisConnection> tmpConn = GetOneCon();
+        return std::async([this,commands] () -> Ret {
+            shared_ptr<CRedisConnection> tmpConn = this->GetOneCon();
             try
             {
                 shared_ptr<CRedisReply> reply =   tmpConn->SendCommand(commands);
                 CParam<Ret> param;
                 param.FromString(reply->StrValue());
-                PutOneCon(tmpConn);
+                this->PutOneCon(tmpConn);
                 return param.value;
             }
             catch (CRedisException msg)
             {
-                PutOneCon(tmpConn);
+                this->PutOneCon(tmpConn);
+                throw CRedisException(msg.what());
+            }
+        });
+    }
+
+    /**
+     * Execute redis command
+     * @tparam Ret return type list
+     * @param func
+     * @return
+     */
+    template<typename Ret>
+    list<Ret> ExecuteCommandReturnList(const vector<std::string> &commands)
+    {
+        shared_ptr<CRedisConnection> tmpConn = GetOneCon();
+        try
+        {
+
+            shared_ptr<CRedisReply> reply = tmpConn->SendCommand(commands);
+            if (reply->ReplyType() != CRedisReply::eReplyType::ARRAY)
+            {
+                throw CRedisException("Redis reply type is not array");
+            }
+            list<Ret> resList;
+            resList.resize(reply->ArrayElements().size());
+            for(const CRedisReply& it : reply->ArrayElements())
+            {
+                CParam<Ret> param;
+                param.FromString(it.StrValue());
+                resList.push_back(param.value);
+            }
+            CParam<Ret> param;
+            param.FromString(reply->StrValue());
+            PutOneCon(tmpConn);
+            return std::move(resList);
+        }
+        catch (CRedisException msg)
+        {
+            PutOneCon(tmpConn);
+            throw CRedisException(msg.what());
+        }
+    }
+
+    /**
+     * AsyncExecute redis command
+     * @tparam Ret return type list
+     * @param func
+     * @return
+     */
+    template<typename Ret>
+    future<list<Ret>> AsyncExecuteCommandReturnList(const vector<std::string> &commands)
+    {
+        return std::async([this,commands] () -> list<Ret> {
+            shared_ptr<CRedisConnection> tmpConn = this->GetOneCon();
+            try
+            {
+                shared_ptr<CRedisReply> reply = tmpConn->SendCommand(commands);
+                if (reply->ReplyType() != CRedisReply::eReplyType::ARRAY)
+                {
+                    throw CRedisException("Redis reply type is not array");
+                }
+                list<Ret> resList;
+                resList.resize(reply->ArrayElements().size());
+                for(const CRedisReply& it : reply->ArrayElements())
+                {
+                    CParam<Ret> param;
+                    param.FromString(it.StrValue());
+                    resList.push_back(param.value);
+                }
+                CParam<Ret> param;
+                param.FromString(reply->StrValue());
+                this->PutOneCon(tmpConn);
+                return std::move(resList);
+            }
+            catch (CRedisException msg)
+            {
+                this->PutOneCon(tmpConn);
+                throw CRedisException(msg.what());
+            }
+        });
+    }
+
+
+    /**
+     * Execute redis command
+     * @tparam Ret return type list
+     * @param func
+     * @return
+     */
+    template<typename Ret>
+    list<Ret> ExecuteCommandReturnList(const vector<std::string> &commands,
+                                       std::function<list<Ret>(shared_ptr<CRedisReply>)> func)
+    {
+        shared_ptr<CRedisConnection> tmpConn = GetOneCon();
+        try
+        {
+            shared_ptr<CRedisReply> redisReply = tmpConn->SendCommand(commands);
+            auto res = func(redisReply);
+            PutOneCon(tmpConn);
+            return std::move(res);
+        }
+        catch (CRedisException msg)
+        {
+            PutOneCon(tmpConn);
+            throw CRedisException(msg.what());
+        }
+    }
+
+    /**
+     * AsyncExecute redis command
+     * @tparam Ret return type
+     * @param func
+     * @return
+     */
+    template<typename Ret>
+    std::future<list<Ret>> AsyncExecuteCommandReturnList(const vector<std::string> &commands,
+                                                         std::function<list<Ret>(shared_ptr<CRedisReply>)> func)
+    {
+        return std::async([this,commands,func] () -> list<Ret> {
+            shared_ptr<CRedisConnection> tmpConn = this->GetOneCon();
+            try
+            {
+                shared_ptr<CRedisReply> redisReply = tmpConn->SendCommand(commands);
+                auto res = func(redisReply);
+                this->PutOneCon(tmpConn);
+                return std::move(res);
+            }
+            catch (CRedisException msg)
+            {
+                this->PutOneCon(tmpConn);
                 throw CRedisException(msg.what());
             }
         });
