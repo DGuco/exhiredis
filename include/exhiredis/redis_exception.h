@@ -7,6 +7,8 @@
 
 #include <exception>
 #include <string>
+#include <utility>
+
 using namespace std;
 
 namespace exhiredis
@@ -14,7 +16,16 @@ namespace exhiredis
     class CRedisException: public std::exception
     {
     public:
-        CRedisException(const std::string& what): _what(what){}
+        CRedisException(std::string what) noexcept : _what(std::move(what))
+        {
+
+        }
+
+        CRedisException(const CRedisException& tmp) noexcept
+        {
+            _what = tmp._what;
+        }
+
         virtual ~CRedisException() throw() {}
 
         inline virtual const char* what() const noexcept override

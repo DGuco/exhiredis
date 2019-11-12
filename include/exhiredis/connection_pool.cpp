@@ -4,14 +4,16 @@
 
 #include <mutex>
 #include "exhiredis/redis_exception.h"
+#include <exhiredis/utils/log.h>
 #include "connection_pool.h"
 
 namespace exhiredis {
 
-    CConnectionPool::CConnectionPool(const string &host, const string &passwd)
+    CConnectionPool::CConnectionPool(const string &host,int port,  const string &passwd)
     {
         m_connList.clear();
         this->m_hostName = host;
+        this->m_port = port;
         this->m_password = passwd;
     }
 
@@ -21,8 +23,13 @@ namespace exhiredis {
         for (int i = 0;i < initPoolSize; i++)
         {
             shared_ptr<CRedisConnection> conn =  make_shared<CRedisConnection>();
-            conn->ConnectUnix(m_hostName);
-            m_connList.insert(std::move(conn));
+            if (!conn->Connect(m_hostName,m_port))
+            {
+                HIREDIS_LOG_ERROR("Connect to redis failed");
+            }else
+            {
+                m_connList.insert(std::move(conn));
+            }
         }
     }
 
@@ -35,11 +42,12 @@ namespace exhiredis {
     shared_ptr<CRedisConnection> CConnectionPool::GetOneCon()
     {
         std::lock_guard<std::mutex> lock(m_poolLock);
-        if (m_connList.size() <= 0) {
+        if (m_connList.empty()) {
                 throw CRedisException("Can't not get free connection from pool");
         }
         auto it = m_connList.begin();
+        shared_ptr<CRedisConnection> conn = *it;
         m_connList.erase(it);
-        return *it;
+        return conn;
     }
 }

@@ -69,7 +69,7 @@ namespace  exhiredis
     {
         if (nullptr == m_context)
         {
-            throw CRedisException("Redis connection not init");
+            throw CRedisException("Redis connection is not inited");
         }
 
         vector<const char*> argv;
@@ -97,7 +97,7 @@ namespace  exhiredis
     {
         if (nullptr == m_context)
         {
-            throw CRedisException("Redis connection not init");
+            throw CRedisException("Redis connection is not inited");
         }
 
         vector<const char*> argv;
@@ -122,7 +122,7 @@ namespace  exhiredis
     {
         if (nullptr == m_context)
         {
-            throw CRedisException("Redis connection not init");
+            throw CRedisException("Redis connection is not inited");
         }
         redisReply* reply;
         int error = redisGetReply(m_context, reinterpret_cast<void**>(&reply));

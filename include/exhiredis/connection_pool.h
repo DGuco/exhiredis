@@ -20,7 +20,7 @@ class CConnectionPool
 {
 public:
     //construct
-    CConnectionPool(const string &host, const string &passwd);
+    CConnectionPool(const string &host,int port, const string &passwd);
     //init connection pool
     void InitPool(int initPoolSize);
     //add one connection
@@ -31,6 +31,7 @@ private:
     set<shared_ptr<CRedisConnection>> m_connList;
     mutex m_poolLock;
     string m_hostName;
+    int m_port;
     string m_password;
     int m_poolSize;
     unsigned int m_database;

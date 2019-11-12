@@ -10,9 +10,9 @@ namespace exhiredis
 
     }
 
-    void CConnectionManager::Init(const string &host, const string &passwd,int poolSize)
+    void CConnectionManager::Init(const string &host,int port, const string &passwd,int poolSize)
     {
-        m_pConnectionPool = make_shared<CConnectionPool>(host,passwd);
+        m_pConnectionPool = make_shared<CConnectionPool>(host,port,passwd);
         m_pConnectionPool->InitPool(poolSize);
     }
 

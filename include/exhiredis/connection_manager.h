@@ -25,7 +25,7 @@ public:
     /**
      * init connect manager
      */
-    void Init(const string &host, const string &passwd,int poolSize);
+    void Init(const string &host,int port, const string &passwd,int poolSize);
     /**
      * add one connection
      * @param
@@ -168,8 +168,6 @@ public:
                 param.FromString(it.StrValue());
                 resList.push_back(param.value);
             }
-            CParam<Ret> param;
-            param.FromString(reply->StrValue());
             PutOneCon(tmpConn);
             return std::move(resList);
         }

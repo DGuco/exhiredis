@@ -6,13 +6,16 @@
 
 namespace exhiredis
 {
-    CRedisClients::CRedisClients() : m_pConnectionManager(nullptr)
+    CRedisClients::CRedisClients(shared_ptr<CConnectionManager> connManager)
+            : m_pConnectionManager(connManager)
     {
 
     }
 
-    shared_ptr<exhiredis::CRedisClients> CRedisClients::CreateInstance()
+    shared_ptr<exhiredis::CRedisClients> CRedisClients::CreateInstance(const string& host,int port,const string passwd,int poolSize)
     {
-        return nullptr;
+        shared_ptr<CConnectionManager> conManager = make_shared<CConnectionManager>();
+        conManager->Init(host,port,passwd,poolSize);
+        return make_shared<CRedisClients>(std::move(conManager));
     }
 }

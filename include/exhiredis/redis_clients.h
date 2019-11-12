@@ -21,7 +21,7 @@ namespace exhiredis
     {
         public:
             //construct
-            CRedisClients();
+            CRedisClients(shared_ptr<CConnectionManager> m_pConnectionManager);
             //forbidden operation
             CRedisClients(const CRedisClients &) = delete;
             CRedisClients(const CRedisClients &&) = delete;
@@ -38,7 +38,7 @@ namespace exhiredis
                 return RMap<key_type, value_type>(name, m_pConnectionManager);
             }
         public:
-            static shared_ptr<CRedisClients> CreateInstance();
+            static shared_ptr<CRedisClients> CreateInstance(const string& host,int port, const string passwd,int poolSize);
         private:
             shared_ptr<CConnectionManager> m_pConnectionManager;
     };
