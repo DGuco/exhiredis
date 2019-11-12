@@ -2,6 +2,7 @@
 // Created by dguco on 19-1-4.
 //
 
+#include <exhiredis/rstl/rscript.h>
 #include "redis_clients.h"
 
 namespace exhiredis
@@ -17,5 +18,10 @@ namespace exhiredis
         shared_ptr<CConnectionManager> conManager = make_shared<CConnectionManager>();
         conManager->Init(host,port,passwd,poolSize);
         return make_shared<CRedisClients>(std::move(conManager));
+    }
+
+    RScript CRedisClients::GetScript()
+    {
+        return std::move(RScript(m_pConnectionManager));
     }
 }

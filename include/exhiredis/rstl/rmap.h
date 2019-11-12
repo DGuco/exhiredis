@@ -159,10 +159,10 @@ namespace exhiredis {
                          const CRedisReply& keyReply = reply->ArrayElements().at(i);
                          const CRedisReply& valueReply = reply->ArrayElements().at(i);
                          CParam<key_type> keyParam;
-                         keyParam.FromString(keyReply.StrValue());
+                         keyReply.ParseToParam(keyParam);
                          CParam<value_type> valueParam;
-                         valueParam.FromString(valueReply.StrValue());
-                         resList.push_back(std::make_pair<key_type, value_type>(keyParam.value,valueParam.value));
+                         valueReply.ParseToParam(valueParam);
+                         resList.push_back(std::make_pair(keyParam.value,valueParam.value));
                      }
                      return resList;
                  });
@@ -180,10 +180,10 @@ namespace exhiredis {
                         const CRedisReply& keyReply = reply->ArrayElements().at(i);
                         const CRedisReply& valueReply = reply->ArrayElements().at(i);
                         CParam<key_type> keyParam;
-                        keyParam.FromString(keyReply.StrValue());
+                        keyReply.ParseToParam(keyParam);
                         CParam<value_type> valueParam;
-                        valueParam.FromString(valueReply.StrValue());
-                        resList.push_back(std::make_pair<key_type, value_type>(keyParam.value,valueParam.value));
+                        valueReply.ParseToParam(valueParam);
+                        resList.push_back(std::make_pair(keyParam.value,valueParam.value));
                     }
                     return resList;
                 });

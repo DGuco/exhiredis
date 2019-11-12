@@ -8,6 +8,8 @@
 #include <string>
 #include <vector>
 #include "hiredis/hiredis.h"
+#include "exhiredis/redis_exception.h"
+#include "exhiredis/rstl/param.h"
 
 using namespace std;
 
@@ -62,6 +64,28 @@ namespace exhiredis
         CRedisReply(redisReply *reply);
 
         CRedisReply();
+
+        template<typename param_type>
+        void ParseToParam(CParam <param_type> &param) const
+        {
+            if (m_type == eReplyType::ERROR)
+            {
+                throw  CRedisException("Redis reply type is error");
+            }
+
+            //if param_type is bool
+            if (std::is_same<bool ,param_type>::value && m_type == eReplyType::INTEGER)
+            {
+                param.value = IntegerValue() == 1;
+                return;
+            }
+
+            if (m_type == eReplyType::STRING)
+            {
+                param.FromString(StrValue());
+            }
+
+        }
 
     private:
         eReplyType m_type;

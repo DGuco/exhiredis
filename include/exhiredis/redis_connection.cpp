@@ -88,6 +88,12 @@ namespace  exhiredis
         {
             throw CRedisException("Redis redisCommandArgv failed,error: " + m_context->err);
         }
+
+        if (reply->type == REDIS_REPLY_ERROR)
+        {
+            throw CRedisException("Redis redisCommandArgv failed, msg: " + string(reply->str));
+        }
+
         shared_ptr<CRedisReply> sharedPtr = make_shared<CRedisReply>(reply);
         freeReplyObject(reply);
         return std::move(sharedPtr);
@@ -126,10 +132,16 @@ namespace  exhiredis
         }
         redisReply* reply;
         int error = redisGetReply(m_context, reinterpret_cast<void**>(&reply));
-        if (error != REDIS_OK || nullptr == reply)
+        if (nullptr == reply)
         {
             throw CRedisException("Redis redisGetReply failed,error:" + m_context->err);
         }
+
+        if (reply->type == REDIS_REPLY_ERROR)
+        {
+            throw CRedisException("Redis redisCommandArgv failed, msg: " + string(reply->str));
+        }
+
         shared_ptr<CRedisReply> shareReply = make_shared<CRedisReply>(reply);
         freeReplyObject(reply);
 

@@ -22,19 +22,21 @@ void testHiredis()
     RMap<int, int> map = redisClients->GetMap<int, int>("TestMap");
     bool res = map.Exists(111);
     auto keys = map.Keys();
-//    RScript *rScript = new RScript(conn);
-//    string cmd = "if (redis.call('exists', KEYS[1]) == 0) then " \
-//        "redis.call('hset', KEYS[1], ARGV[2], 1); " \
-//        "redis.call('pexpire', KEYS[1], ARGV[1]); " \
-//        "return nil; " \
-//        "end; " \
-//        "if (redis.call('hexists', KEYS[1], ARGV[2]) == 1) then " \
-//        "redis.call('hincrby', KEYS[1], ARGV[2], 1); " \
-//        "redis.call('pexpire', KEYS[1], ARGV[1]); " \
-//        "return nil; " \
-//        "end; " \
-//        "return redis.call('pttl', KEYS[1]);";
-//    shared_ptr<long long> res = rScript->EvalReturnInt(cmd, {"TestLock:lock1"}, {"1000000000000", "3133213232"});
+    map.GetAll();
+    RScript rScript = redisClients->GetScript();
+    string cmd = "if (redis.call('exists', KEYS[1]) == 0) then " \
+        "redis.call('hset', KEYS[1], ARGV[2], 1); " \
+        "redis.call('pexpire', KEYS[1], ARGV[1]); " \
+        "return nil; " \
+        "end; " \
+        "if (redis.call('hexists', KEYS[1], ARGV[2]) == 1) then " \
+        "redis.call('hincrby', KEYS[1], ARGV[2], 1); " \
+        "redis.call('pexpire', KEYS[1], ARGV[1]); " \
+        "return nil; " \
+        "end; " \
+        "return redis.call('pttl', KEYS[1]);";
+    int resi = rScript.EvalshaReturnInt(cmd, {"TestLock:lock1"}, {"1000000000000", "3133213232"});
+    printf("=======================");
 };
 
 int

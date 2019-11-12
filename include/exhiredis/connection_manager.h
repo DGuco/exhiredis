@@ -104,7 +104,7 @@ public:
         {
             shared_ptr<CRedisReply> reply =   tmpConn->SendCommand(commands);
             CParam<Ret> param;
-            param.FromString(reply->StrValue());
+            reply->ParseToParam(param);
             PutOneCon(tmpConn);
             return param.value;
         }
@@ -130,7 +130,7 @@ public:
             {
                 shared_ptr<CRedisReply> reply =   tmpConn->SendCommand(commands);
                 CParam<Ret> param;
-                param.FromString(reply->StrValue());
+                reply->ParseToParam(param);
                 this->PutOneCon(tmpConn);
                 return param.value;
             }
@@ -165,7 +165,7 @@ public:
             for(const CRedisReply& it : reply->ArrayElements())
             {
                 CParam<Ret> param;
-                param.FromString(it.StrValue());
+                it.ParseToParam(param);
                 resList.push_back(param.value);
             }
             PutOneCon(tmpConn);
@@ -205,7 +205,7 @@ public:
                     resList.push_back(param.value);
                 }
                 CParam<Ret> param;
-                param.FromString(reply->StrValue());
+                reply->ParseToParam(param);
                 this->PutOneCon(tmpConn);
                 return std::move(resList);
             }

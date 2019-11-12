@@ -2,7 +2,8 @@
 // Created by dguco on 19-10-25.
 //
 
-#include "redis_reply.h"
+#include <exhiredis/rstl/param.h>
+#include "exhiredis/redis_reply.h"
 
 namespace exhiredis
 {

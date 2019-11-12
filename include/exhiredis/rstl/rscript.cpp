@@ -25,34 +25,107 @@ namespace exhiredis {
                                      const list<string> &keys,
                                      const list<string> &args)
     {
-        return ExecuteScript<int>(script, keys, args);
+        return EvalScript<int>(script, keys, args);
     }
 
-    future<int> RScript::EvalReturnIntAsync(const string &script,
-                                                  const list<string> &keys,
-                                                  const list<string> &args)
+    future<int> RScript::AsyncEvalReturnInt(const string &script,
+                                            const list<string> &keys,
+                                            const list<string> &args)
     {
-        return AsyncExecuteScript<int>(script, keys, args);
+        return AsyncEvalScript<int>(script, keys, args);
     }
 
     bool RScript::EvalReturnBool(const string &script,
                                              const list<string> &keys,
                                              const list<string> &args)
     {
-        return ExecuteScript<bool>(script, keys, args);
+        return EvalScript<bool>(script, keys, args);
     }
 
-    future<bool> RScript::EvalReturnBoolAsync(const string &script,
+    future<bool> RScript::AsyncEvalReturnBool(const string &script,
                                               const list<string> &keys,
                                               const list<string> &args)
     {
-        return AsyncExecuteScript<bool>(script, keys, args);
+        return AsyncEvalScript<bool>(script, keys, args);
+    }
+
+
+    int RScript::EvalshaReturnInt(const string &script,
+                                  const list<string> &keys,
+                                  const list<string> &args)
+    {
+        return EvalshaScript<int>(script, keys, args);
+    }
+
+    future<int> RScript::AsyncEvalshaReturnInt(const string &script,
+                                               const list<string> &keys,
+                                               const list<string> &args)
+    {
+        return AsyncEvalshaScript<int>(script, keys, args);
+    }
+
+    bool RScript::EvalshaReturnBool(const string &script,
+                                    const list<string> &keys,
+                                    const list<string> &args)
+    {
+        return EvalshaScript<bool>(script, keys, args);
+    }
+
+    future<bool> RScript::AsyncEvalshaReturnBool(const string &script,
+                                                 const list<string> &keys,
+                                                 const list<string> &args)
+    {
+        return AsyncEvalshaScript<bool>(script, keys, args);
     }
 
     template<class return_type>
-    return_type RScript::ExecuteScript(const string &scriptCmd,
-                                       const list<string> &keys,
-                                       const list<string> &args)
+    return_type RScript::EvalScript(const string &scriptCmd,
+                                    const list<string> &keys,
+                                    const list<string> &args)
+    {
+        m_pConnectionManager->ExecuteCommand<return_type>(BuildScriptCmd(CRedisCommands::EVAL,scriptCmd,keys,args));
+    }
+
+    template<class return_type>
+    future<return_type> RScript::AsyncEvalScript(const string &scriptCmd,
+                                                 const list<string> &keys,
+                                                 const list<string> &args)
+    {
+        return  std::async([this,scriptCmd,keys,args]() -> return_type
+                           {
+                               m_pConnectionManager->ExecuteCommand<return_type>(BuildScriptCmd(CRedisCommands::EVAL,scriptCmd,keys,args));
+                           });
+    }
+
+    template<class return_type>
+    return_type RScript::EvalScriptFile(const string &path,
+                                        const list<string> &keys,
+                                        const list<string> &args)
+    {
+        unsigned char hash[20];
+        char hexstring[41];
+
+        std::string script_content = ReadFile(path);
+        m_pConnectionManager->ExecuteCommand<return_type>(BuildScriptCmd(CRedisCommands::EVAL,script_content,keys,args));
+    }
+
+    template<class return_type>
+    future<return_type> RScript::AsyncEvalScriptFile(const string &path,
+                                                     const list<string> &keys,
+                                                     const list<string> &args)
+    {
+        return  std::async([this,path,keys,args]() -> return_type
+                           {
+                               std::string script_content = ReadFile(path);
+                               m_pConnectionManager->ExecuteCommand<return_type>(BuildScriptCmd(CRedisCommands::EVAL,script_content,keys,args));
+                           });
+    }
+
+
+    template<class return_type>
+    return_type RScript::EvalshaScript(const string &scriptCmd,
+                                        const list<string> &keys,
+                                        const list<string> &args)
     {
         unsigned char hash[20];
         char hexstring[41];
@@ -60,13 +133,13 @@ namespace exhiredis {
         ToHexString(hash, hexstring);
         string scriptArg;
         scriptArg.assign(hexstring);
-        m_pConnectionManager->ExecuteCommand<return_type>(BuildScriptCmd(scriptArg,keys,args));
+        m_pConnectionManager->ExecuteCommand<return_type>(BuildScriptCmd(CRedisCommands::EVALSHA,scriptArg,keys,args));
     }
 
     template<class return_type>
-    future<return_type> RScript::AsyncExecuteScript(const string &scriptCmd,
-                                                    const list<string> &keys,
-                                                    const list<string> &args)
+    future<return_type> RScript::AsyncEvalshaScript(const string &scriptCmd,
+                                                 const list<string> &keys,
+                                                 const list<string> &args)
     {
         return  std::async([this,scriptCmd,keys,args]() -> return_type
                            {
@@ -76,15 +149,14 @@ namespace exhiredis {
                                ToHexString(hash, hexstring);
                                string scriptArg;
                                scriptArg.assign(hexstring);
-                               m_pConnectionManager->ExecuteCommand<return_type>(BuildScriptCmd(scriptArg,keys,args));
+                               m_pConnectionManager->ExecuteCommand<return_type>(BuildScriptCmd(CRedisCommands::EVALSHA,scriptArg,keys,args));
                            });
     }
 
-
     template<class return_type>
-    return_type RScript::ExecuteScriptFile(const string &path,
-                                           const list<string> &keys,
-                                           const list<string> &args)
+    return_type RScript::EvalshaScriptFile(const string &path,
+                                        const list<string> &keys,
+                                        const list<string> &args)
     {
         unsigned char hash[20];
         char hexstring[41];
@@ -94,13 +166,13 @@ namespace exhiredis {
         ToHexString(hash, hexstring);
         string scriptArg;
         scriptArg.assign(hexstring);
-        m_pConnectionManager->ExecuteCommand<return_type>(BuildScriptCmd(scriptArg,keys,args));
+        m_pConnectionManager->ExecuteCommand<return_type>(BuildScriptCmd(CRedisCommands::EVALSHA,scriptArg,keys,args));
     }
 
     template<class return_type>
-    future<return_type> RScript::AsyncExecuteScriptFile(const string &path,
-                                                        const list<string> &keys,
-                                                        const list<string> &args)
+    future<return_type> RScript::AsyncEvalshaScriptFile(const string &path,
+                                                     const list<string> &keys,
+                                                     const list<string> &args)
     {
         return  std::async([this,path,keys,args]() -> return_type
                            {
@@ -112,18 +184,19 @@ namespace exhiredis {
                                ToHexString(hash, hexstring);
                                string scriptArg;
                                scriptArg.assign(hexstring);
-                               m_pConnectionManager->ExecuteCommand<return_type>(BuildScriptCmd(scriptArg,keys,args));
+                               m_pConnectionManager->ExecuteCommand<return_type>(BuildScriptCmd(CRedisCommands::EVALSHA,scriptArg,keys,args));
                            });
     }
 
-    vector<string> RScript::BuildScriptCmd(const string scriptArg,
+    vector<string> RScript::BuildScriptCmd(const string redisCmd,
+                                           const string scriptArg,
                                            const list<string> &keys,
                                            const list<string> &args)
     {
         std::vector<std::string> commands;
         commands.reserve(3 + keys.size() + args.size());
 
-        commands.push_back(string(CRedisCommands::EVAL));
+        commands.push_back(redisCmd);
         commands.push_back(scriptArg);
         commands.push_back(std::to_string(keys.size()));
         commands.insert(commands.end(), keys.begin(), keys.end());

@@ -19,6 +19,7 @@ public:
     static char *HGETALL;
     static char *HEXISTS;
     static char *EVAL;
+    static char *EVALSHA;
 };
 }
 #endif //EXHIREDIS_REDIS_COMMANDS_HPP

@@ -59,13 +59,7 @@ namespace exhiredis
 
         void FromString(const string &str)
         {
-            if (str == "true")
-            {
-                value = true;
-            } else
-            {
-                value = "false";
-            }
+            value = (str == "true");
         }
 
         const string ToString()

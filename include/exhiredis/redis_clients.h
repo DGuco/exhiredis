@@ -37,6 +37,12 @@ namespace exhiredis
             {
                 return RMap<key_type, value_type>(name, m_pConnectionManager);
             }
+
+            /**
+             *
+             * @return RScript executor
+             */
+            RScript GetScript();
         public:
             static shared_ptr<CRedisClients> CreateInstance(const string& host,int port, const string passwd,int poolSize);
         private:
