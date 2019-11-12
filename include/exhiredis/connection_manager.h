@@ -106,7 +106,7 @@ public:
             CParam<Ret> param;
             reply->ParseToParam(param);
             PutOneCon(tmpConn);
-            return param.value;
+            return std::move(param.value);
         }
         catch (CRedisException msg)
         {
@@ -132,7 +132,7 @@ public:
                 CParam<Ret> param;
                 reply->ParseToParam(param);
                 this->PutOneCon(tmpConn);
-                return param.value;
+                return std::move(param.value);
             }
             catch (CRedisException msg)
             {

@@ -91,7 +91,7 @@ namespace  exhiredis
 
         if (reply->type == REDIS_REPLY_ERROR)
         {
-            throw CRedisException("Redis redisCommandArgv failed, msg: " + string(reply->str));
+            throw CRedisException("Redis redisCommandArgv failed,msg: " + string(reply->str));
         }
 
         shared_ptr<CRedisReply> sharedPtr = make_shared<CRedisReply>(reply);
@@ -130,8 +130,8 @@ namespace  exhiredis
         {
             throw CRedisException("Redis connection is not inited");
         }
-        redisReply* reply;
-        int error = redisGetReply(m_context, reinterpret_cast<void**>(&reply));
+        redisReply* reply = nullptr;
+        redisGetReply(m_context, reinterpret_cast<void**>(&reply));
         if (nullptr == reply)
         {
             throw CRedisException("Redis redisGetReply failed,error:" + m_context->err);
@@ -139,7 +139,7 @@ namespace  exhiredis
 
         if (reply->type == REDIS_REPLY_ERROR)
         {
-            throw CRedisException("Redis redisCommandArgv failed, msg: " + string(reply->str));
+            throw CRedisException("Redis redisCommandArgv failed,msg: " + string(reply->str));
         }
 
         shared_ptr<CRedisReply> shareReply = make_shared<CRedisReply>(reply);

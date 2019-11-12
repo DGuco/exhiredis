@@ -66,7 +66,20 @@ namespace exhiredis
         CRedisReply();
 
         template<typename param_type>
-        void ParseToParam(CParam <param_type> &param) const
+        void ParseToParam(CParam<param_type> &param) const
+        {
+            if (m_type == eReplyType::ERROR)
+            {
+                throw  CRedisException("Redis reply type is error");
+            }
+
+            if (m_type == eReplyType::STRING)
+            {
+                param.FromString(StrValue());
+            }
+        }
+
+        void ParseToParam(CParam<bool> &param) const
         {
             if (m_type == eReplyType::ERROR)
             {
@@ -74,7 +87,7 @@ namespace exhiredis
             }
 
             //if param_type is bool
-            if (std::is_same<bool ,param_type>::value && m_type == eReplyType::INTEGER)
+            if (m_type == eReplyType::INTEGER)
             {
                 param.value = IntegerValue() == 1;
                 return;

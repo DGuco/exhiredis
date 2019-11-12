@@ -17,7 +17,10 @@ namespace exhiredis
     {
         CParam() {}
 
-        CParam(T t) {}
+        CParam(T t)
+        {
+            value = t;
+        }
         /**
          *
          * @param str
@@ -25,7 +28,7 @@ namespace exhiredis
          */
         void FromString(const string &str)
         {
-            (T*)(&(value))->FromString(str);
+            value.FromString(str);
         }
 
         /**
@@ -35,7 +38,7 @@ namespace exhiredis
          */
         const string ToString()
         {
-            return (T*)(&(value))->ToString();
+            return value.ToString();
         }
 
         T value;

@@ -50,16 +50,20 @@ namespace exhiredis {
         /**
          * HGET
          * @param key
-         * @return
+         * @return  pair<bool,value_type>
+         *          left: true ==>key对应的value存在 right key对应的value
+         *          left: false ==>key对应的value不存在
          */
-        value_type Get(const key_type &key);
+        pair<bool,value_type> Get(const key_type &key);
 
         /**
-         * async HGET
+         * HGET
          * @param key
-         * @return
+         * @return  pair<bool,value_type>
+         *          left: true ==>key对应的value存在 right key对应的value
+         *          left: false ==>key对应的value不存在
          */
-        future<value_type> GetAsync(const key_type &key);
+        future<pair<bool,value_type>> GetAsync(const key_type &key);
 
         /**
         * HKEYS
@@ -115,26 +119,38 @@ namespace exhiredis {
     {
         const string &key_str = CParam<key_type>(key).ToString();
         const string &value_str = CParam<value_type>(value).ToString();
-        return m_pConnectionManager->ExecuteCommand<bool>({CRedisCommands::HSET, key_str, value_str});
+        return m_pConnectionManager->ExecuteCommand<bool>({CRedisCommands::HSET,m_mapName,key_str, value_str});
     }
 
     template<class key_type, class value_type>
     future<bool> RMap<key_type, value_type>::PutAsync(const key_type &key, const value_type &value) {
         const string &key_str = CParam<key_type>(key).ToString();
         const string &value_str = CParam<value_type>(value).ToString();
-        return m_pConnectionManager->AsyncExecuteCommand<bool>({CRedisCommands::HSET, key_str, value_str});
+        return m_pConnectionManager->AsyncExecuteCommand<bool>({CRedisCommands::HSET,m_mapName,key_str, value_str});
     }
 
     template<class key_type, class value_type>
-    value_type RMap<key_type, value_type>::Get(const key_type &key) {
+    pair<bool,value_type> RMap<key_type, value_type>::Get(const key_type &key) {
         const string& key_str = CParam<key_type>(key).ToString();
-        return m_pConnectionManager->ExecuteCommand<value_type>({CRedisCommands::HGET, key_str});
+        return m_pConnectionManager->ExecuteCommand<pair<bool,value_type>>({CRedisCommands::HGET,m_mapName,key_str},
+                [](shared_ptr<CRedisReply> reply) -> pair<bool,value_type>
+                {
+                    CParam<value_type> param;
+                    reply->ParseToParam(param);
+                    return std::move(std::make_pair(!(reply->ReplyType() == CRedisReply::eReplyType::NIL), param.value));
+                });
     }
 
     template<class key_type, class value_type>
-    future<value_type> RMap<key_type, value_type>::GetAsync(const key_type &key) {
+    future<pair<bool,value_type>> RMap<key_type, value_type>::GetAsync(const key_type &key) {
         const string& key_str = CParam<key_type>(key).ToString();
-        return m_pConnectionManager->AsyncExecuteCommand<value_type>({CRedisCommands::HGET, key_str});
+        return m_pConnectionManager->AsyncExecuteCommand<pair<bool,value_type>>({CRedisCommands::HGET,m_mapName,key_str},
+                [](shared_ptr<CRedisReply> reply) -> pair<bool,value_type>
+                {
+                    CParam<value_type> param;
+                    reply->ParseToParam(param);
+                    return std::move(std::make_pair(!(reply->ReplyType() == CRedisReply::eReplyType::NIL), param.value));
+                });
     }
 
     template<class key_type, class value_type>
@@ -164,7 +180,7 @@ namespace exhiredis {
                          valueReply.ParseToParam(valueParam);
                          resList.push_back(std::make_pair(keyParam.value,valueParam.value));
                      }
-                     return resList;
+                     return std::move(resList);
                  });
     }
 
@@ -185,7 +201,7 @@ namespace exhiredis {
                         valueReply.ParseToParam(valueParam);
                         resList.push_back(std::make_pair(keyParam.value,valueParam.value));
                     }
-                    return resList;
+                    return std::move(resList);
                 });
     }
 

@@ -6,15 +6,35 @@
 #include <tuple>
 #include <vector>
 #include <list>
-#include <ucontext.h>
 #include "exhiredis/rstl/rmap.h"
 #include "exhiredis/rstl/rscript.h"
 #include "exhiredis/redis_clients.h"
-#include "exhiredis/utils/check.h"
 
 using namespace std;
 using namespace exhiredis;
 
+class TestObj
+{
+public:
+    TestObj() {}
+
+    TestObj(int a, int b) : a(a), b(b) {}
+
+    void FromString(const string &str)
+    {
+        int index = str.find_first_of('_');
+        a = std::stoi(str.substr(0,index));
+        b = std::stoi(str.substr(index + 1,str.length()));
+    }
+
+    const string ToString()
+    {
+        string str =  to_string(a) + "_" + to_string(b);
+        return  str;
+    }
+    int a;
+    int b;
+};
 void testHiredis()
 {
 
@@ -37,6 +57,12 @@ void testHiredis()
         "return redis.call('pttl', KEYS[1]);";
     string resi = rScript.EvalReturnString("return 'hello world!'", {}, {});
     printf("%s\n",resi.c_str());
+    RMap<int, TestObj> map1 = redisClients->GetMap<int, TestObj>("TestMap1");
+    TestObj obj1(10,100);
+    map1.Put(1,obj1);
+    std::pair<bool,TestObj> resObj = map1.Get(1111);
+    printf("resObj a = %d,b = %d \n",resObj.second.a,resObj.second.b);
+
 };
 
 int
