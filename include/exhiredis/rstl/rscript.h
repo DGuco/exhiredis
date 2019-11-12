@@ -28,7 +28,7 @@ public:
      * @param script
      * @param keys
      * @param args
-     * @return lua script return int value or null for failed
+     * @return lua script return int value
      */
     int EvalReturnInt(const string &script,
                       const list<string> &keys,
@@ -39,7 +39,7 @@ public:
      * @param script
      * @param keys
      * @param args
-     * @return lua script async return int value or null for failed
+     * @return lua script async return int value
      */
     future<int> AsyncEvalReturnInt(const string &script,
                                    const list<string> &keys,
@@ -49,7 +49,7 @@ public:
      * @param script
      * @param keys
      * @param args
-     * @return lua script return bool value or null for failed
+     * @return lua script return bool value
      */
     bool EvalReturnBool(const string &script,
                         const list<string> &keys,
@@ -60,18 +60,43 @@ public:
      * @param script
      * @param keys
      * @param args
-     * @return lua script async return bool value or null for failed
+     * @return lua script async return bool value
      */
     future<bool> AsyncEvalReturnBool(const string &script,
                                      const list<string> &keys,
                                      const list<string> &args);
+
+
+
+    /**
+     *
+     * @param script
+     * @param keys
+     * @param args
+     * @return lua script async return string value
+     */
+    string EvalReturnString(const string &script,
+                            const list<string> &keys,
+                            const list<string> &args);
+
+
+    /**
+     *
+     * @param script
+     * @param keys
+     * @param args
+     * @return
+     */
+    future<string> AsyncEvalReturnString(const string &script,
+                                         const list<string> &keys,
+                                         const list<string> &args);
 
     /**
       *
       * @param script
       * @param keys
       * @param args
-      * @return lua script return int value or null for failed
+      * @return lua script return int value
       */
     int EvalshaReturnInt(const string &script,
                          const list<string> &keys,
@@ -82,7 +107,7 @@ public:
      * @param script
      * @param keys
      * @param args
-     * @return lua script async return int value or null for failed
+     * @return lua script async return int value
      */
     future<int> AsyncEvalshaReturnInt(const string &script,
                                       const list<string> &keys,
@@ -92,7 +117,7 @@ public:
      * @param script
      * @param keys
      * @param args
-     * @return lua script return bool value or null for failed
+     * @return lua script return bool value
      */
     bool EvalshaReturnBool(const string &script,
                            const list<string> &keys,
@@ -103,18 +128,40 @@ public:
      * @param script
      * @param keys
      * @param args
-     * @return lua script async return bool value or null for failed
+     * @return lua script async return bool value
      */
     future<bool> AsyncEvalshaReturnBool(const string &script,
                                         const list<string> &keys,
                                         const list<string> &args);
     /**
      *
+     * @param script
+     * @param keys
+     * @param args
+     * @return lua script async return string value
+     */
+    string EvalshaReturnString(const string &script,
+                                const list<string> &keys,
+                                const list<string> &args);
+
+
+    /**
+     *
+     * @param script
+     * @param keys
+     * @param args
+     * @return
+     */
+    future<string> AsyncEvalshaReturnString(const string &script,
+                                             const list<string> &keys,
+                                             const list<string> &args);
+    /**
+     *
      * @tparam return_type
      * @param scriptCmd
      * @param keys
      * @param args
-     * @return lua script return return_type value or null for failed 必须实现IRobject接口
+     * @return lua script return return_type value  必须实现IRobject接口
      */
     template<typename return_type>
     return_type EvalScript(const string &scriptCmd,
@@ -127,7 +174,7 @@ public:
      * @param scriptCmd
      * @param keys
      * @param args
-     * @return lua script async return return_type value or null for failed 必须实现IRobject接口
+     * @return lua script async return return_type value  必须实现IRobject接口
      */
     template<typename return_type>
     future<return_type> AsyncEvalScript(const string &scriptCmd,
@@ -140,7 +187,7 @@ public:
      * @param script
      * @param keys
      * @param args
-     * @return lua script file return return_type value or null for failed 必须实现IRobject接口
+     * @return lua script file return return_type value  必须实现IRobject接口
      */
     template<typename return_type>
     return_type EvalScriptFile(const string &path,
@@ -153,7 +200,7 @@ public:
      * @param script
      * @param keys
      * @param args
-     * @return lua script file async return return_type value or null for failed 必须实现IRobject接口
+     * @return lua script file async return return_type value  必须实现IRobject接口
      */
     template<typename return_type>
     future<return_type> AsyncEvalScriptFile(const string &path,
@@ -166,7 +213,7 @@ public:
      * @param scriptCmd
      * @param keys
      * @param args
-     * @return lua script return return_type value or null for failed 必须实现IRobject接口
+     * @return lua script return return_type value  必须实现IRobject接口
      */
     template<typename return_type>
     return_type EvalshaScript(const string &scriptCmd,
@@ -179,7 +226,7 @@ public:
      * @param scriptCmd
      * @param keys
      * @param args
-     * @return lua script async return return_type value or null for failed 必须实现IRobject接口
+     * @return lua script async return return_type value  必须实现IRobject接口
      */
     template<typename return_type>
     future<return_type> AsyncEvalshaScript(const string &scriptCmd,
@@ -192,7 +239,7 @@ public:
      * @param script
      * @param keys
      * @param args
-     * @return lua script file return return_type value or null for failed 必须实现IRobject接口
+     * @return lua script file return return_type value  必须实现IRobject接口
      */
     template<typename return_type>
     return_type EvalshaScriptFile(const string &path,
@@ -205,7 +252,7 @@ public:
      * @param script
      * @param keys
      * @param args
-     * @return lua script file async return return_type value or null for failed 必须实现IRobject接口
+     * @return lua script file async return return_type value  必须实现IRobject接口
      */
     template<typename return_type>
     future<return_type> AsyncEvalshaScriptFile(const string &path,

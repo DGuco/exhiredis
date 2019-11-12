@@ -35,8 +35,8 @@ void testHiredis()
         "return nil; " \
         "end; " \
         "return redis.call('pttl', KEYS[1]);";
-    int resi = rScript.EvalshaReturnInt(cmd, {"TestLock:lock1"}, {"1000000000000", "3133213232"});
-    printf("=======================");
+    string resi = rScript.EvalReturnString("return 'hello world!'", {}, {});
+    printf("%s\n",resi.c_str());
 };
 
 int

@@ -49,6 +49,19 @@ namespace exhiredis {
         return AsyncEvalScript<bool>(script, keys, args);
     }
 
+    string RScript::EvalReturnString(const string &script,
+                                     const list<string> &keys,
+                                    const list<string> &args)
+    {
+        return EvalScript<string>(script, keys, args);
+    }
+
+    future<string> RScript::AsyncEvalReturnString(const string &script,
+                                                  const list<string> &keys,
+                                                  const list<string> &args)
+    {
+        return AsyncEvalScript<string>(script, keys, args);
+    }
 
     int RScript::EvalshaReturnInt(const string &script,
                                   const list<string> &keys,
@@ -78,12 +91,27 @@ namespace exhiredis {
         return AsyncEvalshaScript<bool>(script, keys, args);
     }
 
+
+    string RScript::EvalshaReturnString(const string &script,
+                                     const list<string> &keys,
+                                     const list<string> &args)
+    {
+        return EvalshaScript<string>(script, keys, args);
+    }
+
+    future<string> RScript::AsyncEvalshaReturnString(const string &script,
+                                                  const list<string> &keys,
+                                                  const list<string> &args)
+    {
+        return AsyncEvalshaScript<string>(script, keys, args);
+    }
+
     template<class return_type>
     return_type RScript::EvalScript(const string &scriptCmd,
                                     const list<string> &keys,
                                     const list<string> &args)
     {
-        m_pConnectionManager->ExecuteCommand<return_type>(BuildScriptCmd(CRedisCommands::EVAL,scriptCmd,keys,args));
+        return m_pConnectionManager->ExecuteCommand<return_type>(BuildScriptCmd(CRedisCommands::EVAL,scriptCmd,keys,args));
     }
 
     template<class return_type>
@@ -93,7 +121,7 @@ namespace exhiredis {
     {
         return  std::async([this,scriptCmd,keys,args]() -> return_type
                            {
-                               m_pConnectionManager->ExecuteCommand<return_type>(BuildScriptCmd(CRedisCommands::EVAL,scriptCmd,keys,args));
+                               return m_pConnectionManager->ExecuteCommand<return_type>(BuildScriptCmd(CRedisCommands::EVAL,scriptCmd,keys,args));
                            });
     }
 
@@ -102,11 +130,8 @@ namespace exhiredis {
                                         const list<string> &keys,
                                         const list<string> &args)
     {
-        unsigned char hash[20];
-        char hexstring[41];
-
         std::string script_content = ReadFile(path);
-        m_pConnectionManager->ExecuteCommand<return_type>(BuildScriptCmd(CRedisCommands::EVAL,script_content,keys,args));
+        return m_pConnectionManager->ExecuteCommand<return_type>(BuildScriptCmd(CRedisCommands::EVAL,script_content,keys,args));
     }
 
     template<class return_type>
@@ -114,7 +139,7 @@ namespace exhiredis {
                                                      const list<string> &keys,
                                                      const list<string> &args)
     {
-        return  std::async([this,path,keys,args]() -> return_type
+        return std::async([this,path,keys,args]() -> return_type
                            {
                                std::string script_content = ReadFile(path);
                                m_pConnectionManager->ExecuteCommand<return_type>(BuildScriptCmd(CRedisCommands::EVAL,script_content,keys,args));
@@ -133,7 +158,7 @@ namespace exhiredis {
         ToHexString(hash, hexstring);
         string scriptArg;
         scriptArg.assign(hexstring);
-        m_pConnectionManager->ExecuteCommand<return_type>(BuildScriptCmd(CRedisCommands::EVALSHA,scriptArg,keys,args));
+        return m_pConnectionManager->ExecuteCommand<return_type>(BuildScriptCmd(CRedisCommands::EVALSHA,scriptArg,keys,args));
     }
 
     template<class return_type>
@@ -166,7 +191,7 @@ namespace exhiredis {
         ToHexString(hash, hexstring);
         string scriptArg;
         scriptArg.assign(hexstring);
-        m_pConnectionManager->ExecuteCommand<return_type>(BuildScriptCmd(CRedisCommands::EVALSHA,scriptArg,keys,args));
+        return m_pConnectionManager->ExecuteCommand<return_type>(BuildScriptCmd(CRedisCommands::EVALSHA,scriptArg,keys,args));
     }
 
     template<class return_type>
