@@ -18,6 +18,7 @@ public:
     static char *HKEYS;
     static char *HGETALL;
     static char *HEXISTS;
+    static char *HLEN;
     static char *EVAL;
     static char *EVALSHA;
 };

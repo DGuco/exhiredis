@@ -161,7 +161,7 @@ public:
      * @param scriptCmd
      * @param keys
      * @param args
-     * @return lua script return return_type value  必须实现IRobject接口
+     * @return lua script return return_type value
      */
     template<typename return_type>
     return_type EvalScript(const string &scriptCmd,
@@ -174,7 +174,7 @@ public:
      * @param scriptCmd
      * @param keys
      * @param args
-     * @return lua script async return return_type value  必须实现IRobject接口
+     * @return lua script async return return_type value
      */
     template<typename return_type>
     future<return_type> AsyncEvalScript(const string &scriptCmd,
@@ -187,7 +187,7 @@ public:
      * @param script
      * @param keys
      * @param args
-     * @return lua script file return return_type value  必须实现IRobject接口
+     * @return lua script file return return_type value
      */
     template<typename return_type>
     return_type EvalScriptFile(const string &path,
@@ -200,7 +200,7 @@ public:
      * @param script
      * @param keys
      * @param args
-     * @return lua script file async return return_type value  必须实现IRobject接口
+     * @return lua script file async return return_type value
      */
     template<typename return_type>
     future<return_type> AsyncEvalScriptFile(const string &path,
@@ -213,7 +213,7 @@ public:
      * @param scriptCmd
      * @param keys
      * @param args
-     * @return lua script return return_type value  必须实现IRobject接口
+     * @return lua script return return_type value
      */
     template<typename return_type>
     return_type EvalshaScript(const string &scriptCmd,
@@ -226,7 +226,7 @@ public:
      * @param scriptCmd
      * @param keys
      * @param args
-     * @return lua script async return return_type value  必须实现IRobject接口
+     * @return lua script async return return_type value
      */
     template<typename return_type>
     future<return_type> AsyncEvalshaScript(const string &scriptCmd,
@@ -239,7 +239,7 @@ public:
      * @param script
      * @param keys
      * @param args
-     * @return lua script file return return_type value  必须实现IRobject接口
+     * @return lua script file return return_type value
      */
     template<typename return_type>
     return_type EvalshaScriptFile(const string &path,
@@ -252,7 +252,7 @@ public:
      * @param script
      * @param keys
      * @param args
-     * @return lua script file async return return_type value  必须实现IRobject接口
+     * @return lua script file async return return_type value
      */
     template<typename return_type>
     future<return_type> AsyncEvalshaScriptFile(const string &path,

@@ -22,7 +22,8 @@ namespace exhiredis {
      * @tparam value_type value_typee must has method FromString(const string &str) and ToString()
      */
     template<class key_type, class value_type>
-    class RMap {
+    class RMap
+    {
     public:
         /**
          * RMap
@@ -103,6 +104,18 @@ namespace exhiredis {
          */
         future<bool> ExistsAsync(const key_type &key);
 
+        /**
+         * HLEN
+         * @return map filed size
+         */
+        int Size();
+
+        /**
+         * HLEN
+         * @return map filed size
+         */
+        future<int> SizeAsync();
+
     private:
         string m_mapName;
         shared_ptr<CConnectionManager> m_pConnectionManager;
@@ -123,14 +136,16 @@ namespace exhiredis {
     }
 
     template<class key_type, class value_type>
-    future<bool> RMap<key_type, value_type>::PutAsync(const key_type &key, const value_type &value) {
+    future<bool> RMap<key_type, value_type>::PutAsync(const key_type &key, const value_type &value)
+    {
         const string &key_str = CParam<key_type>(key).ToString();
         const string &value_str = CParam<value_type>(value).ToString();
         return m_pConnectionManager->AsyncExecuteCommand<bool>({CRedisCommands::HSET,m_mapName,key_str, value_str});
     }
 
     template<class key_type, class value_type>
-    pair<bool,value_type> RMap<key_type, value_type>::Get(const key_type &key) {
+    pair<bool,value_type> RMap<key_type, value_type>::Get(const key_type &key)
+    {
         const string& key_str = CParam<key_type>(key).ToString();
         return m_pConnectionManager->ExecuteCommand<pair<bool,value_type>>({CRedisCommands::HGET,m_mapName,key_str},
                 [](shared_ptr<CRedisReply> reply) -> pair<bool,value_type>
@@ -142,7 +157,8 @@ namespace exhiredis {
     }
 
     template<class key_type, class value_type>
-    future<pair<bool,value_type>> RMap<key_type, value_type>::GetAsync(const key_type &key) {
+    future<pair<bool,value_type>> RMap<key_type, value_type>::GetAsync(const key_type &key)
+    {
         const string& key_str = CParam<key_type>(key).ToString();
         return m_pConnectionManager->AsyncExecuteCommand<pair<bool,value_type>>({CRedisCommands::HGET,m_mapName,key_str},
                 [](shared_ptr<CRedisReply> reply) -> pair<bool,value_type>
@@ -154,17 +170,20 @@ namespace exhiredis {
     }
 
     template<class key_type, class value_type>
-    list<key_type> RMap<key_type, value_type>::Keys() {
+    list<key_type> RMap<key_type, value_type>::Keys()
+    {
         return m_pConnectionManager->ExecuteCommandReturnList<key_type>({CRedisCommands::HKEYS,m_mapName});
     }
 
     template<class key_type, class value_type>
-    future<list<key_type>> RMap<key_type, value_type>::KeysAsync() {
+    future<list<key_type>> RMap<key_type, value_type>::KeysAsync()
+    {
         return m_pConnectionManager->AsyncExecuteCommandReturnList<key_type>({CRedisCommands::HKEYS,m_mapName});
     }
 
     template<class key_type, class value_type>
-    list<pair<key_type, value_type>> RMap<key_type, value_type>::GetAll() {
+    list<pair<key_type, value_type>> RMap<key_type, value_type>::GetAll()
+    {
         return m_pConnectionManager->ExecuteCommandReturnList<pair<key_type, value_type>>
                 ({CRedisCommands::HGETALL,m_mapName},
                  [](shared_ptr<CRedisReply> reply) -> list<pair<key_type, value_type>>
@@ -185,7 +204,8 @@ namespace exhiredis {
     }
 
     template<class key_type, class value_type>
-    future<list<pair<key_type, value_type>>> RMap<key_type, value_type>::GetAllAsync() {
+    future<list<pair<key_type, value_type>>> RMap<key_type, value_type>::GetAllAsync()
+    {
         return m_pConnectionManager->AsyncExecuteCommandReturnList<pair<key_type, value_type>>
                 ({CRedisCommands::HGETALL,m_mapName},
                 [](shared_ptr<CRedisReply> reply) -> list<pair<key_type, value_type>>
@@ -206,15 +226,27 @@ namespace exhiredis {
     }
 
     template<class key_type, class value_type>
-    bool RMap<key_type, value_type>::Exists(const key_type &key) {
+    bool RMap<key_type, value_type>::Exists(const key_type &key)
+    {
         const string& key_str = CParam<key_type>(key).ToString();
         return m_pConnectionManager->ExecuteCommand<bool>({CRedisCommands::HEXISTS,m_mapName,key_str});
     }
 
     template<class key_type, class value_type>
-    future<bool> RMap<key_type, value_type>::ExistsAsync(const key_type &key) {
+    future<bool> RMap<key_type, value_type>::ExistsAsync(const key_type &key)
+    {
         const string& key_str = CParam<key_type>(key).ToString();
         return m_pConnectionManager->AsyncExecuteCommand<bool>({CRedisCommands::HEXISTS,m_mapName,key_str});
+    }
+
+    int RMap::Size()
+    {
+        return m_pConnectionManager->ExecuteCommand<int>({CRedisCommands::HLEN,m_mapName});
+    }
+
+    future<int> RMap::SizeAsync()
+    {
+        return m_pConnectionManager->AsyncExecuteCommand<int>({CRedisCommands::HLEN,m_mapName});
     }
 }
 #endif //EXHIREDIS_RMAP_H

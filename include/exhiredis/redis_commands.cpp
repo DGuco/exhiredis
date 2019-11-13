@@ -20,6 +20,8 @@ namespace exhiredis
 
     char *CRedisCommands::HEXISTS = "HEXISTS";
 
+    char *CRedisCommands::HLEN = "HLEN";
+
     char *CRedisCommands::EVAL = "EVAL";
 
     char *CRedisCommands::EVALSHA = "EVALSHA";
