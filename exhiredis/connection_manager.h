@@ -9,7 +9,7 @@
 #include <memory>
 #include <future>
 #include <list>
-#include "exhiredis/rstl/param.h"
+#include "rstl/param.h"
 #include "connection_pool.h"
 #include "redis_exception.h"
 

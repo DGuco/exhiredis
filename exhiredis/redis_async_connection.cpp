@@ -2,8 +2,7 @@
 // Created by dguco on 19-1-4.
 //
 #include "redis_async_connection.h"
-#include "command.h"
-#include "command_param.h"
+#include <event2/event.h>
 
 namespace exhiredis
 {
@@ -58,7 +57,7 @@ bool CRedisAsyncConnection::Connect(const string &host, int port, bool isReconn)
 bool CRedisAsyncConnection::ReConnect()
 {
     {
-        lock_guard<mutex> lock_guard(m_lock);
+        lock_guard<mutex> lock_guard(m_connLock);
         if (GetConnState() == enConnState::DISCONNECTED) {
             ShutDown();
             return Connect(m_sHost, m_iPort, true);
@@ -85,13 +84,13 @@ bool CRedisAsyncConnection::ConnectToUnix(const string &address)
 
 enConnState CRedisAsyncConnection::GetConnState()
 {
-    lock_guard<mutex> lk(m_lock);
+    lock_guard<mutex> lk(m_connLock);
     return m_connState;
 }
 
 void CRedisAsyncConnection::SetConnState(enConnState eConnState)
 {
-    lock_guard<mutex> lk(m_lock);
+    lock_guard<mutex> lk(m_connLock);
     m_connState = eConnState;
 }
 
@@ -99,7 +98,7 @@ shared_ptr<CCommand> CRedisAsyncConnection::RedisvAsyncCommand(const char *forma
                                                           vector<shared_ptr<CCmdParam>> &param)
 {
     shared_ptr<CCommand> tmpCommand = CreateCommand(format, param);
-    lock_guard<mutex> lk(m_lock);
+    lock_guard<mutex> lk(m_connLock);
     unsigned long commandId = tmpCommand->GetCommandId();
     m_cmdMap.insert(make_pair(commandId, tmpCommand));
     m_cmdList.push_back(commandId);
@@ -123,6 +122,7 @@ shared_ptr<CCommand> CRedisAsyncConnection::RedisvAsyncCommand(const char *forma
 
 int CRedisAsyncConnection::SendCommandAsync(shared_ptr<CCommand> &command)
 {
+    std::lock_guard<mutex> mContext(m_contextLock);
     int status = redisAsyncFormattedCommand(m_pRedisContext,
                                             &CRedisAsyncConnection::lcb_OnCommandCallback,
                                             (void *) command->GetCommandId(),
@@ -187,7 +187,7 @@ void CRedisAsyncConnection::RetryFailedOrWaitCommands()
 
 void CRedisAsyncConnection::SetCommandReply(unsigned long cmdId, redisReply *cmdReply)
 {
-    lock_guard<mutex> lock(m_lock);
+    lock_guard<mutex> lock(m_connLock);
     unsigned long tmpCmdId = 0;
     auto cmdIdIt = m_cmdList.begin();
     bool hasTimeOutCmds = false;
@@ -255,7 +255,7 @@ void CRedisAsyncConnection::StartCheckTimer()
 void CRedisAsyncConnection::CheckTimeOutCommand()
 {
     time_t time = system_clock::to_time_t(system_clock::now());
-    lock_guard<mutex> lock(m_lock);
+    lock_guard<mutex> lock(m_connLock);
     auto it = m_cmdList.begin();
     while (it != m_cmdList.end()) {
         auto cmdIt = m_cmdMap.find(*it);
@@ -296,7 +296,7 @@ bool CRedisAsyncConnection::InitHiredis()
     redisContext *c = &(m_pRedisContext->c);
     m_pClosedEvent = event_new(m_pEventBase,
                                c->fd,
-                               EV_CLOSED,
+                               EV_WRITE,
                                &CRedisAsyncConnection::lcb_OnDisconnectEventCallback,
                                this);
     return true;
@@ -330,7 +330,7 @@ shared_ptr<CCommand> CRedisAsyncConnection::CreateCommand(const char *format, ve
     unsigned long cmdId = GenCommandId();
     char *cmd;
     int len;
-    len = CCommand::RedisvFormatCommand(&cmd, format, param);
+//    len = CCommand::RedisvFormatCommand(&cmd, format, param);
 
     if (len < 0)
         throw CRException("CreateCommand failed,error type : " + len);
@@ -360,9 +360,7 @@ void CRedisAsyncConnection::lcb_OnDisconnectCallback(const redisAsyncContext *co
     if (conn == nullptr || conn->GetConnState() == enConnState::DESTROYING) {
         return;
     }
-    if (conn != nullptr) {
-        conn->SetConnState(enConnState::DISCONNECTED);
-    }
+    conn->SetConnState(enConnState::DISCONNECTED);
 
     HIREDIS_LOG_ERROR("Disconnected from redis");
     conn->ReConnect();

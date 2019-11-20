@@ -9,8 +9,8 @@
 #include <list>
 #include <memory>
 #include <future>
-#include "exhiredis/comman_def.h"
-#include "exhiredis/connection_manager.h"
+#include "../comman_def.h"
+#include "../connection_manager.h"
 
 namespace exhiredis
 {

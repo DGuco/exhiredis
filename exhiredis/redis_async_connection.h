@@ -25,15 +25,13 @@
 #include "exhiredis/utils/exception.h"
 #include "exhiredis/utils/signal.h"
 #include "exhiredis/utils/log.h"
-#include "exhiredis/utils/uuid.h"
-#include "exhiredis/robject/rint.h"
+#include "exhiredis/command.h"
 #include "comman_def.h"
 
 using std::chrono::system_clock;
 namespace exhiredis
 {
 class CCmdParam;
-class CCommand;
 class CRedisAsyncConnection
 {
 public:
@@ -92,6 +90,7 @@ private:
     static void lcb_OnTimeoutCallback(evutil_socket_t fd, short events, void *arg);
 private:
     redisAsyncContext *m_pRedisContext;
+    mutex m_contextLock;
     event_base *m_pEventBase;
     event *m_pClosedEvent;
     event *m_pTimeOutEvent;
@@ -100,7 +99,7 @@ private:
     int m_iPort;
     string m_sAddress;
     enConnState m_connState;
-    mutex m_lock;
+    mutex m_connLock;
     atomic_ulong m_cmdId;
     unordered_map<unsigned long, shared_ptr<CCommand>> m_cmdMap;
     list<unsigned long> m_cmdList;

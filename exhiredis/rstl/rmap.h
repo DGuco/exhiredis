@@ -10,10 +10,10 @@
 #include <utility>
 #include <future>
 #include <list>
-#include "exhiredis/comman_def.h"
 #include "param.h"
-#include "exhiredis/redis_commands.h"
-#include "exhiredis/connection_manager.h"
+#include "../comman_def.h"
+#include "../redis_commands.h"
+#include "../connection_manager.h"
 
 namespace exhiredis {
     /**
@@ -239,12 +239,14 @@ namespace exhiredis {
         return m_pConnectionManager->AsyncExecuteCommand<bool>({CRedisCommands::HEXISTS,m_mapName,key_str});
     }
 
-    int RMap::Size()
+    template<class key_type, class value_type>
+    int RMap<key_type,value_type>::Size()
     {
         return m_pConnectionManager->ExecuteCommand<int>({CRedisCommands::HLEN,m_mapName});
     }
 
-    future<int> RMap::SizeAsync()
+    template<class key_type, class value_type>
+    future<int> RMap<key_type,value_type>::SizeAsync()
     {
         return m_pConnectionManager->AsyncExecuteCommand<int>({CRedisCommands::HLEN,m_mapName});
     }

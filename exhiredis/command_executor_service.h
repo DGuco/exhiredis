@@ -8,7 +8,6 @@
 #include <future>
 #include <memory>
 #include <vector>
-#include "exhiredis/robject/robject.h"
 #include "comman_def.h"
 #include "connection_manager.h"
 #include "command_param.h"

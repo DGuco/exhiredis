@@ -10,8 +10,8 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include "hiredis/hiredis.h"
 #include "redis_reply.h"
+#include "../hiredis/hiredis.h"
 
 using namespace std;
 

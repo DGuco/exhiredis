@@ -7,9 +7,9 @@
 
 #include <string>
 #include <vector>
-#include "hiredis/hiredis.h"
-#include "exhiredis/redis_exception.h"
-#include "exhiredis/rstl/param.h"
+#include "../hiredis/hiredis.h"
+#include "redis_exception.h"
+#include "rstl/param.h"
 
 using namespace std;
 

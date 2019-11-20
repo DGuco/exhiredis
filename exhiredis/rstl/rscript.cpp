@@ -142,7 +142,7 @@ namespace exhiredis {
         return std::async([this,path,keys,args]() -> return_type
                            {
                                std::string script_content = ReadFile(path);
-                               m_pConnectionManager->ExecuteCommand<return_type>(BuildScriptCmd(CRedisCommands::EVAL,script_content,keys,args));
+                               return m_pConnectionManager->ExecuteCommand<return_type>(BuildScriptCmd(CRedisCommands::EVAL,script_content,keys,args));
                            });
     }
 
@@ -174,7 +174,7 @@ namespace exhiredis {
                                ToHexString(hash, hexstring);
                                string scriptArg;
                                scriptArg.assign(hexstring);
-                               m_pConnectionManager->ExecuteCommand<return_type>(BuildScriptCmd(CRedisCommands::EVALSHA,scriptArg,keys,args));
+                               return m_pConnectionManager->ExecuteCommand<return_type>(BuildScriptCmd(CRedisCommands::EVALSHA,scriptArg,keys,args));
                            });
     }
 
@@ -209,7 +209,7 @@ namespace exhiredis {
                                ToHexString(hash, hexstring);
                                string scriptArg;
                                scriptArg.assign(hexstring);
-                               m_pConnectionManager->ExecuteCommand<return_type>(BuildScriptCmd(CRedisCommands::EVALSHA,scriptArg,keys,args));
+                               return m_pConnectionManager->ExecuteCommand<return_type>(BuildScriptCmd(CRedisCommands::EVALSHA,scriptArg,keys,args));
                            });
     }
 

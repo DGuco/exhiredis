@@ -9,10 +9,10 @@
 #include <memory>
 #include <string>
 #include <type_traits>
-#include "exhiredis/connection_manager.h"
-#include "exhiredis/utils/log.h"
-#include "exhiredis/rstl/rmap.h"
-#include "exhiredis/connection_manager.h"
+#include "connection_manager.h"
+#include "connection_manager.h"
+#include "utils/log.h"
+#include "rstl/rmap.h"
 
 using namespace std;
 namespace exhiredis

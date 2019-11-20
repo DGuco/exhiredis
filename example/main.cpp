@@ -6,9 +6,9 @@
 #include <tuple>
 #include <vector>
 #include <list>
-#include "exhiredis/rstl/rmap.h"
-#include "exhiredis/rstl/rscript.h"
-#include "exhiredis/redis_clients.h"
+#include "../exhiredis/rstl/rmap.h"
+#include "../exhiredis/rstl/rscript.h"
+#include "../exhiredis/redis_clients.h"
 
 using namespace std;
 using namespace exhiredis;
