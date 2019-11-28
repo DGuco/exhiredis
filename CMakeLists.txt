@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.6)
 project(exhiredis)
-
 add_subdirectory(hiredis)
 add_subdirectory(example)
 
