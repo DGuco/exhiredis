@@ -10,10 +10,12 @@ namespace exhiredis
 
     }
 
-    void CConnectionManager::Init(const string &host,int port, const string &passwd,int poolSize)
+    void CConnectionManager::Init(const string &host,int port, const string &passwd,int poolSize,int asyncPoolSize)
     {
         m_pConnectionPool = make_shared<CConnectionPool>(host,port,passwd);
         m_pConnectionPool->InitPool(poolSize);
+        m_pAsyncConnPool = make_shared<CAsyncConnectionPool>(host,port,passwd);
+        m_pAsyncConnPool->InitPool(asyncPoolSize);
     }
 
     void CConnectionManager::PutOneCon(shared_ptr<CRedisConnection> conn)

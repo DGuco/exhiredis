@@ -13,10 +13,14 @@ namespace exhiredis
 
     }
 
-    shared_ptr<exhiredis::CRedisClients> CRedisClients::CreateInstance(const string& host,int port,const string passwd,int poolSize)
+    shared_ptr<exhiredis::CRedisClients> CRedisClients::CreateInstance(const string& host,
+                                                                       int port,
+                                                                       const string passwd,
+                                                                       int poolSize,
+                                                                       int asyncPoolSize)
     {
         shared_ptr<CConnectionManager> conManager = make_shared<CConnectionManager>();
-        conManager->Init(host,port,passwd,poolSize);
+        conManager->Init(host,port,passwd,poolSize,asyncPoolSize);
         return make_shared<CRedisClients>(std::move(conManager));
     }
 

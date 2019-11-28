@@ -112,8 +112,8 @@ namespace  exhiredis
         argvlen.reserve(commands.size());
 
         for (auto it = commands.begin(); it != commands.end(); ++it) {
-            argv.push_back(it->c_str());
-            argvlen.push_back(it->size());
+            argv.push_back(it->data());
+            argvlen.push_back(it->length());
         }
 
         int ret = redisAppendCommandArgv(m_context, static_cast<int>(commands.size()), argv.data(), argvlen.data());

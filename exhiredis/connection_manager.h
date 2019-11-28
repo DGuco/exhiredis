@@ -11,6 +11,7 @@
 #include <list>
 #include "rstl/param.h"
 #include "connection_pool.h"
+#include "async_connection_pool.h"
 #include "redis_exception.h"
 
 using namespace std;
@@ -23,9 +24,14 @@ public:
     //构造函数
     CConnectionManager();
     /**
-     * init connect manager
+     *
+     * @param host redis host
+     * @param port redis port
+     * @param passwd redis passwd
+     * @param poolSize redis connection poolSize
+     * @param asyncPoolSize redis async connection poolSize
      */
-    void Init(const string &host,int port, const string &passwd,int poolSize);
+    void Init(const string &host,int port, const string &passwd,int poolSize,int asyncPoolSize);
     /**
      * add one connection
      * @param
@@ -272,6 +278,7 @@ public:
 
 private:
     shared_ptr<CConnectionPool> m_pConnectionPool;
+    shared_ptr<CAsyncConnectionPool> m_pAsyncConnPool;
 };
 }
 #endif //EXHIREDIS_MASTERSLAVEMANAGER_HPP

@@ -7,25 +7,13 @@
 
 namespace exhiredis
 {
-enum class eCommandState
-{
-    NOT_SEND = 1,       //Has not send to server
-    SEND_ERROR = 2,     // Could not send to server
-    NO_REPLY_YET = 3,   // No reply yet
-    REPLY_FAILED = 4,   // reply failed try again later
-    REPLY_DONE = 5,     // redis reply done
-    COMMAND_RETRYING = 6,     // command retrying
-};
-
 enum class enConnState
 {
-    DESTROYING = -1,       //call the CRedisAsyncConnectionction 析构函数
-    NOT_YET_CONNECTED = 0, // Starting state
+    DEFAULT = 0,
     CONNECTING = 1,        // connecting
     CONNECTED = 2,        // Successfully connected
-    DISCONNECTED = 3,      // Successfully disconnected
-    CONNECT_ERROR = 4,     // Error connecting
-    INIT_ERROR = 5,        // Failed to init data structures
+    CONNECTED_ERROR = 3,        // connected ERROR
+    DISCONNECTED = 4,      // Successfully disconnected
 };
 
 enum class eCommandModel

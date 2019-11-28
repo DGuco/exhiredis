@@ -44,7 +44,11 @@ namespace exhiredis
              */
             RScript GetScript();
         public:
-            static shared_ptr<CRedisClients> CreateInstance(const string& host,int port, const string passwd,int poolSize);
+            static shared_ptr<CRedisClients> CreateInstance(const string& host,
+                                                            int port,
+                                                            const string passwd,
+                                                            int poolSize,
+                                                            int asyncPoolSize);
         private:
             shared_ptr<CConnectionManager> m_pConnectionManager;
     };

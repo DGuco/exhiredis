@@ -31,6 +31,8 @@
 
 #ifndef __HIREDIS_ASYNC_H
 #define __HIREDIS_ASYNC_H
+
+#include <pthread.h>
 #include "hiredis.h"
 
 #ifdef __cplusplus
@@ -63,6 +65,8 @@ typedef void(redisTimerCallback)(void *timer, void *privdata);
 typedef struct redisAsyncContext {
     /* Hold the regular context, so it can be realloc'ed. */
     redisContext c;
+    /*keep the redisAsyncContext thread safe*/
+    pthread_mutex_t ctxlock;
 
     /* Setup error flags so they can be used directly. */
     int err;

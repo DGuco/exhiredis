@@ -19,6 +19,9 @@ set(EXHIREDIS
         exhiredis/rstl/rmap.h
         exhiredis/redis_commands.h
         exhiredis/connection_pool.h
+        exhiredis/connection_pool.cpp
+        exhiredis/async_connection_pool.h
+        exhiredis/async_connection_pool.cpp
         exhiredis/redis_clients.h
         exhiredis/connection_manager.h
         exhiredis/lock/redis_lock.h
@@ -27,7 +30,6 @@ set(EXHIREDIS
         exhiredis/utils/sdsalloc.h
         exhiredis/lock/redis_lock.cpp
         exhiredis/rstl/rscript.cpp
-        exhiredis/connection_pool.cpp
         exhiredis/redis_clients.cpp
         exhiredis/connection_manager.cpp
         exhiredis/utils/signal.cpp
@@ -35,14 +37,14 @@ set(EXHIREDIS
         exhiredis/utils/log.cpp
         exhiredis/comman_def.h
         exhiredis/utils/check.h
+        exhiredis/redis_async_connection.h
         exhiredis/redis_connection.h
         exhiredis/redis_connection.cpp
+        exhiredis/redis_async_connection.cpp
         exhiredis/redis_reply.h
         exhiredis/redis_reply.cpp
         exhiredis/redis_exception.h
-        exhiredis/rstl/param.h
-        exhiredis/command.h
-        exhiredis/command.cpp)
+        exhiredis/rstl/param.h)
 
 include_directories(
         /usr/

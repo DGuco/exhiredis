@@ -38,7 +38,7 @@ public:
 void testHiredis()
 {
 
-    shared_ptr<CRedisClients> redisClients = CRedisClients::CreateInstance("127.0.0.1",6379,"",5);
+    shared_ptr<CRedisClients> redisClients = CRedisClients::CreateInstance("127.0.0.1",6379,"",5,0);
     RMap<int, int> map = redisClients->GetMap<int, int>("TestMap");
     bool res = map.Exists(111);
     auto keys = map.Keys();
@@ -60,7 +60,7 @@ void testHiredis()
     RMap<int, TestObj> map1 = redisClients->GetMap<int, TestObj>("TestMap1");
     TestObj obj1(10,100);
     map1.Put(1,obj1);
-    std::pair<bool,TestObj> resObj = map1.Get(1111);
+    std::pair<bool,TestObj> resObj = map1.Get(1);
     printf("resObj a = %d,b = %d \n",resObj.second.a,resObj.second.b);
 
 };

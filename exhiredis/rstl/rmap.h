@@ -62,7 +62,7 @@ namespace exhiredis {
          * @param key
          * @return  pair<bool,value_type>
          *          left: true ==>key对应的value存在 right key对应的value
-         *          left: false ==>key对应的value不存在
+         *          left: false ==>key对应的value不存在 right key对应的obj 默认值
          */
         future<pair<bool,value_type>> GetAsync(const key_type &key);
 

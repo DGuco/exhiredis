@@ -126,6 +126,7 @@ static redisAsyncContext *redisAsyncInitialize(redisContext *c) {
     ac->sub.invalid.tail = NULL;
     ac->sub.channels = dictCreate(&callbackDict,NULL);
     ac->sub.patterns = dictCreate(&callbackDict,NULL);
+    pthread_mutex_init(&ac->ctxlock, NULL);
     return ac;
 }
 
@@ -298,6 +299,7 @@ static void __redisAsyncFree(redisAsyncContext *ac) {
         }
     }
 
+    pthread_mutex_destroy(&ac->ctxlock);
     /* Cleanup self */
     redisFree(c);
 }
@@ -535,18 +537,25 @@ void redisAsyncRead(redisAsyncContext *ac) {
  * It processes all replies that can be read and executes their callbacks.
  */
 void redisAsyncHandleRead(redisAsyncContext *ac) {
+    pthread_mutex_lock(&ac->ctxlock);
     redisContext *c = &(ac->c);
 
     if (!(c->flags & REDIS_CONNECTED)) {
         /* Abort connect was not successful. */
-        if (__redisAsyncHandleConnect(ac) != REDIS_OK)
+        if (__redisAsyncHandleConnect(ac) != REDIS_OK) {
+            pthread_mutex_unlock(&ac->ctxlock);
             return;
+        }
+
         /* Try again later when the context is still not connected. */
-        if (!(c->flags & REDIS_CONNECTED))
+        if (!(c->flags & REDIS_CONNECTED)){
+            pthread_mutex_unlock(&ac->ctxlock);
             return;
+        }
     }
 
     c->funcs->async_read(ac);
+    pthread_mutex_unlock(&ac->ctxlock);
 }
 
 void redisAsyncWrite(redisAsyncContext *ac) {
@@ -568,27 +577,35 @@ void redisAsyncWrite(redisAsyncContext *ac) {
 }
 
 void redisAsyncHandleWrite(redisAsyncContext *ac) {
+    pthread_mutex_lock(&ac->ctxlock);
     redisContext *c = &(ac->c);
 
     if (!(c->flags & REDIS_CONNECTED)) {
         /* Abort connect was not successful. */
-        if (__redisAsyncHandleConnect(ac) != REDIS_OK)
+        if (__redisAsyncHandleConnect(ac) != REDIS_OK) {
+            pthread_mutex_unlock(&ac->ctxlock);
             return;
+        }
         /* Try again later when the context is still not connected. */
-        if (!(c->flags & REDIS_CONNECTED))
+        if (!(c->flags & REDIS_CONNECTED)){
+            pthread_mutex_unlock(&ac->ctxlock);
             return;
+        }
     }
 
     c->funcs->async_write(ac);
+    pthread_mutex_unlock(&ac->ctxlock);
 }
 
 void __redisSetError(redisContext *c, int type, const char *str);
 
 void redisAsyncHandleTimeout(redisAsyncContext *ac) {
+    pthread_mutex_lock(&ac->ctxlock);
     redisContext *c = &(ac->c);
     redisCallback cb;
 
     if ((c->flags & REDIS_CONNECTED) && ac->replies.head == NULL) {
+        pthread_mutex_unlock(&ac->ctxlock);
         /* Nothing to do - just an idle timeout */
         return;
     }
@@ -610,6 +627,7 @@ void redisAsyncHandleTimeout(redisAsyncContext *ac) {
      * rather, allow to ignore <x> responses before the queue is clear
      */
     __redisAsyncDisconnect(ac);
+    pthread_mutex_unlock(&ac->ctxlock);
 }
 
 /* Sets a pointer to the first argument and its length starting at p. Returns
@@ -712,55 +730,71 @@ static int __redisAsyncCommand(redisAsyncContext *ac, redisCallbackFn *fn, void 
 }
 
 int redisvAsyncCommand(redisAsyncContext *ac, redisCallbackFn *fn, void *privdata, const char *format, va_list ap) {
+    pthread_mutex_lock(&ac->ctxlock);
     char *cmd;
     int len;
     int status;
     len = redisvFormatCommand(&cmd,format,ap);
 
     /* We don't want to pass -1 or -2 to future functions as a length. */
-    if (len < 0)
+    if (len < 0) {
+        pthread_mutex_lock(&ac->ctxlock);
         return REDIS_ERR;
+    }
 
     status = __redisAsyncCommand(ac,fn,privdata,cmd,len);
     free(cmd);
+    pthread_mutex_unlock(&ac->ctxlock);
     return status;
 }
 
 int redisAsyncCommand(redisAsyncContext *ac, redisCallbackFn *fn, void *privdata, const char *format, ...) {
+    pthread_mutex_lock(&ac->ctxlock);
     va_list ap;
     int status;
     va_start(ap,format);
     status = redisvAsyncCommand(ac,fn,privdata,format,ap);
     va_end(ap);
+    pthread_mutex_unlock(&ac->ctxlock);
     return status;
 }
 
 int redisAsyncCommandArgv(redisAsyncContext *ac, redisCallbackFn *fn, void *privdata, int argc, const char **argv, const size_t *argvlen) {
+    pthread_mutex_lock(&ac->ctxlock);
     sds cmd;
     int len;
     int status;
     len = redisFormatSdsCommandArgv(&cmd,argc,argv,argvlen);
-    if (len < 0)
+    if (len < 0){
+        pthread_mutex_unlock(&ac->ctxlock);
         return REDIS_ERR;
+    }
+
     status = __redisAsyncCommand(ac,fn,privdata,cmd,len);
     sdsfree(cmd);
+    pthread_mutex_unlock(&ac->ctxlock);
     return status;
 }
 
 int redisAsyncFormattedCommand(redisAsyncContext *ac, redisCallbackFn *fn, void *privdata, const char *cmd, size_t len) {
+    pthread_mutex_lock(&ac->ctxlock);
     int status = __redisAsyncCommand(ac,fn,privdata,cmd,len);
+    pthread_mutex_unlock(&ac->ctxlock);
     return status;
 }
 
 void redisAsyncSetTimeout(redisAsyncContext *ac, struct timeval tv) {
+    pthread_mutex_lock(&ac->ctxlock);
     if (!ac->c.timeout) {
         ac->c.timeout = calloc(1, sizeof(tv));
     }
 
     if (tv.tv_sec == ac->c.timeout->tv_sec &&
         tv.tv_usec == ac->c.timeout->tv_usec) {
+        pthread_mutex_unlock(&ac->ctxlock);
         return;
     }
 
     *ac->c.timeout = tv;
+    pthread_mutex_unlock(&ac->ctxlock);
 }
