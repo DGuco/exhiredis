@@ -27,6 +27,8 @@ public:
     void PutOneCon(shared_ptr<CRedisConnection> conn);
     //borrow one connection
     shared_ptr<CRedisConnection> GetOneCon();
+    //Release
+    void Release();
 private:
     set<shared_ptr<CRedisConnection>> m_connList;
     mutex m_poolLock;

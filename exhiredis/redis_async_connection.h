@@ -68,8 +68,6 @@ private:
 private:
     redisAsyncContext *m_pRedisContext;
     event_base *m_pEventBase;
-    event *m_pClosedEvent;
-    event *m_pTimeOutEvent;
     thread m_eventLoopThread;
     string m_sHost;
     int m_iPort;

@@ -50,4 +50,9 @@ namespace exhiredis {
         m_connList.erase(it);
         return conn;
     }
+
+    void CAsyncConnectionPool::Release()
+    {
+        m_connList.clear();
+    }
 }

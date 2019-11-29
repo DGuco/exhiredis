@@ -37,8 +37,7 @@ public:
 };
 void testHiredis()
 {
-
-    shared_ptr<CRedisClients> redisClients = CRedisClients::CreateInstance("127.0.0.1",6379,"",5,0);
+    shared_ptr<CRedisClients> redisClients = CRedisClients::CreateInstance("127.0.0.1",6379,"",5,1);
     RMap<int, int> map = redisClients->GetMap<int, int>("TestMap");
     bool res = map.Exists(111);
     auto keys = map.Keys();
